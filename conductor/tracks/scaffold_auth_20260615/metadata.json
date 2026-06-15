@@ -1,0 +1,8 @@
+{
+  "track_id": "scaffold_auth_20260615",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-06-15T00:00:00Z",
+  "updated_at": "2026-06-15T00:00:00Z",
+  "description": "Project Scaffold & Authentication: Initialize the Next.js + Express + PostgreSQL stack and implement user signup/login with NextAuth.js."
+}
