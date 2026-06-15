@@ -23,7 +23,7 @@ Initialize the full-stack project with Next.js, Express.js (with Socket.io scaff
 
 - Neon (serverless PostgreSQL) connection configured via environment variables
 - Drizzle ORM initialized with `@neondatabase/serverless` driver
-- Users table: id, email (unique), password_hash, name, avatar_url, role (owner/member), created_at, updated_at
+- Users table: id, email (unique), password_hash, name, avatar_url, created_at, updated_at
 - Database migration tooling set up (drizzle-kit)
 
 ### FR-3: User Registration
@@ -80,5 +80,5 @@ Initialize the full-stack project with Next.js, Express.js (with Socket.io scaff
 - OAuth providers (Google, GitHub) — deferred
 - Email verification
 - Password reset
-- Multi-organization support (DB column included, not implemented)
+- Multi-organization support (DB schema deferred)
 - Socket.io real-time features (server scaffolding only)
