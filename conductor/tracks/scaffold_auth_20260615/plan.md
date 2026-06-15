@@ -26,9 +26,9 @@
 
 ## Phase 2: Database Setup
 
-- [ ] Task: Configure PostgreSQL connection and Drizzle ORM
+- [ ] Task: Configure Neon database connection and Drizzle ORM
     - [ ] Write tests: Verify database connection succeeds
-    - [ ] Implement: Set up env vars (DATABASE_URL), drizzle.config.ts, db connection utility
+    - [ ] Implement: Set up env vars (DATABASE_URL, NEON_WS_URL), drizzle.config.ts, db connection using @neondatabase/serverless
 - [ ] Task: Define and migrate users table schema
     - [ ] Write tests: Verify table creation and column types via Drizzle introspection
     - [ ] Implement: Define users schema (id, email, password_hash, name, avatar_url, role, timestamps), run migrate

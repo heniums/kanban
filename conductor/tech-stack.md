@@ -8,8 +8,8 @@
 | Runtime | Node.js 22+ | Mature ecosystem, WebSocket-native |
 | Frontend | React 18 + Next.js 14 (App Router) | SSR/SSG, file-based routing, API routes |
 | Backend | Express.js + Socket.io | Battle-tested HTTP + real-time WS with rooms |
-| Database | PostgreSQL 16 | Relational integrity for org/team/user hierarchies |
-| ORM | Drizzle ORM | Type-safe queries, fast schema iteration, lightweight |
+| Database | PostgreSQL 16 (Neon) | Serverless Postgres with connection pooling, branching for dev |
+| ORM | Drizzle ORM + @neondatabase/serverless | Type-safe queries, native serverless driver, lightweight |
 
 ## Supporting Libraries
 
@@ -48,7 +48,7 @@
 ├─────────────────────────────────────────┤
 │            Drizzle ORM                  │
 ├─────────────────────────────────────────┤
-│           PostgreSQL                    │
+│        PostgreSQL (Neon)               │
 └─────────────────────────────────────────┘
 ```
 
@@ -57,4 +57,4 @@
 - **Linting:** ESLint + Prettier (consistent formatting)
 - **Git Hooks:** Husky + lint-staged (pre-commit checks)
 - **CI/CD:** GitHub Actions (typecheck, lint, test on push)
-- **Hosting:** Vercel (frontend) + Railway/Render (backend + DB)
+- **Hosting:** Vercel (frontend) + Railway/Render (backend) + Neon (database)
