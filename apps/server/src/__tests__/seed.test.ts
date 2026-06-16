@@ -1,10 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, afterAll } from "vitest";
 import { createDbClient } from "../db.js";
 import { users } from "../schema/users.js";
 import { seed } from "../seed.js";
 import { eq } from "drizzle-orm";
 
 const db = createDbClient();
+
+afterAll(async () => {
+  await db.delete(users).where(eq(users.email, "demo@kanban.local"));
+});
 
 describe("Seed script", () => {
   it("creates a demo user without errors", async () => {
