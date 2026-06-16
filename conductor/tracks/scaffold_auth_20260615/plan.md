@@ -8,22 +8,22 @@
 
 ## Phase 1: Project Initialization
 
-- [ ] Task: Initialize Next.js project with TypeScript and App Router
-  - [ ] Write tests: Verify project compiles and dev server starts
-  - [ ] Implement: Create Next.js project, configure tsconfig strict mode, set up App Router structure
-- [ ] Task: Configure tooling (ESLint, Prettier, Husky)
-  - [ ] Write tests: Verify lint and format commands pass
-  - [ ] Implement: Add ESLint with typescript-eslint, Prettier config, Husky pre-commit hook
-- [ ] Task: Install and configure Tailwind CSS + shadcn/ui
-  - [ ] Write tests: Verify Tailwind classes compile without errors
-  - [ ] Implement: Configure tailwind.config.ts, set up shadcn/ui components.json
-- [ ] Task: Initialize Express.js backend with TypeScript
-  - [ ] Write tests: Verify Express server starts and responds to health check
-  - [ ] Implement: Create Express app with TypeScript, add basic middleware (cors, json), tsx for dev
-- [ ] Task: Set up shared types package and project structure
-  - [ ] Write tests: Verify shared types are importable from both frontend and backend
-  - [ ] Implement: Create shared directory with Zod schemas, configure path aliases
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Project Initialization' (Protocol in workflow.md)
+- [x] Task: Initialize Next.js project with TypeScript and App Router
+  - [x] Write tests: Verify project compiles and dev server starts
+  - [x] Implement: Create Next.js project, configure tsconfig strict mode, set up App Router structure
+- [x] Task: Configure tooling (ESLint, Prettier, Husky)
+  - [x] Write tests: Verify lint and format commands pass
+  - [x] Implement: Add ESLint with typescript-eslint, Prettier config, Husky pre-commit hook
+- [x] Task: Install and configure Tailwind CSS + shadcn/ui
+  - [x] Write tests: Verify Tailwind classes compile without errors
+  - [x] Implement: Configure tailwind.config.ts, set up shadcn/ui components.json
+- [x] Task: Initialize Express.js backend with TypeScript
+  - [x] Write tests: Verify Express server starts and responds to health check
+  - [x] Implement: Create Express app with TypeScript, add basic middleware (cors, json), tsx for dev
+- [x] Task: Set up shared types package and project structure
+  - [x] Write tests: Verify shared types are importable from both frontend and backend
+  - [x] Implement: Create shared directory with Zod schemas, configure path aliases
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Project Initialization' (Protocol in workflow.md)
 
 ## Phase 2: Database Setup
 
