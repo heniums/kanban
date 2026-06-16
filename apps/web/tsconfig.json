@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@kanban/shared": ["../../packages/shared/src/index.ts"]
     }
   },
   "include": [

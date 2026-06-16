@@ -9,12 +9,12 @@
     "start": "node dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --check .",
     "format:fix": "prettier --write ."
   },
   "dependencies": {
-    "@kanban/shared": "workspace:*",
     "cors": "^2.8.5",
     "express": "^5.1.0"
   },
