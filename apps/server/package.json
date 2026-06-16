@@ -14,15 +14,18 @@
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
     "db:push": "drizzle-kit push",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "db:seed": "tsx src/seed.ts"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "drizzle-orm": "^0.45.2",
     "express": "^5.1.0",
     "pg": "^8.21.0"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^3.0.0",
     "@types/cors": "^2.8.0",
     "@types/express": "^5.0.0",
     "@types/pg": "^8.20.0",
