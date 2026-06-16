@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { sql } from "drizzle-orm";
-import { createDbClient } from "./db.js";
+import { createDbClient } from "../db.js";
 
 describe("Database connection", () => {
   it("connects and responds to a simple query", async () => {
