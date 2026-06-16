@@ -27,16 +27,16 @@
 
 ## Phase 2: Database Setup
 
-- [ ] Task: Configure Neon database connection and Drizzle ORM
-  - [ ] Write tests: Verify database connection succeeds
-  - [ ] Implement: Set up env vars (DATABASE_URL, NEON_WS_URL), drizzle.config.ts, db connection using @neondatabase/serverless
-- [ ] Task: Define and migrate users table schema
-  - [ ] Write tests: Verify table creation and column types via Drizzle introspection
-  - [ ] Implement: Define users schema (id, email, password_hash, name, avatar_url, timestamps), run migrate
-- [ ] Task: Create seed script for development
-  - [ ] Write tests: Verify seed script creates a test user without errors
-  - [ ] Implement: Create seed script with a demo user
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Database Setup' (Protocol in workflow.md)
+- [x] Task: Configure Neon database connection and Drizzle ORM
+  - [x] Write tests: Verify database connection succeeds
+  - [x] Implement: Set up env vars (DATABASE_URL), drizzle.config.ts, db connection using pg driver
+- [x] Task: Define and migrate users table schema
+  - [x] Write tests: Verify table creation and column types via Drizzle introspection
+  - [x] Implement: Define users schema (id, email, password_hash, name, avatar_url, timestamps), run db:push
+- [x] Task: Create seed script for development
+  - [x] Write tests: Verify seed script creates a test user without errors
+  - [x] Implement: Create seed script with a demo user
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Database Setup' (Protocol in workflow.md)
 
 ## Phase 3: Authentication
 
