@@ -83,3 +83,4 @@
 
 - [x] Task: Apply review suggestions 680cfb4
 - [x] Task: Fix tests to run without database c0bbde3
+- [x] Task: Set up env files for both apps 59ce4ae
