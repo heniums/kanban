@@ -21,8 +21,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 
-const SERVER_URL =
-  process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3001";
+import { apiFetch } from "@/lib/api";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -39,17 +38,10 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterUserInput) => {
     setServerError("");
     try {
-      const res = await fetch(`${SERVER_URL}/api/auth/register`, {
+      await apiFetch("/api/auth/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-
-      if (!res.ok) {
-        const error = await res.json();
-        setServerError(error.error || "Registration failed");
-        return;
-      }
 
       const signInResult = await signIn("credentials", {
         email: data.email,
@@ -65,8 +57,10 @@ export default function RegisterPage() {
 
       router.push("/");
       router.refresh();
-    } catch {
-      setServerError("Network error. Please try again.");
+    } catch (err) {
+      setServerError(
+        err instanceof Error ? err.message : "Network error. Please try again."
+      );
     }
   };
 

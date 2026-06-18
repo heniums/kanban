@@ -1,7 +1,10 @@
 export default function Home() {
   return (
-    <main className="flex min-h-screen items-center justify-center">
-      <h1 className="text-3xl font-semibold">Kanban</h1>
+    <main className="container py-8">
+      <h1 className="text-2xl font-bold">Dashboard</h1>
+      <p className="mt-2 text-muted-foreground">
+        Your boards will appear here. Create your first board to get started.
+      </p>
     </main>
   );
 }
