@@ -6,12 +6,15 @@ const nextConfig: NextConfig = {
     root: path.resolve(__dirname, "../.."),
   },
   async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: `${process.env.SERVER_URL || "http://localhost:3001"}/api/:path*`,
-      },
-    ];
+    const serverUrl = process.env.SERVER_URL || "http://localhost:3001";
+    return {
+      afterFiles: [
+        {
+          source: "/api/:path*",
+          destination: `${serverUrl}/api/:path*`,
+        },
+      ],
+    };
   },
 };
 
