@@ -42,7 +42,7 @@ describe("POST /api/auth/login", () => {
       }),
     });
 
-    vi.mocked(compare).mockResolvedValue(true);
+    vi.mocked(compare as any).mockResolvedValue(true);
 
     const response = await request(app).post("/api/auth/login").send({
       email: "login-test@example.com",
@@ -69,7 +69,7 @@ describe("POST /api/auth/login", () => {
       }),
     });
 
-    vi.mocked(compare).mockResolvedValue(false);
+    vi.mocked(compare as any).mockResolvedValue(false);
 
     const response = await request(app).post("/api/auth/login").send({
       email: "login-test@example.com",
