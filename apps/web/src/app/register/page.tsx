@@ -2,6 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
@@ -50,7 +51,20 @@ export default function RegisterPage() {
         return;
       }
 
-      router.push("/login");
+      const signInResult = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      });
+
+      if (signInResult?.error) {
+        setServerError("Account created but sign-in failed. Please log in manually.");
+        router.push("/login");
+        return;
+      }
+
+      router.push("/");
+      router.refresh();
     } catch {
       setServerError("Network error. Please try again.");
     }

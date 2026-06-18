@@ -48,7 +48,6 @@ export default function LoginPage() {
       }
 
       router.push("/");
-      router.refresh();
     } catch {
       setServerError("Network error. Please try again.");
     }

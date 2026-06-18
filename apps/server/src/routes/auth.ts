@@ -25,16 +25,6 @@ router.post("/register", async (req: Request, res: Response) => {
   const db = createDbClient();
 
   try {
-    const [existing] = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, email));
-
-    if (existing) {
-      res.status(409).json({ error: "A user with this email already exists" });
-      return;
-    }
-
     const passwordHash = await hash(password, 12);
 
     const [user] = await db
@@ -45,6 +35,15 @@ router.post("/register", async (req: Request, res: Response) => {
     const { passwordHash: _, ...publicUser } = user;
     res.status(201).json({ user: publicUser });
   } catch (err) {
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "code" in err &&
+      (err as { code: string }).code === "23505"
+    ) {
+      res.status(409).json({ error: "A user with this email already exists" });
+      return;
+    }
     console.error("Register error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
