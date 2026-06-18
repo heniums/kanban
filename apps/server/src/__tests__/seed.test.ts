@@ -1,8 +1,9 @@
 import { describe, expect, it, afterAll } from "vitest";
+import { eq } from "drizzle-orm";
+
 import { createDbClient } from "../db.js";
 import { users } from "../schema/users.js";
 import { seed } from "../seed.js";
-import { eq } from "drizzle-orm";
 
 const db = createDbClient();
 

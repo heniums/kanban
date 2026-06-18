@@ -23,7 +23,7 @@
 | Forms | React Hook Form + Zod | Performant forms with schema validation |
 | Icons | Lucide React | Consistent 24px icon set |
 | Testing | Vitest + Playwright | Unit/integration (Vitest), E2E (Playwright) |
-| Package Manager | Bun | Fast installs, native TypeScript support |
+| Package Manager | npm | Workspace-native, reliable lockfile, universal availability |
 
 ## Architecture
 

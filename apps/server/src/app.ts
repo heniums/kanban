@@ -1,4 +1,5 @@
-import express, { type Request, type Response } from "express";
+import "dotenv/config";
+import express, { type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
 import authRoutes from "./routes/auth.js";
 
@@ -16,6 +17,11 @@ export function createApp() {
 
   app.use((_req: Request, res: Response) => {
     res.status(404).json({ error: "Not found" });
+  });
+
+  app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+    console.error("Unhandled error:", err);
+    res.status(500).json({ error: "Internal server error" });
   });
 
   return app;
