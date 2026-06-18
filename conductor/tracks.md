@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: Project Scaffold & Authentication**
+- [x] **Track: Project Scaffold & Authentication**
   *Link: [./tracks/scaffold_auth_20260615/](./tracks/scaffold_auth_20260615/)*
