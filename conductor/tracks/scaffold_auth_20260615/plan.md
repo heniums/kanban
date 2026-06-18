@@ -82,3 +82,4 @@
 ## Phase: Review Fixes
 
 - [x] Task: Apply review suggestions 680cfb4
+- [x] Task: Fix tests to run without database c0bbde3
