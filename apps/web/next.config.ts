@@ -8,10 +8,18 @@ const nextConfig: NextConfig = {
   async rewrites() {
     const serverUrl = process.env.SERVER_URL || "http://localhost:3001";
     return {
-      afterFiles: [
+      beforeFiles: [
         {
-          source: "/api/:path*",
-          destination: `${serverUrl}/api/:path*`,
+          source: "/api/health",
+          destination: `${serverUrl}/api/health`,
+        },
+        {
+          source: "/api/auth/register",
+          destination: `${serverUrl}/api/auth/register`,
+        },
+        {
+          source: "/api/auth/login",
+          destination: `${serverUrl}/api/auth/login`,
         },
       ],
     };
