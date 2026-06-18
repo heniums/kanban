@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@auth/core": "^0.34.3",
+    "@kanban/shared": "*",
     "@hookform/resolvers": "^3.9.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, type Request, type Response } from "express";
 import { hash, compare } from "bcryptjs";
 import { eq } from "drizzle-orm";
 
@@ -9,7 +9,7 @@ import { users } from "../schema/users.js";
 
 const router = Router();
 
-router.post("/register", async (req, res) => {
+router.post("/register", async (req: Request, res: Response) => {
   const parsed = registerUserSchema.safeParse(req.body);
 
   if (!parsed.success) {
@@ -41,7 +41,7 @@ router.post("/register", async (req, res) => {
   res.status(201).json({ user: publicUser });
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login", async (req: Request, res: Response) => {
   const parsed = loginSchema.safeParse(req.body);
 
   if (!parsed.success) {
