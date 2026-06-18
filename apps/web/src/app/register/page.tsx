@@ -38,7 +38,7 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterUserInput) => {
     setServerError("");
     try {
-      await apiFetch("/api/auth/register", {
+      await apiFetch("/api/server/auth/register", {
         method: "POST",
         body: JSON.stringify(data),
       });
