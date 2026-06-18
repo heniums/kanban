@@ -40,44 +40,44 @@
 
 ## Phase 3: Authentication
 
-- [ ] Task: Implement user registration endpoint
-  - [ ] Write tests: Test successful registration, duplicate email, invalid input
-  - [ ] Implement: POST /api/auth/register with Zod validation, bcrypt hashing, user creation
-- [ ] Task: Configure NextAuth.js with credentials provider
-  - [ ] Write tests: Verify NextAuth configuration exports correctly
-  - [ ] Implement: Set up auth.ts with CredentialsProvider, JWT strategy, session callbacks
-- [ ] Task: Implement login endpoint
-  - [ ] Write tests: Test successful login, invalid credentials, missing fields
-  - [ ] Implement: Wire NextAuth.js signIn, verify password against bcrypt hash, return session
-- [ ] Task: Build registration page UI
-  - [ ] Write tests: Test form validation, successful registration flow, error display
-  - [ ] Implement: Registration form component with React Hook Form + Zod, redirect on success
-- [ ] Task: Build login page UI
-  - [ ] Write tests: Test form validation, successful login flow, error display
-  - [ ] Implement: Login form component with React Hook Form + Zod, redirect on success
-- [ ] Task: Implement protected routes and session handling
-  - [ ] Write tests: Verify unauthenticated user is redirected, authenticated user sees content
-  - [ ] Implement: Middleware for route protection, auth context/hook, session provider
-- [ ] Task: Build application shell (header, user menu, logout)
-  - [ ] Write tests: Verify header renders user info when logged in, logout clears session
-  - [ ] Implement: App layout with header, user avatar/name dropdown, logout button
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Authentication' (Protocol in workflow.md)
+- [x] Task: Implement user registration endpoint 12ff79c
+  - [x] Write tests: Test successful registration, duplicate email, invalid input
+  - [x] Implement: POST /api/auth/register with Zod validation, bcrypt hashing, user creation
+- [x] Task: Configure NextAuth.js with credentials provider a4dc40c
+  - [x] Write tests: Verify NextAuth configuration exports correctly
+  - [x] Implement: Set up auth.ts with CredentialsProvider, JWT strategy, session callbacks
+- [x] Task: Implement login endpoint 9b6ba30
+  - [x] Write tests: Test successful login, invalid credentials, missing fields
+  - [x] Implement: Wire NextAuth.js signIn, verify password against bcrypt hash, return session
+- [x] Task: Build registration page UI 235dad5
+  - [x] Write tests: Test form validation, successful registration flow, error display
+  - [x] Implement: Registration form component with React Hook Form + Zod, redirect on success
+- [x] Task: Build login page UI 235dad5
+  - [x] Write tests: Test form validation, successful login flow, error display
+  - [x] Implement: Login form component with React Hook Form + Zod, redirect on success
+- [x] Task: Implement protected routes and session handling 680cfb4
+  - [x] Write tests: Verify unauthenticated user is redirected, authenticated user sees content
+  - [x] Implement: Middleware for route protection, auth context/hook, session provider
+- [x] Task: Build application shell (header, user menu, logout) 6a0b3a6
+  - [x] Write tests: Verify header renders user info when logged in, logout clears session
+  - [x] Implement: App layout with header, user avatar/name dropdown, logout button
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Authentication' (Protocol in workflow.md)
 
 ## Phase 4: Integration & Polish
 
-- [ ] Task: Wire frontend API calls to Express backend
-  - [ ] Write tests: Verify API calls reach Express and return expected responses
-  - [ ] Implement: Create API client utility, configure Next.js rewrites to proxy /api to Express
-- [ ] Task: Add Socket.io server scaffolding
-  - [ ] Write tests: Verify Socket.io server initializes and accepts connections
-  - [ ] Implement: Attach Socket.io to Express server, set up connection/disconnect handlers, auth middleware stub
-- [ ] Task: Create empty dashboard page
-  - [ ] Write tests: Verify dashboard renders for authenticated users
-  - [ ] Implement: Protected dashboard page with placeholder for boards
-- [ ] Task: Create .env.example and document setup
-  - [ ] Write tests: Verify .env.example contains all required variables
-  - [ ] Implement: .env.example with descriptions, update README with setup instructions
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Integration & Polish' (Protocol in workflow.md)
+- [x] Task: Wire frontend API calls to Express backend 6a0b3a6
+  - [x] Write tests: Verify API calls reach Express and return expected responses
+  - [x] Implement: Create API client utility, configure Next.js rewrites to proxy /api to Express
+- [x] Task: Add Socket.io server scaffolding 6a0b3a6
+  - [x] Write tests: Verify Socket.io server initializes and accepts connections
+  - [x] Implement: Attach Socket.io to Express server, set up connection/disconnect handlers, auth middleware stub
+- [x] Task: Create empty dashboard page 6a0b3a6
+  - [x] Write tests: Verify dashboard renders for authenticated users
+  - [x] Implement: Protected dashboard page with placeholder for boards
+- [x] Task: Create .env.example and document setup 6a0b3a6
+  - [x] Write tests: Verify .env.example contains all required variables
+  - [x] Implement: .env.example with descriptions, update README with setup instructions
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Integration & Polish' (Protocol in workflow.md)
 
 ## Phase: Review Fixes
 
