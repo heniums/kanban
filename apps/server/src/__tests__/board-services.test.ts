@@ -94,16 +94,24 @@ describe("Board services", () => {
   });
 
   describe("listBoardsByOwner", () => {
+    function setupListMock(rows: any[]) {
+      const offsetMock = vi.fn().mockResolvedValue(rows);
+      const limitMock = vi.fn().mockReturnValue({ offset: offsetMock });
+      const orderByMock = vi.fn().mockReturnValue({ limit: limitMock });
+      mockDb.select.mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({ orderBy: orderByMock }),
+        }),
+      });
+      return { offsetMock, limitMock };
+    }
+
     it("returns all non-deleted boards owned by the user", async () => {
       const mockBoards = [
         { id: "board-1", title: "Board 1", ownerId: "user-1" },
         { id: "board-2", title: "Board 2", ownerId: "user-1" },
       ];
-      mockDb.select.mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue(mockBoards),
-        }),
-      });
+      setupListMock(mockBoards);
 
       const result = await listBoardsByOwner(mockDb as any, "user-1");
       expect(result).toEqual(mockBoards);
@@ -111,14 +119,31 @@ describe("Board services", () => {
     });
 
     it("returns empty array when user owns no boards", async () => {
-      mockDb.select.mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([]),
-        }),
-      });
-
+      setupListMock([]);
       const result = await listBoardsByOwner(mockDb as any, "user-1");
       expect(result).toEqual([]);
+    });
+
+    it("applies limit and offset when provided", async () => {
+      const { limitMock, offsetMock } = setupListMock([
+        { id: "board-2", title: "Board 2", ownerId: "user-1" },
+      ]);
+
+      const result = await listBoardsByOwner(mockDb as any, "user-1", {
+        limit: 10,
+        offset: 5,
+      });
+
+      expect(result).toHaveLength(1);
+      expect(limitMock).toHaveBeenCalledWith(10);
+      expect(offsetMock).toHaveBeenCalledWith(5);
+    });
+
+    it("caps limit at 100 even when higher value is provided", async () => {
+      const { limitMock } = setupListMock([]);
+
+      await listBoardsByOwner(mockDb as any, "user-1", { limit: 500 });
+      expect(limitMock).toHaveBeenCalledWith(100);
     });
   });
 
