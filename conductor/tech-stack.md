@@ -6,24 +6,24 @@
 |-------|-----------|-----------|
 | Language | TypeScript | Full-stack type safety, excellent tooling |
 | Runtime | Node.js 22+ | Mature ecosystem, WebSocket-native |
-| Frontend | React 18 + Next.js 14 (App Router) | SSR/SSG, file-based routing, API routes |
+| Frontend | React 19 + Next.js 16 (App Router) | RSCs by default, `use()`/`useOptimistic` hooks, Actions, Turbopack stable, partial prerendering |
 | Backend | Express.js + Socket.io | Battle-tested HTTP + real-time WS with rooms |
-| Database | PostgreSQL 16 | Relational integrity for org/team/user hierarchies |
-| ORM | Drizzle ORM | Type-safe queries, fast schema iteration, lightweight |
+| Database | PostgreSQL 16 (Neon) | Serverless Postgres with connection pooling, branching for dev |
+| ORM | Drizzle ORM + @neondatabase/serverless | Type-safe queries, native serverless driver, lightweight |
 
 ## Supporting Libraries
 
 | Concern | Library | Purpose |
 |---------|---------|---------|
 | Auth | NextAuth.js v5 (Auth.js) | OAuth providers + credentials, session management |
-| Styling | Tailwind CSS + shadcn/ui | Utility-first CSS, pre-built accessible components |
+| Styling | Tailwind CSS v4 + shadcn/ui | CSS-first config (`@theme`), container queries, Oxide engine (10x faster), dynamic utilities |
 | Validation | Zod | Shared schemas across client/server, runtime type checking |
 | Drag & Drop | dnd-kit | Accessible, keyboard-native DnD with spring animations |
 | State | Zustand | Lightweight client state (boards, notifications) |
 | Forms | React Hook Form + Zod | Performant forms with schema validation |
 | Icons | Lucide React | Consistent 24px icon set |
 | Testing | Vitest + Playwright | Unit/integration (Vitest), E2E (Playwright) |
-| Package Manager | Bun | Fast installs, native TypeScript support |
+| Package Manager | npm | Workspace-native, reliable lockfile, universal availability |
 
 ## Architecture
 
@@ -48,13 +48,13 @@
 ├─────────────────────────────────────────┤
 │            Drizzle ORM                  │
 ├─────────────────────────────────────────┤
-│           PostgreSQL                    │
+│        PostgreSQL (Neon)               │
 └─────────────────────────────────────────┘
 ```
 
 ## Development Tools
 
-- **Linting:** ESLint + Prettier (consistent formatting)
+- **Linting:** ESLint 9 (flat config) + Prettier (consistent formatting)
 - **Git Hooks:** Husky + lint-staged (pre-commit checks)
 - **CI/CD:** GitHub Actions (typecheck, lint, test on push)
-- **Hosting:** Vercel (frontend) + Railway/Render (backend + DB)
+- **Hosting:** Vercel (frontend) + Railway/Render (backend) + Neon (database)

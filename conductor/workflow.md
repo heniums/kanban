@@ -32,8 +32,8 @@ Each task in a plan follows this pattern:
 ## Phase Completion Verification and Checkpointing Protocol
 
 After completing all tasks in a phase:
-1. Verify all tests pass: `bun test`
-2. Verify type checking passes: `bun typecheck`
-3. Verify linting passes: `bun lint`
+1. Verify all tests pass: `npm test`
+2. Verify type checking passes: `npm run typecheck`
+3. Verify linting passes: `npm run lint`
 4. Run the application and manually verify the phase deliverables
 5. Fix any issues before proceeding to the next phase
