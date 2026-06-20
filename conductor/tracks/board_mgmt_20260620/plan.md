@@ -8,18 +8,18 @@
 
 ## Phase 1: Database Schema & Data Layer
 
-- [ ] Task: Define boards table schema with Drizzle ORM
-    - [ ] Write tests: Verify schema fields, types, nullability, and foreign key to users
-    - [ ] Implement: Define `boards` table (id, title, description, background, ownerId FK->users, createdAt, updatedAt, deletedAt nullable); additive-friendly for future orgId/teamId
-- [ ] Task: Apply schema migration to Neon database
-    - [ ] Write tests: Verify table creation via Drizzle introspection
-    - [ ] Implement: Run `drizzle-kit` migration/db:push; verify table exists with correct columns
-- [ ] Task: Implement board repository/service layer
-    - [ ] Write tests: Unit tests for create, findById, listOwned, listShared (empty stub), update, softDelete, restore — all filtering `deletedAt IS NULL`
-    - [ ] Implement: Drizzle query helpers with soft-delete filter; ownership-scoped queries
-- [ ] Task: Add board seed data for development
-    - [ ] Write tests: Verify seed script creates demo boards for the demo user without errors
-    - [ ] Implement: Extend seed script with sample boards (varied backgrounds)
+- [x] Task: Define boards table schema with Drizzle ORM 3ba6932
+    - [x] Write tests: Verify schema fields, types, nullability, and foreign key to users
+    - [x] Implement: Define `boards` table (id, title, description, background, ownerId FK->users, createdAt, updatedAt, deletedAt nullable); additive-friendly for future orgId/teamId
+- [x] Task: Apply schema migration to Neon database 3ba6932
+    - [x] Write tests: Verify table creation via Drizzle introspection
+    - [x] Implement: Run `drizzle-kit` migration/db:push; verify table exists with correct columns
+- [x] Task: Implement board repository/service layer 7ea82b7
+    - [x] Write tests: Unit tests for create, findById, listOwned, listShared (empty stub), update, softDelete, restore — all filtering `deletedAt IS NULL`
+    - [x] Implement: Drizzle query helpers with soft-delete filter; ownership-scoped queries
+- [x] Task: Add board seed data for development 1492ebf
+    - [x] Write tests: Verify seed script creates demo boards for the demo user without errors
+    - [x] Implement: Extend seed script with sample boards (varied backgrounds)
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Database Schema & Data Layer' (Protocol in workflow.md)
 
 ## Phase 2: Board API (Server Actions / Routes)
