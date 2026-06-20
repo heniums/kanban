@@ -74,6 +74,27 @@ A real-time collaborative kanban board application designed for medium-sized org
 - Board loads with 1000 cards in under 2 seconds
 - Zero data loss during network interruptions
 
+## MVP Scope (v1)
+
+The first MVP delivers the product's core value: a real-time collaborative kanban board. Organizational scaffolding (orgs, teams, role-based permissions) is deferred until boards exist, since those features have no consumers until the core board experience is working. Deferred items are designed to be added later as additive schema migrations (e.g. nullable `orgId`/`teamId` on boards), not rewrites.
+
+### In Scope (MVP v1)
+- **User Authentication:** Registration, login, session management (completed in scaffold track)
+- **Boards:** Create, open, delete; each board owned by its creator
+- **Lists:** Create, rename, delete, reorder within a board
+- **Cards:** Create, edit title and description, move across lists, reorder within a list, delete
+- **Real-Time Collaboration:** Multiple users on the same board see changes live via Socket.io rooms
+- **Board Sharing:** Invite other registered users to a board (owner + member, no role tiers)
+- **UX:** Optimistic UI updates with server reconciliation; drag-and-drop with dnd-kit (keyboard accessible)
+
+### Deferred to Post-MVP (still in product vision)
+- Organization & team management hierarchy
+- Role-based access control (Owner, Admin, Member, Viewer) — MVP uses owner + member only
+- Team assignment to boards; board archiving; public/private board visibility
+- Activity feed & audit history; email notifications for mentions and assignments
+- Card checklists, attachments, comments, labels, and due dates
+- Board favorites and recent boards list
+
 ## Out of Scope (for MVP)
 - Mobile native apps
 - Advanced reporting and analytics
