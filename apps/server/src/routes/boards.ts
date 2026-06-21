@@ -7,6 +7,9 @@ import { getBoardById } from "../services/boards/get-board-by-id.js";
 import { listBoardsByOwner } from "../services/boards/list-boards-by-owner.js";
 import { listSharedBoards } from "../services/boards/list-shared-boards.js";
 import { updateBoard } from "../services/boards/update-board.js";
+import { softDeleteBoard } from "../services/boards/soft-delete-board.js";
+import { restoreBoard } from "../services/boards/restore-board.js";
+import { getBoardByIdIncludingDeleted } from "../services/boards/get-board-by-id-including-deleted.js";
 import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();
@@ -112,6 +115,66 @@ router.patch("/:id", requireAuth, async (req: Request, res: Response) => {
     res.status(200).json({ board: updated });
   } catch (err) {
     console.error("Update board error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.delete("/:id", requireAuth, async (req: Request, res: Response) => {
+  const db = createDbClient();
+
+  try {
+    const board = await getBoardById(db, req.params.id as string);
+
+    if (!board) {
+      res.status(404).json({ error: "Board not found" });
+      return;
+    }
+
+    if (board.ownerId !== req.userId) {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+
+    const deleted = await softDeleteBoard(db, board.id);
+
+    if (!deleted) {
+      res.status(404).json({ error: "Board not found" });
+      return;
+    }
+
+    res.status(200).json({ board: deleted });
+  } catch (err) {
+    console.error("Delete board error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/:id/restore", requireAuth, async (req: Request, res: Response) => {
+  const db = createDbClient();
+
+  try {
+    const board = await getBoardByIdIncludingDeleted(db, req.params.id as string);
+
+    if (!board) {
+      res.status(404).json({ error: "Board not found" });
+      return;
+    }
+
+    if (board.ownerId !== req.userId) {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+
+    const restored = await restoreBoard(db, board.id);
+
+    if (!restored) {
+      res.status(404).json({ error: "Board not found" });
+      return;
+    }
+
+    res.status(200).json({ board: restored });
+  } catch (err) {
+    console.error("Restore board error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });

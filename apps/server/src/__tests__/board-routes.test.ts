@@ -18,12 +18,24 @@ vi.mock("../services/boards/list-shared-boards.js", () => ({
 vi.mock("../services/boards/update-board.js", () => ({
   updateBoard: vi.fn(),
 }));
+vi.mock("../services/boards/soft-delete-board.js", () => ({
+  softDeleteBoard: vi.fn(),
+}));
+vi.mock("../services/boards/restore-board.js", () => ({
+  restoreBoard: vi.fn(),
+}));
+vi.mock("../services/boards/get-board-by-id-including-deleted.js", () => ({
+  getBoardByIdIncludingDeleted: vi.fn(),
+}));
 
 import { createBoard } from "../services/boards/create-board.js";
 import { getBoardById } from "../services/boards/get-board-by-id.js";
 import { listBoardsByOwner } from "../services/boards/list-boards-by-owner.js";
 import { listSharedBoards } from "../services/boards/list-shared-boards.js";
 import { updateBoard } from "../services/boards/update-board.js";
+import { softDeleteBoard } from "../services/boards/soft-delete-board.js";
+import { restoreBoard } from "../services/boards/restore-board.js";
+import { getBoardByIdIncludingDeleted } from "../services/boards/get-board-by-id-including-deleted.js";
 import { createDbClient } from "../db.js";
 
 const mockBoard = {
@@ -348,6 +360,129 @@ describe("PATCH /api/boards/:id", () => {
       .patch("/api/boards/board-1")
       .set("x-user-id", "user-1")
       .send({ title: "Updated" });
+
+    expect(res.status).toBe(500);
+  });
+});
+
+describe("DELETE /api/boards/:id", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(createDbClient).mockReturnValue({} as never);
+  });
+
+  it("soft-deletes board when owner", async () => {
+    vi.mocked(getBoardById).mockResolvedValue(mockBoard);
+    const deletedBoard = { ...mockBoard, deletedAt: new Date() };
+    vi.mocked(softDeleteBoard).mockResolvedValue(deletedBoard);
+
+    const res = await request(createApp())
+      .delete("/api/boards/board-1")
+      .set("x-user-id", "user-1");
+
+    expect(res.status).toBe(200);
+    expect(res.body.board.deletedAt).not.toBeNull();
+    expect(softDeleteBoard).toHaveBeenCalledWith(expect.anything(), "board-1");
+  });
+
+  it("returns 403 when non-owner deletes", async () => {
+    vi.mocked(getBoardById).mockResolvedValue(mockBoard);
+
+    const res = await request(createApp())
+      .delete("/api/boards/board-1")
+      .set("x-user-id", "user-2");
+
+    expect(res.status).toBe(403);
+    expect(softDeleteBoard).not.toHaveBeenCalled();
+  });
+
+  it("returns 404 when board not found", async () => {
+    vi.mocked(getBoardById).mockResolvedValue(null);
+
+    const res = await request(createApp())
+      .delete("/api/boards/nonexistent")
+      .set("x-user-id", "user-1");
+
+    expect(res.status).toBe(404);
+    expect(softDeleteBoard).not.toHaveBeenCalled();
+  });
+
+  it("returns 401 without x-user-id header", async () => {
+    const res = await request(createApp()).delete("/api/boards/board-1");
+
+    expect(res.status).toBe(401);
+    expect(softDeleteBoard).not.toHaveBeenCalled();
+  });
+
+  it("returns 500 on service error", async () => {
+    vi.mocked(getBoardById).mockResolvedValue(mockBoard);
+    vi.mocked(softDeleteBoard).mockRejectedValue(new Error("DB error"));
+
+    const res = await request(createApp())
+      .delete("/api/boards/board-1")
+      .set("x-user-id", "user-1");
+
+    expect(res.status).toBe(500);
+  });
+});
+
+describe("POST /api/boards/:id/restore", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(createDbClient).mockReturnValue({} as never);
+  });
+
+  it("restores soft-deleted board when owner", async () => {
+    const deletedBoard = { ...mockBoard, deletedAt: new Date() };
+    vi.mocked(getBoardByIdIncludingDeleted).mockResolvedValue(deletedBoard);
+    vi.mocked(restoreBoard).mockResolvedValue(mockBoard);
+
+    const res = await request(createApp())
+      .post("/api/boards/board-1/restore")
+      .set("x-user-id", "user-1");
+
+    expect(res.status).toBe(200);
+    expect(res.body.board.deletedAt).toBeNull();
+    expect(restoreBoard).toHaveBeenCalledWith(expect.anything(), "board-1");
+  });
+
+  it("returns 403 when non-owner restores", async () => {
+    const deletedBoard = { ...mockBoard, deletedAt: new Date() };
+    vi.mocked(getBoardByIdIncludingDeleted).mockResolvedValue(deletedBoard);
+
+    const res = await request(createApp())
+      .post("/api/boards/board-1/restore")
+      .set("x-user-id", "user-2");
+
+    expect(res.status).toBe(403);
+    expect(restoreBoard).not.toHaveBeenCalled();
+  });
+
+  it("returns 404 when board not found", async () => {
+    vi.mocked(getBoardByIdIncludingDeleted).mockResolvedValue(null);
+
+    const res = await request(createApp())
+      .post("/api/boards/nonexistent/restore")
+      .set("x-user-id", "user-1");
+
+    expect(res.status).toBe(404);
+    expect(restoreBoard).not.toHaveBeenCalled();
+  });
+
+  it("returns 401 without x-user-id header", async () => {
+    const res = await request(createApp()).post("/api/boards/board-1/restore");
+
+    expect(res.status).toBe(401);
+    expect(restoreBoard).not.toHaveBeenCalled();
+  });
+
+  it("returns 500 on service error", async () => {
+    vi.mocked(getBoardByIdIncludingDeleted).mockResolvedValue(mockBoard);
+    vi.mocked(restoreBoard).mockRejectedValue(new Error("DB error"));
+
+    const res = await request(createApp())
+      .post("/api/boards/board-1/restore")
+      .set("x-user-id", "user-1");
 
     expect(res.status).toBe(500);
   });
