@@ -6,8 +6,20 @@ vi.mock("../db.js", () => ({ createDbClient: vi.fn() }));
 vi.mock("../services/boards/create-board.js", () => ({
   createBoard: vi.fn(),
 }));
+vi.mock("../services/boards/get-board-by-id.js", () => ({
+  getBoardById: vi.fn(),
+}));
+vi.mock("../services/boards/list-boards-by-owner.js", () => ({
+  listBoardsByOwner: vi.fn(),
+}));
+vi.mock("../services/boards/list-shared-boards.js", () => ({
+  listSharedBoards: vi.fn(),
+}));
 
 import { createBoard } from "../services/boards/create-board.js";
+import { getBoardById } from "../services/boards/get-board-by-id.js";
+import { listBoardsByOwner } from "../services/boards/list-boards-by-owner.js";
+import { listSharedBoards } from "../services/boards/list-shared-boards.js";
 import { createDbClient } from "../db.js";
 
 const mockBoard = {
@@ -122,6 +134,104 @@ describe("POST /api/boards", () => {
       .post("/api/boards")
       .set("x-user-id", "user-1")
       .send({ title: "Test Board", background: "#1a1a2e" });
+
+    expect(res.status).toBe(500);
+  });
+});
+
+describe("GET /api/boards", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(createDbClient).mockReturnValue({} as never);
+  });
+
+  it("returns owned and shared boards", async () => {
+    vi.mocked(listBoardsByOwner).mockResolvedValue([mockBoard]);
+    vi.mocked(listSharedBoards).mockResolvedValue([]);
+
+    const res = await request(createApp())
+      .get("/api/boards")
+      .set("x-user-id", "user-1");
+
+    expect(res.status).toBe(200);
+    expect(res.body.owned).toHaveLength(1);
+    expect(res.body.shared).toHaveLength(0);
+    expect(listBoardsByOwner).toHaveBeenCalledWith(expect.anything(), "user-1");
+    expect(listSharedBoards).toHaveBeenCalledWith(expect.anything(), "user-1");
+  });
+
+  it("returns 401 without x-user-id header", async () => {
+    const res = await request(createApp()).get("/api/boards");
+
+    expect(res.status).toBe(401);
+    expect(listBoardsByOwner).not.toHaveBeenCalled();
+  });
+
+  it("returns 500 on service error", async () => {
+    vi.mocked(listBoardsByOwner).mockRejectedValue(new Error("DB error"));
+
+    const res = await request(createApp())
+      .get("/api/boards")
+      .set("x-user-id", "user-1");
+
+    expect(res.status).toBe(500);
+  });
+});
+
+describe("GET /api/boards/:id", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(createDbClient).mockReturnValue({} as never);
+  });
+
+  it("returns board when owner requests it", async () => {
+    vi.mocked(getBoardById).mockResolvedValue(mockBoard);
+
+    const res = await request(createApp())
+      .get("/api/boards/board-1")
+      .set("x-user-id", "user-1");
+
+    expect(res.status).toBe(200);
+    expect(res.body.board).toBeDefined();
+    expect(res.body.board.id).toBe("board-1");
+    expect(getBoardById).toHaveBeenCalledWith(expect.anything(), "board-1");
+  });
+
+  it("returns 403 when non-owner requests it", async () => {
+    vi.mocked(getBoardById).mockResolvedValue(mockBoard);
+
+    const res = await request(createApp())
+      .get("/api/boards/board-1")
+      .set("x-user-id", "user-2");
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/forbidden/i);
+  });
+
+  it("returns 404 when board not found", async () => {
+    vi.mocked(getBoardById).mockResolvedValue(null);
+
+    const res = await request(createApp())
+      .get("/api/boards/nonexistent")
+      .set("x-user-id", "user-1");
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatch(/not found/i);
+  });
+
+  it("returns 401 without x-user-id header", async () => {
+    const res = await request(createApp()).get("/api/boards/board-1");
+
+    expect(res.status).toBe(401);
+    expect(getBoardById).not.toHaveBeenCalled();
+  });
+
+  it("returns 500 on service error", async () => {
+    vi.mocked(getBoardById).mockRejectedValue(new Error("DB error"));
+
+    const res = await request(createApp())
+      .get("/api/boards/board-1")
+      .set("x-user-id", "user-1");
 
     expect(res.status).toBe(500);
   });
