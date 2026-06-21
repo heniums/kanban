@@ -16,7 +16,6 @@ vi.mock("bcryptjs", () => ({
 }));
 
 import { createDbClient } from "../db.js";
-import { compare } from "bcryptjs";
 
 const app = createApp();
 const mockDb = {
