@@ -39,7 +39,7 @@
 - [x] Task: Implement board soft-delete + undo actions/endpoint 6cb8bb7
     - [x] Write tests: Test soft-delete sets deletedAt, undo nulls deletedAt, non-owner 403, deleted board excluded from fetch
     - [x] Implement: deleteBoard (set deletedAt=now), restoreBoard (set deletedAt=null); owner-only
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Board API (Server Actions / Routes)' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Board API (Server Actions / Routes)' (Protocol in workflow.md) 647145a
 
 ## Phase 3: Board UI — Creation & Viewing
 

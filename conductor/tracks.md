@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Board management**
+- [~] **Track: Board management**
 *Link: [./tracks/board_mgmt_20260620/](./tracks/board_mgmt_20260620/)*
