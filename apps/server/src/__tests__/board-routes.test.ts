@@ -15,11 +15,15 @@ vi.mock("../services/boards/list-boards-by-owner.js", () => ({
 vi.mock("../services/boards/list-shared-boards.js", () => ({
   listSharedBoards: vi.fn(),
 }));
+vi.mock("../services/boards/update-board.js", () => ({
+  updateBoard: vi.fn(),
+}));
 
 import { createBoard } from "../services/boards/create-board.js";
 import { getBoardById } from "../services/boards/get-board-by-id.js";
 import { listBoardsByOwner } from "../services/boards/list-boards-by-owner.js";
 import { listSharedBoards } from "../services/boards/list-shared-boards.js";
+import { updateBoard } from "../services/boards/update-board.js";
 import { createDbClient } from "../db.js";
 
 const mockBoard = {
@@ -232,6 +236,118 @@ describe("GET /api/boards/:id", () => {
     const res = await request(createApp())
       .get("/api/boards/board-1")
       .set("x-user-id", "user-1");
+
+    expect(res.status).toBe(500);
+  });
+});
+
+describe("PATCH /api/boards/:id", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(createDbClient).mockReturnValue({} as never);
+  });
+
+  it("updates board title when owner", async () => {
+    vi.mocked(getBoardById).mockResolvedValue(mockBoard);
+    vi.mocked(updateBoard).mockResolvedValue({ ...mockBoard, title: "Updated" });
+
+    const res = await request(createApp())
+      .patch("/api/boards/board-1")
+      .set("x-user-id", "user-1")
+      .send({ title: "Updated" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.board.title).toBe("Updated");
+    expect(updateBoard).toHaveBeenCalledWith(expect.anything(), "board-1", { title: "Updated" });
+  });
+
+  it("updates board background when owner", async () => {
+    vi.mocked(getBoardById).mockResolvedValue(mockBoard);
+    vi.mocked(updateBoard).mockResolvedValue({ ...mockBoard, background: "#ff0000" });
+
+    const res = await request(createApp())
+      .patch("/api/boards/board-1")
+      .set("x-user-id", "user-1")
+      .send({ background: "#ff0000" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.board.background).toBe("#ff0000");
+  });
+
+  it("updates board description when owner", async () => {
+    vi.mocked(getBoardById).mockResolvedValue(mockBoard);
+    vi.mocked(updateBoard).mockResolvedValue({ ...mockBoard, description: "New desc" });
+
+    const res = await request(createApp())
+      .patch("/api/boards/board-1")
+      .set("x-user-id", "user-1")
+      .send({ description: "New desc" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.board.description).toBe("New desc");
+  });
+
+  it("returns 403 when non-owner updates", async () => {
+    vi.mocked(getBoardById).mockResolvedValue(mockBoard);
+
+    const res = await request(createApp())
+      .patch("/api/boards/board-1")
+      .set("x-user-id", "user-2")
+      .send({ title: "Updated" });
+
+    expect(res.status).toBe(403);
+    expect(updateBoard).not.toHaveBeenCalled();
+  });
+
+  it("returns 404 when board not found", async () => {
+    vi.mocked(getBoardById).mockResolvedValue(null);
+
+    const res = await request(createApp())
+      .patch("/api/boards/nonexistent")
+      .set("x-user-id", "user-1")
+      .send({ title: "Updated" });
+
+    expect(res.status).toBe(404);
+    expect(updateBoard).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 for empty title", async () => {
+    const res = await request(createApp())
+      .patch("/api/boards/board-1")
+      .set("x-user-id", "user-1")
+      .send({ title: "" });
+
+    expect(res.status).toBe(400);
+    expect(updateBoard).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 for title over 100 characters", async () => {
+    const res = await request(createApp())
+      .patch("/api/boards/board-1")
+      .set("x-user-id", "user-1")
+      .send({ title: "a".repeat(101) });
+
+    expect(res.status).toBe(400);
+    expect(updateBoard).not.toHaveBeenCalled();
+  });
+
+  it("returns 401 without x-user-id header", async () => {
+    const res = await request(createApp())
+      .patch("/api/boards/board-1")
+      .send({ title: "Updated" });
+
+    expect(res.status).toBe(401);
+    expect(updateBoard).not.toHaveBeenCalled();
+  });
+
+  it("returns 500 on service error", async () => {
+    vi.mocked(getBoardById).mockResolvedValue(mockBoard);
+    vi.mocked(updateBoard).mockRejectedValue(new Error("DB error"));
+
+    const res = await request(createApp())
+      .patch("/api/boards/board-1")
+      .set("x-user-id", "user-1")
+      .send({ title: "Updated" });
 
     expect(res.status).toBe(500);
   });
