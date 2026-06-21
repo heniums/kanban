@@ -14,31 +14,31 @@
 - [x] Task: Apply schema migration to Neon database 3ba6932
     - [x] Write tests: Verify table creation via Drizzle introspection
     - [x] Implement: Run `drizzle-kit` migration/db:push; verify table exists with correct columns
-- [x] Task: Implement board repository/service layer 7ea82b7
-    - [x] Write tests: Unit tests for create, findById, listOwned, listShared (empty stub), update, softDelete, restore — all filtering `deletedAt IS NULL`
-    - [x] Implement: Drizzle query helpers with soft-delete filter; ownership-scoped queries
+- [x] Task: Implement board repository/service layer c113866
+    - [x] Write tests: Unit tests for create, getBoardById, listBoardsByOwner, listSharedBoards (empty stub), updateBoard, softDeleteBoard, restoreBoard — all filtering `deletedAt IS NULL`; repository pattern (pure data access, no authz)
+    - [x] Implement: One function per file in `services/boards/`; authz to be handled in route handlers
 - [x] Task: Add board seed data for development 1492ebf
     - [x] Write tests: Verify seed script creates demo boards for the demo user without errors
     - [x] Implement: Extend seed script with sample boards (varied backgrounds)
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Database Schema & Data Layer' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Database Schema & Data Layer' (Protocol in workflow.md) 57952c5
 
 ## Phase 2: Board API (Server Actions / Routes)
 
-- [ ] Task: Define shared Zod schemas for board input
-    - [ ] Write tests: Verify schemas validate valid input and reject empty/over-length title, invalid background
-    - [ ] Implement: `createBoardSchema`, `updateBoardSchema` (title max 100, description max 2000, background preset); shared client/server
-- [ ] Task: Implement board creation action/endpoint
-    - [ ] Write tests: Test successful creation (ownerId = session user), unauthenticated rejection, invalid input rejection
-    - [ ] Implement: Create board via Server Action/API route; Zod validation; ownerId from session; redirect on success
-- [ ] Task: Implement board fetch actions/endpoint
-    - [ ] Write tests: Test list owned, list shared (empty in this track), get-by-id owner allowed, non-owner 403, soft-deleted excluded
-    - [ ] Implement: listOwned, listShared, getBoardById with server-side ownership checks
-- [ ] Task: Implement board update action/endpoint
-    - [ ] Write tests: Test owner update succeeds, non-owner 403, invalid input rejected
-    - [ ] Implement: Update board metadata (title/description/background); owner-only; Zod validation
-- [ ] Task: Implement board soft-delete + undo actions/endpoint
-    - [ ] Write tests: Test soft-delete sets deletedAt, undo nulls deletedAt, non-owner 403, deleted board excluded from fetch
-    - [ ] Implement: deleteBoard (set deletedAt=now), restoreBoard (set deletedAt=null); owner-only
+- [x] Task: Define shared Zod schemas for board input c4ce19d
+    - [x] Write tests: Verify schemas validate valid input and reject empty/over-length title, invalid background
+    - [x] Implement: `createBoardSchema`, `updateBoardSchema` (title max 100, description max 2000, background preset); shared client/server
+- [x] Task: Implement board creation action/endpoint 58f7222
+    - [x] Write tests: Test successful creation (ownerId = session user), unauthenticated rejection, invalid input rejection
+    - [x] Implement: Create board via Server Action/API route; Zod validation; ownerId from session; redirect on success
+- [x] Task: Implement board fetch actions/endpoint 5cd5d8f
+    - [x] Write tests: Test list owned, list shared (empty in this track), get-by-id owner allowed, non-owner 403, soft-deleted excluded
+    - [x] Implement: listOwned, listShared, getBoardById with server-side ownership checks
+- [x] Task: Implement board update action/endpoint e2f78fe
+    - [x] Write tests: Test owner update succeeds, non-owner 403, invalid input rejected
+    - [x] Implement: Update board metadata (title/description/background); owner-only; Zod validation
+- [x] Task: Implement board soft-delete + undo actions/endpoint 6cb8bb7
+    - [x] Write tests: Test soft-delete sets deletedAt, undo nulls deletedAt, non-owner 403, deleted board excluded from fetch
+    - [x] Implement: deleteBoard (set deletedAt=now), restoreBoard (set deletedAt=null); owner-only
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Board API (Server Actions / Routes)' (Protocol in workflow.md)
 
 ## Phase 3: Board UI — Creation & Viewing
