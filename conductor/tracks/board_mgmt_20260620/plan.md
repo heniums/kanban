@@ -43,9 +43,9 @@
 
 ## Phase 3: Board UI — Creation & Viewing
 
-- [ ] Task: Build background picker component
-    - [ ] Write tests: Test picker renders solid + gradient options, selection updates value, keyboard accessible
-    - [ ] Implement: shadcn/ui-based picker with solid color swatches and gradient presets; default selection
+- [x] Task: Build background picker component
+    - [x] Write tests: Test picker renders solid + gradient options, selection updates value, keyboard accessible
+    - [x] Implement: shadcn/ui-based picker with solid color swatches and gradient presets; default selection
 - [ ] Task: Build board creation page (`/boards/new`)
     - [ ] Write tests: Test form validation (empty/over-length title), successful submit calls create action + redirects, error display
     - [ ] Implement: Full-page form with React Hook Form + Zod; title, description, background picker; redirect to `/boards/[boardId]` on success
