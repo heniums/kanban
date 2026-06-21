@@ -82,6 +82,46 @@ describe("createBoardSchema", () => {
     expect(result.success).toBe(false);
   });
 
+  it("accepts hex color with 3 digits (#fff)", () => {
+    const result = createBoardSchema.safeParse({
+      title: "My Board",
+      background: "#fff",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts radial gradient", () => {
+    const result = createBoardSchema.safeParse({
+      title: "My Board",
+      background: "radial-gradient(#667eea, #764ba2)",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects script tag in background (XSS)", () => {
+    const result = createBoardSchema.safeParse({
+      title: "My Board",
+      background: "<script>alert(1)</script>",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects CSS injection in background", () => {
+    const result = createBoardSchema.safeParse({
+      title: "My Board",
+      background: "red; }</style><script>alert(1)</script>",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects arbitrary string in background", () => {
+    const result = createBoardSchema.safeParse({
+      title: "My Board",
+      background: "javascript:alert(1)",
+    });
+    expect(result.success).toBe(false);
+  });
+
   it("rejects description over 2000 characters", () => {
     const result = createBoardSchema.safeParse({
       title: "My Board",

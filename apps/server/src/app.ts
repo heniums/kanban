@@ -2,7 +2,7 @@ import "dotenv/config";
 import express, { type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
 import authRoutes from "./routes/auth.js";
-import boardRoutes from "./routes/boards.js";
+import boardRoutes from "./routes/boards/index.js";
 
 export function createApp() {
   const app = express();

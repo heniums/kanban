@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
 import { createApp } from "../app.js";
+import { createTestToken, authBearer } from "./helpers/jwt.js";
 
 vi.mock("../db.js", () => ({ createDbClient: vi.fn() }));
 vi.mock("../services/boards/create-board.js", () => ({
@@ -57,10 +58,11 @@ describe("POST /api/boards", () => {
 
   it("creates a board and returns 201", async () => {
     vi.mocked(createBoard).mockResolvedValue(mockBoard);
+    const token = await createTestToken("user-1");
 
     const res = await request(createApp())
       .post("/api/boards")
-      .set("x-user-id", "user-1")
+      .set(authBearer(token))
       .send({ title: "Test Board", background: "#1a1a2e" });
 
     expect(res.status).toBe(201);
@@ -82,17 +84,18 @@ describe("POST /api/boards", () => {
       title: "With Desc",
       description: "A description",
     });
+    const token = await createTestToken("user-1");
 
     const res = await request(createApp())
       .post("/api/boards")
-      .set("x-user-id", "user-1")
+      .set(authBearer(token))
       .send({ title: "With Desc", description: "A description", background: "#1a1a2e" });
 
     expect(res.status).toBe(201);
     expect(res.body.board.description).toBe("A description");
   });
 
-  it("returns 401 without x-user-id header", async () => {
+  it("returns 401 without authorization header", async () => {
     const res = await request(createApp())
       .post("/api/boards")
       .send({ title: "Test Board", background: "#1a1a2e" });
@@ -102,10 +105,22 @@ describe("POST /api/boards", () => {
     expect(createBoard).not.toHaveBeenCalled();
   });
 
-  it("returns 400 for empty title", async () => {
+  it("returns 401 with invalid token", async () => {
     const res = await request(createApp())
       .post("/api/boards")
-      .set("x-user-id", "user-1")
+      .set("Authorization", "Bearer invalid-token")
+      .send({ title: "Test Board", background: "#1a1a2e" });
+
+    expect(res.status).toBe(401);
+    expect(createBoard).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 for empty title", async () => {
+    const token = await createTestToken("user-1");
+
+    const res = await request(createApp())
+      .post("/api/boards")
+      .set(authBearer(token))
       .send({ title: "", background: "#1a1a2e" });
 
     expect(res.status).toBe(400);
@@ -114,9 +129,11 @@ describe("POST /api/boards", () => {
   });
 
   it("returns 400 for missing title", async () => {
+    const token = await createTestToken("user-1");
+
     const res = await request(createApp())
       .post("/api/boards")
-      .set("x-user-id", "user-1")
+      .set(authBearer(token))
       .send({ background: "#1a1a2e" });
 
     expect(res.status).toBe(400);
@@ -124,9 +141,11 @@ describe("POST /api/boards", () => {
   });
 
   it("returns 400 for missing background", async () => {
+    const token = await createTestToken("user-1");
+
     const res = await request(createApp())
       .post("/api/boards")
-      .set("x-user-id", "user-1")
+      .set(authBearer(token))
       .send({ title: "Test Board" });
 
     expect(res.status).toBe(400);
@@ -134,9 +153,11 @@ describe("POST /api/boards", () => {
   });
 
   it("returns 400 for title over 100 characters", async () => {
+    const token = await createTestToken("user-1");
+
     const res = await request(createApp())
       .post("/api/boards")
-      .set("x-user-id", "user-1")
+      .set(authBearer(token))
       .send({ title: "a".repeat(101), background: "#1a1a2e" });
 
     expect(res.status).toBe(400);
@@ -145,10 +166,11 @@ describe("POST /api/boards", () => {
 
   it("returns 500 on service error", async () => {
     vi.mocked(createBoard).mockRejectedValue(new Error("DB error"));
+    const token = await createTestToken("user-1");
 
     const res = await request(createApp())
       .post("/api/boards")
-      .set("x-user-id", "user-1")
+      .set(authBearer(token))
       .send({ title: "Test Board", background: "#1a1a2e" });
 
     expect(res.status).toBe(500);
@@ -164,10 +186,11 @@ describe("GET /api/boards", () => {
   it("returns owned and shared boards", async () => {
     vi.mocked(listBoardsByOwner).mockResolvedValue([mockBoard]);
     vi.mocked(listSharedBoards).mockResolvedValue([]);
+    const token = await createTestToken("user-1");
 
     const res = await request(createApp())
       .get("/api/boards")
-      .set("x-user-id", "user-1");
+      .set(authBearer(token));
 
     expect(res.status).toBe(200);
     expect(res.body.owned).toHaveLength(1);
@@ -176,7 +199,7 @@ describe("GET /api/boards", () => {
     expect(listSharedBoards).toHaveBeenCalledWith(expect.anything(), "user-1");
   });
 
-  it("returns 401 without x-user-id header", async () => {
+  it("returns 401 without authorization header", async () => {
     const res = await request(createApp()).get("/api/boards");
 
     expect(res.status).toBe(401);
@@ -185,10 +208,11 @@ describe("GET /api/boards", () => {
 
   it("returns 500 on service error", async () => {
     vi.mocked(listBoardsByOwner).mockRejectedValue(new Error("DB error"));
+    const token = await createTestToken("user-1");
 
     const res = await request(createApp())
       .get("/api/boards")
-      .set("x-user-id", "user-1");
+      .set(authBearer(token));
 
     expect(res.status).toBe(500);
   });
@@ -202,10 +226,11 @@ describe("GET /api/boards/:id", () => {
 
   it("returns board when owner requests it", async () => {
     vi.mocked(getBoardById).mockResolvedValue(mockBoard);
+    const token = await createTestToken("user-1");
 
     const res = await request(createApp())
       .get("/api/boards/board-1")
-      .set("x-user-id", "user-1");
+      .set(authBearer(token));
 
     expect(res.status).toBe(200);
     expect(res.body.board).toBeDefined();
@@ -215,10 +240,11 @@ describe("GET /api/boards/:id", () => {
 
   it("returns 403 when non-owner requests it", async () => {
     vi.mocked(getBoardById).mockResolvedValue(mockBoard);
+    const token = await createTestToken("user-2");
 
     const res = await request(createApp())
       .get("/api/boards/board-1")
-      .set("x-user-id", "user-2");
+      .set(authBearer(token));
 
     expect(res.status).toBe(403);
     expect(res.body.error).toMatch(/forbidden/i);
@@ -226,16 +252,17 @@ describe("GET /api/boards/:id", () => {
 
   it("returns 404 when board not found", async () => {
     vi.mocked(getBoardById).mockResolvedValue(null);
+    const token = await createTestToken("user-1");
 
     const res = await request(createApp())
       .get("/api/boards/nonexistent")
-      .set("x-user-id", "user-1");
+      .set(authBearer(token));
 
     expect(res.status).toBe(404);
     expect(res.body.error).toMatch(/not found/i);
   });
 
-  it("returns 401 without x-user-id header", async () => {
+  it("returns 401 without authorization header", async () => {
     const res = await request(createApp()).get("/api/boards/board-1");
 
     expect(res.status).toBe(401);
@@ -244,10 +271,11 @@ describe("GET /api/boards/:id", () => {
 
   it("returns 500 on service error", async () => {
     vi.mocked(getBoardById).mockRejectedValue(new Error("DB error"));
+    const token = await createTestToken("user-1");
 
     const res = await request(createApp())
       .get("/api/boards/board-1")
-      .set("x-user-id", "user-1");
+      .set(authBearer(token));
 
     expect(res.status).toBe(500);
   });
@@ -262,10 +290,11 @@ describe("PATCH /api/boards/:id", () => {
   it("updates board title when owner", async () => {
     vi.mocked(getBoardById).mockResolvedValue(mockBoard);
     vi.mocked(updateBoard).mockResolvedValue({ ...mockBoard, title: "Updated" });
+    const token = await createTestToken("user-1");
 
     const res = await request(createApp())
       .patch("/api/boards/board-1")
-      .set("x-user-id", "user-1")
+      .set(authBearer(token))
       .send({ title: "Updated" });
 
     expect(res.status).toBe(200);
@@ -276,10 +305,11 @@ describe("PATCH /api/boards/:id", () => {
   it("updates board background when owner", async () => {
     vi.mocked(getBoardById).mockResolvedValue(mockBoard);
     vi.mocked(updateBoard).mockResolvedValue({ ...mockBoard, background: "#ff0000" });
+    const token = await createTestToken("user-1");
 
     const res = await request(createApp())
       .patch("/api/boards/board-1")
-      .set("x-user-id", "user-1")
+      .set(authBearer(token))
       .send({ background: "#ff0000" });
 
     expect(res.status).toBe(200);
@@ -289,10 +319,11 @@ describe("PATCH /api/boards/:id", () => {
   it("updates board description when owner", async () => {
     vi.mocked(getBoardById).mockResolvedValue(mockBoard);
     vi.mocked(updateBoard).mockResolvedValue({ ...mockBoard, description: "New desc" });
+    const token = await createTestToken("user-1");
 
     const res = await request(createApp())
       .patch("/api/boards/board-1")
-      .set("x-user-id", "user-1")
+      .set(authBearer(token))
       .send({ description: "New desc" });
 
     expect(res.status).toBe(200);
@@ -301,10 +332,11 @@ describe("PATCH /api/boards/:id", () => {
 
   it("returns 403 when non-owner updates", async () => {
     vi.mocked(getBoardById).mockResolvedValue(mockBoard);
+    const token = await createTestToken("user-2");
 
     const res = await request(createApp())
       .patch("/api/boards/board-1")
-      .set("x-user-id", "user-2")
+      .set(authBearer(token))
       .send({ title: "Updated" });
 
     expect(res.status).toBe(403);
@@ -313,10 +345,11 @@ describe("PATCH /api/boards/:id", () => {
 
   it("returns 404 when board not found", async () => {
     vi.mocked(getBoardById).mockResolvedValue(null);
+    const token = await createTestToken("user-1");
 
     const res = await request(createApp())
       .patch("/api/boards/nonexistent")
-      .set("x-user-id", "user-1")
+      .set(authBearer(token))
       .send({ title: "Updated" });
 
     expect(res.status).toBe(404);
@@ -324,9 +357,11 @@ describe("PATCH /api/boards/:id", () => {
   });
 
   it("returns 400 for empty title", async () => {
+    const token = await createTestToken("user-1");
+
     const res = await request(createApp())
       .patch("/api/boards/board-1")
-      .set("x-user-id", "user-1")
+      .set(authBearer(token))
       .send({ title: "" });
 
     expect(res.status).toBe(400);
@@ -334,16 +369,18 @@ describe("PATCH /api/boards/:id", () => {
   });
 
   it("returns 400 for title over 100 characters", async () => {
+    const token = await createTestToken("user-1");
+
     const res = await request(createApp())
       .patch("/api/boards/board-1")
-      .set("x-user-id", "user-1")
+      .set(authBearer(token))
       .send({ title: "a".repeat(101) });
 
     expect(res.status).toBe(400);
     expect(updateBoard).not.toHaveBeenCalled();
   });
 
-  it("returns 401 without x-user-id header", async () => {
+  it("returns 401 without authorization header", async () => {
     const res = await request(createApp())
       .patch("/api/boards/board-1")
       .send({ title: "Updated" });
@@ -355,10 +392,11 @@ describe("PATCH /api/boards/:id", () => {
   it("returns 500 on service error", async () => {
     vi.mocked(getBoardById).mockResolvedValue(mockBoard);
     vi.mocked(updateBoard).mockRejectedValue(new Error("DB error"));
+    const token = await createTestToken("user-1");
 
     const res = await request(createApp())
       .patch("/api/boards/board-1")
-      .set("x-user-id", "user-1")
+      .set(authBearer(token))
       .send({ title: "Updated" });
 
     expect(res.status).toBe(500);
@@ -375,10 +413,11 @@ describe("DELETE /api/boards/:id", () => {
     vi.mocked(getBoardById).mockResolvedValue(mockBoard);
     const deletedBoard = { ...mockBoard, deletedAt: new Date() };
     vi.mocked(softDeleteBoard).mockResolvedValue(deletedBoard);
+    const token = await createTestToken("user-1");
 
     const res = await request(createApp())
       .delete("/api/boards/board-1")
-      .set("x-user-id", "user-1");
+      .set(authBearer(token));
 
     expect(res.status).toBe(200);
     expect(res.body.board.deletedAt).not.toBeNull();
@@ -387,10 +426,11 @@ describe("DELETE /api/boards/:id", () => {
 
   it("returns 403 when non-owner deletes", async () => {
     vi.mocked(getBoardById).mockResolvedValue(mockBoard);
+    const token = await createTestToken("user-2");
 
     const res = await request(createApp())
       .delete("/api/boards/board-1")
-      .set("x-user-id", "user-2");
+      .set(authBearer(token));
 
     expect(res.status).toBe(403);
     expect(softDeleteBoard).not.toHaveBeenCalled();
@@ -398,16 +438,17 @@ describe("DELETE /api/boards/:id", () => {
 
   it("returns 404 when board not found", async () => {
     vi.mocked(getBoardById).mockResolvedValue(null);
+    const token = await createTestToken("user-1");
 
     const res = await request(createApp())
       .delete("/api/boards/nonexistent")
-      .set("x-user-id", "user-1");
+      .set(authBearer(token));
 
     expect(res.status).toBe(404);
     expect(softDeleteBoard).not.toHaveBeenCalled();
   });
 
-  it("returns 401 without x-user-id header", async () => {
+  it("returns 401 without authorization header", async () => {
     const res = await request(createApp()).delete("/api/boards/board-1");
 
     expect(res.status).toBe(401);
@@ -417,10 +458,11 @@ describe("DELETE /api/boards/:id", () => {
   it("returns 500 on service error", async () => {
     vi.mocked(getBoardById).mockResolvedValue(mockBoard);
     vi.mocked(softDeleteBoard).mockRejectedValue(new Error("DB error"));
+    const token = await createTestToken("user-1");
 
     const res = await request(createApp())
       .delete("/api/boards/board-1")
-      .set("x-user-id", "user-1");
+      .set(authBearer(token));
 
     expect(res.status).toBe(500);
   });
@@ -436,10 +478,11 @@ describe("POST /api/boards/:id/restore", () => {
     const deletedBoard = { ...mockBoard, deletedAt: new Date() };
     vi.mocked(getBoardByIdIncludingDeleted).mockResolvedValue(deletedBoard);
     vi.mocked(restoreBoard).mockResolvedValue(mockBoard);
+    const token = await createTestToken("user-1");
 
     const res = await request(createApp())
       .post("/api/boards/board-1/restore")
-      .set("x-user-id", "user-1");
+      .set(authBearer(token));
 
     expect(res.status).toBe(200);
     expect(res.body.board.deletedAt).toBeNull();
@@ -449,10 +492,11 @@ describe("POST /api/boards/:id/restore", () => {
   it("returns 403 when non-owner restores", async () => {
     const deletedBoard = { ...mockBoard, deletedAt: new Date() };
     vi.mocked(getBoardByIdIncludingDeleted).mockResolvedValue(deletedBoard);
+    const token = await createTestToken("user-2");
 
     const res = await request(createApp())
       .post("/api/boards/board-1/restore")
-      .set("x-user-id", "user-2");
+      .set(authBearer(token));
 
     expect(res.status).toBe(403);
     expect(restoreBoard).not.toHaveBeenCalled();
@@ -460,16 +504,17 @@ describe("POST /api/boards/:id/restore", () => {
 
   it("returns 404 when board not found", async () => {
     vi.mocked(getBoardByIdIncludingDeleted).mockResolvedValue(null);
+    const token = await createTestToken("user-1");
 
     const res = await request(createApp())
       .post("/api/boards/nonexistent/restore")
-      .set("x-user-id", "user-1");
+      .set(authBearer(token));
 
     expect(res.status).toBe(404);
     expect(restoreBoard).not.toHaveBeenCalled();
   });
 
-  it("returns 401 without x-user-id header", async () => {
+  it("returns 401 without authorization header", async () => {
     const res = await request(createApp()).post("/api/boards/board-1/restore");
 
     expect(res.status).toBe(401);
@@ -479,10 +524,11 @@ describe("POST /api/boards/:id/restore", () => {
   it("returns 500 on service error", async () => {
     vi.mocked(getBoardByIdIncludingDeleted).mockResolvedValue(mockBoard);
     vi.mocked(restoreBoard).mockRejectedValue(new Error("DB error"));
+    const token = await createTestToken("user-1");
 
     const res = await request(createApp())
       .post("/api/boards/board-1/restore")
-      .set("x-user-id", "user-1");
+      .set(authBearer(token));
 
     expect(res.status).toBe(500);
   });
