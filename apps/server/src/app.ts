@@ -2,6 +2,7 @@ import "dotenv/config";
 import express, { type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
 import authRoutes from "./routes/auth.js";
+import boardRoutes from "./routes/boards.js";
 
 export function createApp() {
   const app = express();
@@ -14,6 +15,7 @@ export function createApp() {
   });
 
   app.use("/api/auth", authRoutes);
+  app.use("/api/boards", boardRoutes);
 
   app.use((_req: Request, res: Response) => {
     res.status(404).json({ error: "Not found" });
