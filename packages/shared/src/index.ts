@@ -5,4 +5,4 @@ export * from "./types/user";
 export * from "./types/board";
 export { boards, type Board as BoardRow } from "./schema/boards";
 export { users } from "./schema/users";
-export { createDbClient } from "./db";
+export { createDbClient, type DbClient } from "./db";
