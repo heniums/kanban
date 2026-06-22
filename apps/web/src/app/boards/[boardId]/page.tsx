@@ -16,26 +16,10 @@ export default async function BoardPage({ params }: BoardPageProps) {
   }
 
   const { boardId } = await params;
-  const board = await getBoardById(boardId);
+  const board = await getBoardById(boardId, { ownerId: session.user.id });
 
   if (!board) {
     notFound();
-  }
-
-  if (board.ownerId !== session.user.id) {
-    return (
-      <main className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
-        <div className="text-center space-y-4">
-          <h1 className="text-2xl font-bold">Forbidden</h1>
-          <p className="text-muted-foreground">
-            You do not have access to this board.
-          </p>
-          <Button asChild>
-            <Link href="/boards">Back to boards</Link>
-          </Button>
-        </div>
-      </main>
-    );
   }
 
   return (

@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { updateBoardSchema } from "@kanban/shared";
-import type { UpdateBoardInput, BoardRow } from "@kanban/shared";
+import type { UpdateBoardInput, Board } from "@kanban/shared";
 
 import { updateBoardAction } from "@/lib/actions/boards";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { BackgroundPicker } from "@/components/boards/background-picker";
 
 interface BoardSettingsProps {
-  board: BoardRow;
+  board: Board;
   onClose: () => void;
 }
 

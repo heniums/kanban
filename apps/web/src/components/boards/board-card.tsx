@@ -1,8 +1,8 @@
 import Link from "next/link";
-import type { BoardRow } from "@kanban/shared";
+import type { Board } from "@kanban/shared";
 
 interface BoardCardProps {
-  board: BoardRow;
+  board: Board;
 }
 
 export function BoardCard({ board }: BoardCardProps) {

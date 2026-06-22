@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import type { BoardRow } from "@kanban/shared";
+import type { Board } from "@kanban/shared";
 
 import { deleteBoardAction, restoreBoardAction } from "@/lib/actions/boards";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,7 @@ import {
 import { BoardSettings } from "./board-settings";
 
 interface BoardActionsProps {
-  board: BoardRow;
+  board: Board;
 }
 
 const UNDO_DURATION_MS = 5000;
