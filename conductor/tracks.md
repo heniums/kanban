@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [x] **Track: Board management**
-*Link: [./tracks/board_mgmt_20260620/](./tracks/board_mgmt_20260620/)*
+No active tracks. All completed tracks are archived in `./archive/`.
+
