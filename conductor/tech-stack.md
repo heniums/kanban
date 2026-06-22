@@ -9,7 +9,7 @@
 | Frontend | React 19 + Next.js 16 (App Router) | RSCs by default, `use()`/`useOptimistic` hooks, Actions, Turbopack stable, partial prerendering |
 | Backend | Express.js + Socket.io | Battle-tested HTTP + real-time WS with rooms |
 | Database | PostgreSQL 16 (Neon) | Serverless Postgres with connection pooling, branching for dev |
-| ORM | Drizzle ORM + @neondatabase/serverless | Type-safe queries, native serverless driver, lightweight |
+| ORM | Drizzle ORM + pg (node-postgres) | Type-safe queries, lightweight, server-runnable from Next.js Server Actions |
 
 ## Supporting Libraries
 
@@ -30,9 +30,9 @@
 ```
 ┌─────────────────────────────────────────┐
 │              Next.js (App Router)        │
-│  ┌─────────┐  ┌──────────┐  ┌────────┐ │
-│  │  Pages  │  │  API Routes  │  │ Layouts│ │
-│  └─────────┘  └──────────┘  └────────┘ │
+│  ┌─────────┐  ┌─────────────┐  ┌────────┐ │
+│  │  Pages  │  │Server Actions│  │ Layouts│ │
+│  └─────────┘  └─────────────┘  └────────┘ │
 ├─────────────────────────────────────────┤
 │            Socket.io Client             │
 ├─────────────────────────────────────────┤

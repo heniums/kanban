@@ -80,7 +80,7 @@ The first MVP delivers the product's core value: a real-time collaborative kanba
 
 ### In Scope (MVP v1)
 - **User Authentication:** Registration, login, session management (completed in scaffold track)
-- **Boards:** Create, open, delete; each board owned by its creator
+- **Boards:** Create, open, edit metadata, soft-delete with 5s undo; each board owned by its creator; dashboard with "My Boards" and "Shared with me" sections (completed in board_mgmt track)
 - **Lists:** Create, rename, delete, reorder within a board
 - **Cards:** Create, edit title and description, move across lists, reorder within a list, delete
 - **Real-Time Collaboration:** Multiple users on the same board see changes live via Socket.io rooms
