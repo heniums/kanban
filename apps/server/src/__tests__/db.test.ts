@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { sql } from "drizzle-orm";
 import { createDbClient } from "../db.js";
+import { createDbClient as sharedCreateDbClient } from "@kanban/shared";
 
 describe("Database connection", () => {
   it("connects and responds to a simple query", async () => {
@@ -19,5 +20,9 @@ describe("Database connection", () => {
 
     expect(result.rows).toHaveLength(1);
     expect(result.rows[0]).toEqual({ greeting: "hello" });
+  });
+
+  it("re-exports createDbClient from @kanban/shared", () => {
+    expect(createDbClient).toBe(sharedCreateDbClient);
   });
 });
