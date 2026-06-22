@@ -12,6 +12,7 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./src/__tests__/setup.ts"],
     css: false,
+    exclude: ["**/node_modules/**", "e2e/**", ".next/**", "playwright-report/**", "test-results/**"],
   },
   resolve: {
     alias: [
