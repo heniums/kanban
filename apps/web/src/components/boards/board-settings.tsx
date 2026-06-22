@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { updateBoardSchema } from "@kanban/shared";
@@ -25,8 +25,7 @@ export function BoardSettings({ board, onClose }: BoardSettingsProps) {
   const {
     register,
     handleSubmit,
-    setValue,
-    watch,
+    control,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<UpdateBoardInput>({
     resolver: zodResolver(updateBoardSchema),
@@ -36,8 +35,6 @@ export function BoardSettings({ board, onClose }: BoardSettingsProps) {
       background: board.background,
     },
   });
-
-  const background = watch("background") ?? board.background;
 
   const onSubmit = async (data: UpdateBoardInput) => {
     setServerError("");
@@ -90,11 +87,17 @@ export function BoardSettings({ board, onClose }: BoardSettingsProps) {
 
       <div className="space-y-1.5">
         <Label>Background</Label>
-        <BackgroundPicker
-          value={background}
-          onChange={(value) =>
-            setValue("background", value, { shouldValidate: true })
-          }
+        <Controller
+          name="background"
+          control={control}
+          render={({ field }) => (
+            <BackgroundPicker
+              value={field.value ?? board.background}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              name={field.name}
+            />
+          )}
         />
         {errors.background && (
           <p className="text-sm text-destructive">
