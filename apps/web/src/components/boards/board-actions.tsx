@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import type { BoardRow } from "@kanban/shared";
 
 import { deleteBoardAction, restoreBoardAction } from "@/lib/actions/boards";
@@ -25,7 +26,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { BoardSettings } from "./board-settings";
-import { useToast } from "@/components/ui/toast";
 
 interface BoardActionsProps {
   board: BoardRow;
@@ -37,17 +37,15 @@ export function BoardActions({ board }: BoardActionsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const { toast } = useToast();
 
   const handleDelete = () => {
     startTransition(async () => {
       await deleteBoardAction(board.id);
-      toast({
-        message: "Board deleted.",
+      toast("Board deleted.", {
         duration: UNDO_DURATION_MS,
         action: {
           label: "Undo",
-          onAction: async () => {
+          onClick: async () => {
             await restoreBoardAction(board.id);
             router.refresh();
           },
