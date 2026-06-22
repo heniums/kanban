@@ -46,8 +46,12 @@ export function BoardActions({ board }: BoardActionsProps) {
         action: {
           label: "Undo",
           onClick: async () => {
-            await restoreBoardAction(board.id);
-            router.refresh();
+            try {
+              await restoreBoardAction(board.id);
+              router.refresh();
+            } catch {
+              toast.error("Failed to restore board.");
+            }
           },
         },
       });
