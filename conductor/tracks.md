@@ -4,5 +4,10 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-No active tracks. All completed tracks are archived in `./archive/`.
+- [ ] **Track: Board polish & a11y**
+*Link: [./tracks/board_polish_20260622/](./tracks/board_polish_20260622/)*
+
+---
+
+No completed tracks in this file. All completed tracks are archived in `./archive/`.
 
