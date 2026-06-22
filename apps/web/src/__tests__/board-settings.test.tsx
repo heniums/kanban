@@ -68,3 +68,34 @@ describe("BoardSettings background picker", () => {
     expect(formData.get("background")).toBe(BACKGROUNDS[3].value);
   });
 });
+
+describe("BoardSettings input accessibility", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("sets aria-invalid and aria-describedby on title when validation fails", async () => {
+    const user = userEvent.setup();
+    render(<BoardSettings board={baseBoard} onClose={vi.fn()} />);
+
+    const titleInput = screen.getByLabelText(/title/i);
+    await user.clear(titleInput);
+
+    const submitButton = screen.getByRole("button", { name: /save changes/i });
+    await user.click(submitButton);
+
+    expect(titleInput.getAttribute("aria-invalid")).toBe("true");
+    const describedBy = titleInput.getAttribute("aria-describedby");
+    expect(describedBy).toBeTruthy();
+    const errorEl = document.getElementById(describedBy!);
+    expect(errorEl).toBeTruthy();
+    expect(errorEl!.textContent).toMatch(/title is required/i);
+  });
+
+  it("does not set aria-invalid when no error exists", () => {
+    render(<BoardSettings board={baseBoard} onClose={vi.fn()} />);
+
+    const titleInput = screen.getByLabelText(/title/i);
+    expect(titleInput.getAttribute("aria-invalid")).toBeFalsy();
+  });
+});

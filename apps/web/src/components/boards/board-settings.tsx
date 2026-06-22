@@ -64,9 +64,16 @@ export function BoardSettings({ board, onClose }: BoardSettingsProps) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-1.5">
         <Label htmlFor="edit-title">Title</Label>
-        <Input id="edit-title" {...register("title")} />
+        <Input
+          id="edit-title"
+          aria-invalid={errors.title ? true : undefined}
+          aria-describedby={errors.title ? "edit-title-error" : undefined}
+          {...register("title")}
+        />
         {errors.title && (
-          <p className="text-sm text-destructive">{errors.title.message}</p>
+          <p id="edit-title-error" className="text-sm text-destructive">
+            {errors.title.message}
+          </p>
         )}
       </div>
 
@@ -75,11 +82,13 @@ export function BoardSettings({ board, onClose }: BoardSettingsProps) {
         <textarea
           id="edit-description"
           rows={3}
+          aria-invalid={errors.description ? true : undefined}
+          aria-describedby={errors.description ? "edit-description-error" : undefined}
           className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           {...register("description")}
         />
         {errors.description && (
-          <p className="text-sm text-destructive">
+          <p id="edit-description-error" className="text-sm text-destructive">
             {errors.description.message}
           </p>
         )}
@@ -96,18 +105,22 @@ export function BoardSettings({ board, onClose }: BoardSettingsProps) {
               onChange={field.onChange}
               onBlur={field.onBlur}
               name={field.name}
+              aria-invalid={errors.background ? true : undefined}
+              aria-describedby={errors.background ? "edit-background-error" : undefined}
             />
           )}
         />
         {errors.background && (
-          <p className="text-sm text-destructive">
+          <p id="edit-background-error" className="text-sm text-destructive">
             {errors.background.message}
           </p>
         )}
       </div>
 
       {serverError && (
-        <p className="text-sm text-destructive">{serverError}</p>
+        <p id="edit-server-error" className="text-sm text-destructive">
+          {serverError}
+        </p>
       )}
 
       <div className="flex justify-end gap-2">

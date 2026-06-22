@@ -72,10 +72,12 @@ export default function NewBoardPage() {
               <Input
                 id="title"
                 placeholder="e.g. Product Roadmap"
+                aria-invalid={errors.title ? true : undefined}
+                aria-describedby={errors.title ? "title-error" : undefined}
                 {...register("title")}
               />
               {errors.title && (
-                <p className="text-sm text-destructive">
+                <p id="title-error" className="text-sm text-destructive">
                   {errors.title.message}
                 </p>
               )}
@@ -86,11 +88,13 @@ export default function NewBoardPage() {
                 id="description"
                 placeholder="What is this board for?"
                 rows={3}
+                aria-invalid={errors.description ? true : undefined}
+                aria-describedby={errors.description ? "description-error" : undefined}
                 className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 {...register("description")}
               />
               {errors.description && (
-                <p className="text-sm text-destructive">
+                <p id="description-error" className="text-sm text-destructive">
                   {errors.description.message}
                 </p>
               )}
@@ -106,17 +110,21 @@ export default function NewBoardPage() {
                     onChange={field.onChange}
                     onBlur={field.onBlur}
                     name={field.name}
+                    aria-invalid={errors.background ? true : undefined}
+                    aria-describedby={errors.background ? "background-error" : undefined}
                   />
                 )}
               />
               {errors.background && (
-                <p className="text-sm text-destructive">
+                <p id="background-error" className="text-sm text-destructive">
                   {errors.background.message}
                 </p>
               )}
             </div>
             {serverError && (
-              <p className="text-sm text-destructive">{serverError}</p>
+              <p id="server-error" className="text-sm text-destructive">
+                {serverError}
+              </p>
             )}
           </CardContent>
           <CardFooter>

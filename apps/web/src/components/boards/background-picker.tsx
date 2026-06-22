@@ -33,6 +33,8 @@ interface BackgroundPickerProps {
   onChange: (value: string) => void;
   onBlur?: () => void;
   name?: string;
+  "aria-invalid"?: boolean;
+  "aria-describedby"?: string;
 }
 
 export function BackgroundPicker({
@@ -40,6 +42,7 @@ export function BackgroundPicker({
   onChange,
   onBlur,
   name,
+  ...ariaProps
 }: BackgroundPickerProps) {
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent, index: number) => {
@@ -73,6 +76,7 @@ export function BackgroundPicker({
       aria-label="Board background"
       className="flex flex-wrap gap-3"
       onBlur={onBlur}
+      {...ariaProps}
     >
       {BACKGROUNDS.map((option, index) => {
         const isSelected = option.value === value;
