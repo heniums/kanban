@@ -1,24 +1,12 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
-import {
-  createDbClient,
-  boards,
-} from "@kanban/shared";
+import { createDbClient, boards } from "@kanban/shared";
 import { eq, and, isNull } from "drizzle-orm";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 interface BoardPageProps {
   params: Promise<{ boardId: string }>;
-}
-
-async function getBoard(boardId: string) {
-  const db = createDbClient();
-  const result = await db
-    .select()
-    .from(boards)
-    .where(and(eq(boards.id, boardId), isNull(boards.deletedAt)));
-  return result[0] ?? null;
 }
 
 export default async function BoardPage({ params }: BoardPageProps) {
@@ -28,7 +16,14 @@ export default async function BoardPage({ params }: BoardPageProps) {
   }
 
   const { boardId } = await params;
-  const board = await getBoard(boardId);
+
+  const db = createDbClient();
+  const result = await db
+    .select()
+    .from(boards)
+    .where(and(eq(boards.id, boardId), isNull(boards.deletedAt)));
+
+  const board = result[0] ?? null;
 
   if (!board) {
     notFound();
