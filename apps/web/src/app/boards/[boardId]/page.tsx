@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { BoardActions } from "@/components/boards/board-actions";
 import { getBoardById } from "@/lib/data/boards";
 
 interface BoardPageProps {
@@ -43,7 +44,7 @@ export default async function BoardPage({ params }: BoardPageProps) {
       style={{ background: board.background }}
     >
       <div className="mx-auto max-w-7xl px-4 py-8">
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8 flex items-start justify-between gap-4">
           <div>
             <Link
               href="/boards"
@@ -56,6 +57,7 @@ export default async function BoardPage({ params }: BoardPageProps) {
               <p className="mt-1 text-white/80">{board.description}</p>
             )}
           </div>
+          <BoardActions board={board} />
         </div>
 
         <div className="rounded-lg border border-white/10 bg-white/5 p-12 text-center backdrop-blur-sm">

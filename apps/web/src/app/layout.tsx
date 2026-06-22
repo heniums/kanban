@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SessionProvider } from "@/components/session-provider";
 import { Header } from "@/components/header";
+import { ToastProvider } from "@/components/ui/toast";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -23,10 +24,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="antialiased">
-        <SessionProvider>
-          <Header />
-          {children}
-        </SessionProvider>
+        <ToastProvider>
+          <SessionProvider>
+            <Header />
+            {children}
+          </SessionProvider>
+        </ToastProvider>
       </body>
     </html>
   );

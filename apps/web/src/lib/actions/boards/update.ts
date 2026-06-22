@@ -6,7 +6,14 @@ import { revalidatePath } from "next/cache";
 import { getSessionUserId } from "./auth";
 import { getBoardById, updateBoard } from "@/lib/data/boards";
 
-export async function updateBoardAction(id: string, formData: FormData) {
+type UpdateResult =
+  | { board: NonNullable<Awaited<ReturnType<typeof updateBoard>>> }
+  | { errors: Array<{ field: string; message: string }> };
+
+export async function updateBoardAction(
+  id: string,
+  formData: FormData
+): Promise<UpdateResult> {
   const userId = await getSessionUserId();
 
   const raw: Record<string, unknown> = {};
@@ -43,5 +50,5 @@ export async function updateBoardAction(id: string, formData: FormData) {
   revalidatePath(`/boards/${id}`);
   revalidatePath("/boards");
 
-  return { board: updated };
+  return { board: updated! };
 }
