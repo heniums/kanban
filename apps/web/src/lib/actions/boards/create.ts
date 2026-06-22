@@ -1,10 +1,11 @@
 "use server";
 
-import { createDbClient, boards, createBoardSchema } from "@kanban/shared";
+import { createBoardSchema } from "@kanban/shared";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { getSessionUserId } from "./auth";
+import { createBoard } from "@/lib/data/boards";
 
 export async function createBoardAction(formData: FormData) {
   const userId = await getSessionUserId();
@@ -25,11 +26,7 @@ export async function createBoardAction(formData: FormData) {
     return { errors };
   }
 
-  const db = createDbClient();
-  const [board] = await db
-    .insert(boards)
-    .values({ ...parsed.data, ownerId: userId })
-    .returning();
+  const board = await createBoard({ ...parsed.data, ownerId: userId });
 
   revalidatePath("/boards");
   redirect(`/boards/${board.id}`);

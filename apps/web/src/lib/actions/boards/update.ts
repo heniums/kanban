@@ -1,10 +1,10 @@
 "use server";
 
-import { createDbClient, boards, updateBoardSchema } from "@kanban/shared";
-import { eq, and, isNull } from "drizzle-orm";
+import { updateBoardSchema } from "@kanban/shared";
 import { revalidatePath } from "next/cache";
 
 import { getSessionUserId } from "./auth";
+import { getBoardById, updateBoard } from "@/lib/data/boards";
 
 export async function updateBoardAction(id: string, formData: FormData) {
   const userId = await getSessionUserId();
@@ -28,12 +28,7 @@ export async function updateBoardAction(id: string, formData: FormData) {
     return { errors };
   }
 
-  const db = createDbClient();
-
-  const [existing] = await db
-    .select()
-    .from(boards)
-    .where(and(eq(boards.id, id), isNull(boards.deletedAt)));
+  const existing = await getBoardById(id);
 
   if (!existing) {
     return { errors: [{ field: "", message: "Board not found" }] };
@@ -43,11 +38,7 @@ export async function updateBoardAction(id: string, formData: FormData) {
     throw new Error("Forbidden");
   }
 
-  const [updated] = await db
-    .update(boards)
-    .set(parsed.data)
-    .where(and(eq(boards.id, id), isNull(boards.deletedAt)))
-    .returning();
+  const updated = await updateBoard(id, parsed.data);
 
   revalidatePath(`/boards/${id}`);
   revalidatePath("/boards");

@@ -1,20 +1,12 @@
 "use server";
 
-import { createDbClient, boards } from "@kanban/shared";
-import { eq, and, isNull } from "drizzle-orm";
-
 import { getSessionUserId } from "./auth";
+import { getBoardById } from "@/lib/data/boards";
 
 export async function getBoardAction(id: string) {
   const userId = await getSessionUserId();
 
-  const db = createDbClient();
-  const result = await db
-    .select()
-    .from(boards)
-    .where(and(eq(boards.id, id), isNull(boards.deletedAt)));
-
-  const board = result[0] ?? null;
+  const board = await getBoardById(id);
 
   if (!board) {
     return null;
