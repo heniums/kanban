@@ -3,24 +3,19 @@
 import { revalidatePath } from "next/cache";
 
 import { getSessionUserId } from "./auth";
-import { getBoardById, softDeleteBoard } from "@/lib/data/boards";
+import { softDeleteBoard } from "@/lib/data/boards";
 
 export async function deleteBoardAction(id: string) {
   const userId = await getSessionUserId();
 
-  const existing = await getBoardById(id);
+  const deleted = await softDeleteBoard(id, { ownerId: userId });
 
-  if (!existing) {
-    throw new Error("Board not found");
+  if (!deleted) {
+    return { error: "Board not found or not owned" };
   }
-
-  if (existing.ownerId !== userId) {
-    throw new Error("Forbidden");
-  }
-
-  await softDeleteBoard(id);
 
   revalidatePath("/boards");
+  revalidatePath(`/boards/${id}`);
 
   return { success: true };
 }

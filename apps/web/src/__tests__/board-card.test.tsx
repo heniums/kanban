@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { BoardCard, BoardCardSkeleton } from "@/components/boards/board-card";
-import type { BoardRow } from "@kanban/shared";
+import type { Board } from "@kanban/shared";
 
-const baseBoard: BoardRow = {
+const baseBoard: Board = {
   id: "test-id",
   title: "My Test Board",
   description: "A description",

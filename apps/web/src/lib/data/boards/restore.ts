@@ -1,13 +1,16 @@
 import { createDbClient, boards } from "@kanban/shared";
-import { eq } from "drizzle-orm";
-import type { BoardRow } from "@kanban/shared";
+import { eq, and } from "drizzle-orm";
+import type { Board } from "@kanban/shared";
 
-export async function restoreBoard(id: string): Promise<BoardRow | null> {
+export async function restoreBoard(
+  id: string,
+  options: { ownerId: string }
+): Promise<Board | null> {
   const db = createDbClient();
   const [board] = await db
     .update(boards)
     .set({ deletedAt: null })
-    .where(eq(boards.id, id))
+    .where(and(eq(boards.id, id), eq(boards.ownerId, options.ownerId)))
     .returning();
   return board ?? null;
 }

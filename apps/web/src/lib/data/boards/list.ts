@@ -1,10 +1,10 @@
 import { createDbClient, boards } from "@kanban/shared";
 import { eq, and, isNull, desc } from "drizzle-orm";
-import type { BoardRow } from "@kanban/shared";
+import type { Board } from "@kanban/shared";
 
 const MAX_LIMIT = 100;
 
-export async function listBoardsByOwner(ownerId: string): Promise<BoardRow[]> {
+export async function listBoardsByOwner(ownerId: string): Promise<Board[]> {
   const db = createDbClient();
   return db
     .select()

@@ -3,22 +3,16 @@
 import { revalidatePath } from "next/cache";
 
 import { getSessionUserId } from "./auth";
-import { getBoardByIdIncludingDeleted, restoreBoard } from "@/lib/data/boards";
+import { restoreBoard } from "@/lib/data/boards";
 
 export async function restoreBoardAction(id: string) {
   const userId = await getSessionUserId();
 
-  const existing = await getBoardByIdIncludingDeleted(id);
+  const restored = await restoreBoard(id, { ownerId: userId });
 
-  if (!existing) {
-    throw new Error("Board not found");
+  if (!restored) {
+    return { error: "Board not found or not owned" };
   }
-
-  if (existing.ownerId !== userId) {
-    throw new Error("Forbidden");
-  }
-
-  await restoreBoard(id);
 
   revalidatePath("/boards");
 

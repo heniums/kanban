@@ -126,21 +126,15 @@ describe("getBoardAction", () => {
 
     const result = await getBoardAction("board-1");
     expect(result).toEqual(SAMPLE_BOARD);
+    expect(mockGetBoardById).toHaveBeenCalledWith("board-1", { ownerId: "user-1" });
   });
 
-  it("returns null when board not found", async () => {
+  it("returns null when board not found or not owned", async () => {
     mockAuth.mockResolvedValue({ user: { id: "user-1" } });
     mockGetBoardById.mockResolvedValue(null);
 
     const result = await getBoardAction("missing");
     expect(result).toBeNull();
-  });
-
-  it("throws Forbidden when caller is not owner", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-2" } });
-    mockGetBoardById.mockResolvedValue(SAMPLE_BOARD);
-
-    await expect(getBoardAction("board-1")).rejects.toThrow("Forbidden");
   });
 
   it("throws Unauthorized when not signed in", async () => {
@@ -169,7 +163,6 @@ describe("listBoardsAction", () => {
 describe("updateBoardAction", () => {
   it("updates the board when caller is owner", async () => {
     mockAuth.mockResolvedValue({ user: { id: "user-1" } });
-    mockGetBoardById.mockResolvedValue(SAMPLE_BOARD);
     mockUpdateBoard.mockResolvedValue({ ...SAMPLE_BOARD, title: "Updated" });
 
     const formData = new FormData();
@@ -178,7 +171,9 @@ describe("updateBoardAction", () => {
 
     const result = await updateBoardAction("board-1", formData);
     expect(result).toHaveProperty("board");
-    expect(result.board?.title).toBe("Updated");
+    if ("board" in result) {
+      expect(result.board.title).toBe("Updated");
+    }
   });
 
   it("returns errors for invalid input", async () => {
@@ -189,85 +184,54 @@ describe("updateBoardAction", () => {
 
     const result = await updateBoardAction("board-1", formData);
     expect(result).toHaveProperty("errors");
-    expect(mockGetBoardById).not.toHaveBeenCalled();
   });
 
-  it("returns errors when board not found", async () => {
+  it("returns errors when board not found or not owned", async () => {
     mockAuth.mockResolvedValue({ user: { id: "user-1" } });
-    mockGetBoardById.mockResolvedValue(null);
+    mockUpdateBoard.mockResolvedValue(null);
     const formData = new FormData();
     formData.set("title", "Updated");
     formData.set("background", "#000");
 
     const result = await updateBoardAction("board-1", formData);
     expect(result).toHaveProperty("errors");
-    expect(mockUpdateBoard).not.toHaveBeenCalled();
-  });
-
-  it("throws Forbidden when caller is not owner", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-2" } });
-    mockGetBoardById.mockResolvedValue(SAMPLE_BOARD);
-    const formData = new FormData();
-    formData.set("title", "Updated");
-    formData.set("background", "#000");
-
-    await expect(updateBoardAction("board-1", formData)).rejects.toThrow("Forbidden");
-    expect(mockUpdateBoard).not.toHaveBeenCalled();
   });
 });
 
 describe("deleteBoardAction", () => {
   it("soft-deletes when caller is owner", async () => {
     mockAuth.mockResolvedValue({ user: { id: "user-1" } });
-    mockGetBoardById.mockResolvedValue(SAMPLE_BOARD);
     mockSoftDeleteBoard.mockResolvedValue(SAMPLE_BOARD);
 
     const result = await deleteBoardAction("board-1");
     expect(result).toEqual({ success: true });
-    expect(mockSoftDeleteBoard).toHaveBeenCalledWith("board-1");
+    expect(mockSoftDeleteBoard).toHaveBeenCalledWith("board-1", { ownerId: "user-1" });
   });
 
-  it("throws Board not found when board missing", async () => {
+  it("returns error when board not found or not owned", async () => {
     mockAuth.mockResolvedValue({ user: { id: "user-1" } });
-    mockGetBoardById.mockResolvedValue(null);
+    mockSoftDeleteBoard.mockResolvedValue(null);
 
-    await expect(deleteBoardAction("board-1")).rejects.toThrow("Board not found");
-    expect(mockSoftDeleteBoard).not.toHaveBeenCalled();
-  });
-
-  it("throws Forbidden when caller is not owner", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-2" } });
-    mockGetBoardById.mockResolvedValue(SAMPLE_BOARD);
-
-    await expect(deleteBoardAction("board-1")).rejects.toThrow("Forbidden");
-    expect(mockSoftDeleteBoard).not.toHaveBeenCalled();
+    const result = await deleteBoardAction("board-1");
+    expect(result).toHaveProperty("error");
   });
 });
 
 describe("restoreBoardAction", () => {
   it("restores a soft-deleted board when caller is owner", async () => {
     mockAuth.mockResolvedValue({ user: { id: "user-1" } });
-    mockGetBoardByIdIncludingDeleted.mockResolvedValue(SAMPLE_BOARD);
     mockRestoreBoard.mockResolvedValue(SAMPLE_BOARD);
 
     const result = await restoreBoardAction("board-1");
     expect(result).toEqual({ success: true });
-    expect(mockRestoreBoard).toHaveBeenCalledWith("board-1");
+    expect(mockRestoreBoard).toHaveBeenCalledWith("board-1", { ownerId: "user-1" });
   });
 
-  it("throws Board not found when board missing", async () => {
+  it("returns error when board not found or not owned", async () => {
     mockAuth.mockResolvedValue({ user: { id: "user-1" } });
-    mockGetBoardByIdIncludingDeleted.mockResolvedValue(null);
+    mockRestoreBoard.mockResolvedValue(null);
 
-    await expect(restoreBoardAction("board-1")).rejects.toThrow("Board not found");
-    expect(mockRestoreBoard).not.toHaveBeenCalled();
-  });
-
-  it("throws Forbidden when caller is not owner", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-2" } });
-    mockGetBoardByIdIncludingDeleted.mockResolvedValue(SAMPLE_BOARD);
-
-    await expect(restoreBoardAction("board-1")).rejects.toThrow("Forbidden");
-    expect(mockRestoreBoard).not.toHaveBeenCalled();
+    const result = await restoreBoardAction("board-1");
+    expect(result).toHaveProperty("error");
   });
 });

@@ -4,7 +4,7 @@ import { updateBoardSchema } from "@kanban/shared";
 import { revalidatePath } from "next/cache";
 
 import { getSessionUserId } from "./auth";
-import { getBoardById, updateBoard } from "@/lib/data/boards";
+import { updateBoard } from "@/lib/data/boards";
 
 type UpdateResult =
   | { board: NonNullable<Awaited<ReturnType<typeof updateBoard>>> }
@@ -35,20 +35,14 @@ export async function updateBoardAction(
     return { errors };
   }
 
-  const existing = await getBoardById(id);
+  const updated = await updateBoard(id, parsed.data, { ownerId: userId });
 
-  if (!existing) {
+  if (!updated) {
     return { errors: [{ field: "", message: "Board not found" }] };
   }
-
-  if (existing.ownerId !== userId) {
-    throw new Error("Forbidden");
-  }
-
-  const updated = await updateBoard(id, parsed.data);
 
   revalidatePath(`/boards/${id}`);
   revalidatePath("/boards");
 
-  return { board: updated! };
+  return { board: updated };
 }
