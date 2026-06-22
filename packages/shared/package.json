@@ -11,9 +11,12 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "pg": "^8.21.0",
     "zod": "^3.23.0"
   },
   "devDependencies": {
+    "dotenv": "^16.4.0",
     "typescript": "^5.5.0",
     "vitest": "^2.1.0"
   }
