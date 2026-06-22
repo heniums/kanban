@@ -11,10 +11,7 @@ import { updateBoardAction } from "@/lib/actions/boards";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  BackgroundPicker,
-  BACKGROUNDS,
-} from "@/components/boards/background-picker";
+import { BackgroundPicker } from "@/components/boards/background-picker";
 
 interface BoardSettingsProps {
   board: BoardRow;

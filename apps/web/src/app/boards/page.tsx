@@ -11,7 +11,7 @@ export default async function BoardsPage() {
     redirect("/login");
   }
 
-  const { owned, shared } = await listBoardsAction();
+  const { owned } = await listBoardsAction();
 
   return (
     <main className="container py-8">
