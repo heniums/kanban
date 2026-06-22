@@ -9,5 +9,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Remove Express proxy**
+- [x] **Track: Remove Express proxy**
 *Link: [./tracks/rm_express_proxy_20260621/](./tracks/rm_express_proxy_20260621/)*
