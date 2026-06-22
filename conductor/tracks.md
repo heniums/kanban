@@ -4,7 +4,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Board polish & a11y**
+- [x] **Track: Board polish & a11y**
 *Link: [./tracks/board_polish_20260622/](./tracks/board_polish_20260622/)*
 
 ---
