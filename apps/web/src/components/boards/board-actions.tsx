@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -37,25 +36,38 @@ export function BoardActions({ board }: BoardActionsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [inFlight, setInFlight] = useState(false);
 
   const handleDelete = () => {
+    if (inFlight) return;
+    setInFlight(true);
     startTransition(async () => {
-      await deleteBoardAction(board.id);
-      toast("Board deleted.", {
-        duration: UNDO_DURATION_MS,
-        action: {
-          label: "Undo",
-          onClick: async () => {
-            try {
-              await restoreBoardAction(board.id);
-              router.refresh();
-            } catch {
-              toast.error("Failed to restore board.");
-            }
+      try {
+        const result = await deleteBoardAction(board.id);
+        if (result && "error" in result) {
+          toast.error("Failed to delete board.");
+          return;
+        }
+        setDeleteOpen(false);
+        toast("Board deleted.", {
+          duration: UNDO_DURATION_MS,
+          action: {
+            label: "Undo",
+            onClick: async () => {
+              try {
+                await restoreBoardAction(board.id);
+                router.refresh();
+              } catch {
+                toast.error("Failed to restore board.");
+              }
+            },
           },
-        },
-      });
-      router.push("/boards");
+        });
+        router.push("/boards");
+      } finally {
+        setInFlight(false);
+      }
     });
   };
 
@@ -77,7 +89,7 @@ export function BoardActions({ board }: BoardActionsProps) {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog>
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogTrigger asChild>
           <Button variant="destructive">Delete</Button>
         </AlertDialogTrigger>
@@ -90,10 +102,15 @@ export function BoardActions({ board }: BoardActionsProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} disabled={isPending}>
-              {isPending ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
+            <AlertDialogCancel disabled={inFlight}>Cancel</AlertDialogCancel>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={isPending || inFlight}
+            >
+              {isPending || inFlight ? "Deleting..." : "Delete"}
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
