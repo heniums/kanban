@@ -30,7 +30,7 @@ describe("NewBoardPage background picker", () => {
 
   it("submits the selected background value via Controller", async () => {
     const user = userEvent.setup();
-    vi.mocked(createBoardAction).mockResolvedValue(undefined);
+    vi.mocked(createBoardAction).mockResolvedValue({ errors: [] });
 
     render(<NewBoardPage />);
 
