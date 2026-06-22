@@ -104,3 +104,4 @@
 ## Phase: Review Fixes
 
 - [x] Task: Apply review suggestions (test gaps for data layer and Server Actions) a3ac1c1
+- [x] Task: Apply review suggestions (data-layer ownership enforcement, type unification) ca42d58
