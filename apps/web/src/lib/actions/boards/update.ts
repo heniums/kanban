@@ -3,7 +3,7 @@
 import { updateBoardSchema } from "@kanban/shared";
 import { revalidatePath } from "next/cache";
 
-import { getSessionUserId } from "./auth";
+import { verifySession } from "@/lib/dal";
 import { updateBoard } from "@/lib/data/boards";
 
 type UpdateResult =
@@ -14,7 +14,7 @@ export async function updateBoardAction(
   id: string,
   formData: FormData
 ): Promise<UpdateResult> {
-  const userId = await getSessionUserId();
+  const { userId } = await verifySession();
 
   const raw: Record<string, unknown> = {};
   const title = formData.get("title");

@@ -4,11 +4,11 @@ import { createBoardSchema } from "@kanban/shared";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { getSessionUserId } from "./auth";
+import { verifySession } from "@/lib/dal";
 import { createBoard } from "@/lib/data/boards";
 
 export async function createBoardAction(formData: FormData) {
-  const userId = await getSessionUserId();
+  const { userId } = await verifySession();
 
   const raw = {
     title: formData.get("title"),

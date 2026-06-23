@@ -1,10 +1,10 @@
 "use server";
 
-import { getSessionUserId } from "./auth";
+import { verifySession } from "@/lib/dal";
 import { getBoardById } from "@/lib/data/boards";
 
 export async function getBoardAction(id: string) {
-  const userId = await getSessionUserId();
+  const { userId } = await verifySession();
 
   const board = await getBoardById(id, { ownerId: userId });
 
