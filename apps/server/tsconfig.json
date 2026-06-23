@@ -4,6 +4,11 @@
     "lib": ["ES2022"],
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "paths": {
+      "@kanban/shared": ["../../packages/shared/src/index.ts"],
+      "@kanban/shared/server": ["../../packages/shared/src/server.ts"]
+    },
     "outDir": "./dist",
     "strict": true,
     "esModuleInterop": true,
@@ -14,8 +19,7 @@
     "noEmit": false,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true,
-    "paths": {}
+    "sourceMap": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]

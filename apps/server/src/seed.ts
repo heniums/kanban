@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { hash } from "bcryptjs";
-import { createDbClient } from "./db.js";
-import { users } from "./schema/users.js";
+import { eq } from "drizzle-orm";
+import { createDbClient, users, boards } from "@kanban/shared/server";
 
 export async function seed() {
   const db = createDbClient();
@@ -18,5 +18,44 @@ export async function seed() {
     .onConflictDoNothing()
     .returning();
 
-  return user ?? null;
+  let demoUser = user;
+  if (!demoUser) {
+    const [existing] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, "demo@kanban.local"));
+    demoUser = existing ?? null;
+  }
+
+  if (demoUser) {
+    const existingBoards = await db
+      .select()
+      .from(boards)
+      .where(eq(boards.ownerId, demoUser.id));
+
+    if (existingBoards.length === 0) {
+      await db.insert(boards).values([
+        {
+          title: "Product Roadmap",
+          description: "Quarterly product planning and milestones.",
+          background: "#1a1a2e",
+          ownerId: demoUser.id,
+        },
+        {
+          title: "Sprint Board",
+          description: "Current sprint tasks and progress.",
+          background: "linear-gradient(135deg, #667eea, #764ba2)",
+          ownerId: demoUser.id,
+        },
+        {
+          title: "Backlog Refinement",
+          description: "Triaging and estimating upcoming work.",
+          background: "linear-gradient(135deg, #f093fb, #f5576c)",
+          ownerId: demoUser.id,
+        },
+      ]);
+    }
+  }
+
+  return demoUser ?? null;
 }

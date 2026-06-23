@@ -14,6 +14,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      "@kanban/shared/server": path.resolve(__dirname, "../../packages/shared/src/server.ts"),
       "@kanban/shared": path.resolve(__dirname, "../../packages/shared/src/index.ts"),
     },
   },
