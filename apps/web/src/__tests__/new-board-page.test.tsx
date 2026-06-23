@@ -8,16 +8,16 @@ vi.mock("@/lib/actions/boards", () => ({
 }));
 
 import { createBoardAction } from "@/lib/actions/boards";
-import NewBoardPage from "@/app/boards/new/page";
+import NewBoardForm from "@/components/boards/new-board-form";
 
-describe("NewBoardPage background picker", () => {
+describe("NewBoardForm background picker", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it("uses Controller to keep BackgroundPicker swatch in sync with form state", async () => {
     const user = userEvent.setup();
-    render(<NewBoardPage />);
+    render(<NewBoardForm />);
 
     const swatches = screen.getAllByRole("radio");
     expect(swatches[0].getAttribute("aria-checked")).toBe("true");
@@ -32,7 +32,7 @@ describe("NewBoardPage background picker", () => {
     const user = userEvent.setup();
     vi.mocked(createBoardAction).mockResolvedValue({ errors: [] });
 
-    render(<NewBoardPage />);
+    render(<NewBoardForm />);
 
     const titleInput = screen.getByLabelText(/title/i);
     await user.type(titleInput, "My Board");
@@ -50,14 +50,14 @@ describe("NewBoardPage background picker", () => {
   });
 });
 
-describe("NewBoardPage input accessibility", () => {
+describe("NewBoardForm input accessibility", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it("sets aria-invalid and aria-describedby on title when validation fails", async () => {
     const user = userEvent.setup();
-    render(<NewBoardPage />);
+    render(<NewBoardForm />);
 
     const submitButton = screen.getByRole("button", { name: /create board/i });
     await user.click(submitButton);
@@ -73,7 +73,7 @@ describe("NewBoardPage input accessibility", () => {
   });
 
   it("does not set aria-invalid when no error exists", () => {
-    render(<NewBoardPage />);
+    render(<NewBoardForm />);
 
     const titleInput = screen.getByLabelText(/title/i);
     expect(titleInput.getAttribute("aria-invalid")).toBeFalsy();
