@@ -1,22 +1,19 @@
-import { notFound, redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { BoardActions } from "@/components/boards/board-actions";
 import { getBoardById } from "@/lib/data/boards";
 import { getTextColor } from "@/lib/text-color";
+import { verifySession } from "@/lib/dal";
 
 interface BoardPageProps {
   params: Promise<{ boardId: string }>;
 }
 
 export default async function BoardPage({ params }: BoardPageProps) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    redirect("/login");
-  }
+  const { userId } = await verifySession();
 
   const { boardId } = await params;
-  const board = await getBoardById(boardId, { ownerId: session.user.id });
+  const board = await getBoardById(boardId, { ownerId: userId });
 
   if (!board) {
     notFound();

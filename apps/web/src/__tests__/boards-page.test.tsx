@@ -2,23 +2,20 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import type { Board } from "@kanban/shared";
 
-vi.mock("@/auth", () => ({
-  auth: vi.fn(),
+const { mockVerifySession, mockListBoardsAction } = vi.hoisted(() => ({
+  mockVerifySession: vi.fn(),
+  mockListBoardsAction: vi.fn(),
 }));
 
-vi.mock("next/navigation", () => ({
-  redirect: vi.fn((url: string) => {
-    const err: Error & { digest?: string } = new Error("NEXT_REDIRECT");
-    err.digest = `NEXT_REDIRECT;${url}`;
-    throw err;
-  }),
+vi.mock("@/lib/dal", () => ({
+  verifySession: mockVerifySession,
 }));
 
 vi.mock("@/lib/actions/boards", () => ({
-  listBoardsAction: vi.fn(),
+  listBoardsAction: mockListBoardsAction,
 }));
 
-import { auth } from "@/auth";
+import { verifySession } from "@/lib/dal";
 import { listBoardsAction } from "@/lib/actions/boards";
 import BoardsPage from "@/app/boards/page";
 
@@ -48,22 +45,21 @@ const sampleBoards: Board[] = [
 describe("BoardsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue(
-      undefined as unknown as Awaited<ReturnType<typeof auth>>
+    mockVerifySession.mockRejectedValue(
+      Object.assign(new Error("NEXT_REDIRECT"), {
+        digest: "NEXT_REDIRECT;/login",
+      })
     );
   });
 
   it("redirects unauthenticated users to /login", async () => {
     await expect(BoardsPage()).rejects.toThrow("NEXT_REDIRECT");
-    expect(listBoardsAction).not.toHaveBeenCalled();
+    expect(mockListBoardsAction).not.toHaveBeenCalled();
   });
 
   it("renders owned boards under the 'My Boards' section", async () => {
-    vi.mocked(auth).mockResolvedValue({
-      user: { id: "user-1", email: "u@example.com" },
-      expires: "2099-01-01",
-    } as unknown as Awaited<ReturnType<typeof auth>>);
-    vi.mocked(listBoardsAction).mockResolvedValue({
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockListBoardsAction.mockResolvedValue({
       owned: sampleBoards,
       shared: [],
     });
@@ -77,11 +73,8 @@ describe("BoardsPage", () => {
   });
 
   it("renders the 'No boards yet' empty state when the user owns no boards", async () => {
-    vi.mocked(auth).mockResolvedValue({
-      user: { id: "user-1", email: "u@example.com" },
-      expires: "2099-01-01",
-    } as unknown as Awaited<ReturnType<typeof auth>>);
-    vi.mocked(listBoardsAction).mockResolvedValue({
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockListBoardsAction.mockResolvedValue({
       owned: [],
       shared: [],
     });
@@ -95,11 +88,8 @@ describe("BoardsPage", () => {
   });
 
   it("always renders the 'Shared with me' section with its empty state", async () => {
-    vi.mocked(auth).mockResolvedValue({
-      user: { id: "user-1", email: "u@example.com" },
-      expires: "2099-01-01",
-    } as unknown as Awaited<ReturnType<typeof auth>>);
-    vi.mocked(listBoardsAction).mockResolvedValue({
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockListBoardsAction.mockResolvedValue({
       owned: sampleBoards,
       shared: [],
     });
@@ -114,11 +104,8 @@ describe("BoardsPage", () => {
   });
 
   it("renders a link to /boards/new for creating a board", async () => {
-    vi.mocked(auth).mockResolvedValue({
-      user: { id: "user-1", email: "u@example.com" },
-      expires: "2099-01-01",
-    } as unknown as Awaited<ReturnType<typeof auth>>);
-    vi.mocked(listBoardsAction).mockResolvedValue({
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockListBoardsAction.mockResolvedValue({
       owned: [],
       shared: [],
     });
@@ -130,4 +117,16 @@ describe("BoardsPage", () => {
     expect(createLinks.length).toBeGreaterThan(0);
     expect(createLinks[0].getAttribute("href")).toBe("/boards/new");
   });
+
+  it("calls verifySession (not auth directly)", async () => {
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockListBoardsAction.mockResolvedValue({ owned: [], shared: [] });
+    await BoardsPage();
+    expect(mockVerifySession).toHaveBeenCalledTimes(1);
+    expect(mockListBoardsAction).toHaveBeenCalledTimes(1);
+  });
 });
+
+// keep import alive for the original mocked module path
+void verifySession;
+void listBoardsAction;

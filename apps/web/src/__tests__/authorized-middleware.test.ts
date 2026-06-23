@@ -1,7 +1,16 @@
 import { describe, it, expect, vi } from "vitest";
 
 const { captured } = vi.hoisted(() => ({
-  captured: {} as { config?: { callbacks?: { authorized?: Function } } },
+  captured: {} as {
+    config?: {
+      callbacks?: {
+        authorized?: (params: {
+          auth: unknown;
+          request: { nextUrl: URL };
+        }) => boolean | Response | Promise<boolean | Response>;
+      };
+    };
+  },
 }));
 
 vi.mock("next-auth", () => ({
