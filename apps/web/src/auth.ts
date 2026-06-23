@@ -3,7 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 
 const SERVER_URL = process.env.SERVER_URL || "http://localhost:3001";
 
-export const PUBLIC_ROUTES = ["/login", "/register"];
+export const PUBLIC_ROUTES = ["/", "/login", "/register"];
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
