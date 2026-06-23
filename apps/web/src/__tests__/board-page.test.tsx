@@ -40,7 +40,7 @@ describe("BoardPage text color", () => {
     vi.mocked(auth).mockResolvedValue({
       user: { id: "user-1", email: "test@example.com" },
       expires: "2099-01-01",
-    });
+    } as unknown as Awaited<ReturnType<typeof auth>>);
   });
 
   it("uses white text on dark backgrounds", async () => {

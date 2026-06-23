@@ -68,30 +68,38 @@ beforeEach(() => {
 });
 
 describe("getBoardById", () => {
-  it("returns the first row from db.select", async () => {
+  it("returns the first row from db.select scoped to the owner", async () => {
     selectResult = [{ id: "board-1", title: "Test" }];
-    const board = await getBoardById("board-1");
+    const board = await getBoardById("board-1", { ownerId: "user-1" });
     expect(db.select).toHaveBeenCalled();
     expect(db.from).toHaveBeenCalled();
     expect(db.where).toHaveBeenCalled();
+    const whereArg = db.where.mock.calls[0][0] as { queryChunks: unknown[] };
+    const serialized = JSON.stringify(whereArg);
+    expect(serialized).toContain("user-1");
     expect(board).toEqual({ id: "board-1", title: "Test" });
   });
 
   it("returns null if no row found", async () => {
     selectResult = [];
-    const board = await getBoardById("missing");
+    const board = await getBoardById("missing", { ownerId: "user-1" });
     expect(board).toBeNull();
   });
 });
 
 describe("getBoardByIdIncludingDeleted", () => {
-  it("returns the row even if soft-deleted (no deletedAt filter)", async () => {
+  it("returns the row even if soft-deleted, scoped to the owner", async () => {
     selectResult = [
       { id: "board-1", title: "Deleted", deletedAt: new Date() },
     ];
-    const board = await getBoardByIdIncludingDeleted("board-1");
+    const board = await getBoardByIdIncludingDeleted("board-1", {
+      ownerId: "user-1",
+    });
     expect(board).not.toBeNull();
     expect(board?.title).toBe("Deleted");
+    const whereArg = db.where.mock.calls[0][0] as { queryChunks: unknown[] };
+    const serialized = JSON.stringify(whereArg);
+    expect(serialized).toContain("user-1");
   });
 });
 
@@ -100,6 +108,8 @@ describe("listBoardsByOwner", () => {
     selectResult = [];
     await listBoardsByOwner("user-1");
     expect(db.where).toHaveBeenCalled();
+    const whereArg = db.where.mock.calls[0][0] as { queryChunks: unknown[] };
+    expect(JSON.stringify(whereArg)).toContain("user-1");
     expect(db.orderBy).toHaveBeenCalled();
     expect(db.limit).toHaveBeenCalledWith(100);
   });

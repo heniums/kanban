@@ -60,7 +60,7 @@ describe("BoardActions undo toast", () => {
     });
 
     const toastCall = vi.mocked(toast).mock.calls[0];
-    const opts = toastCall[1] as { action: { onClick: () => Promise<void> } };
+    const opts = toastCall[1] as unknown as { action: { onClick: () => Promise<void> } };
     await act(async () => {
       await opts.action.onClick();
     });
@@ -86,7 +86,7 @@ describe("BoardActions undo toast", () => {
     });
 
     const toastCall = vi.mocked(toast).mock.calls[0];
-    const opts = toastCall[1] as { action: { onClick: () => Promise<void> } };
+    const opts = toastCall[1] as unknown as { action: { onClick: () => Promise<void> } };
     await act(async () => {
       await opts.action.onClick();
     });

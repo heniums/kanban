@@ -5,7 +5,7 @@ export const boardBackgroundSchema = z
   .min(1, "Background is required")
   .max(500, "Background must be at most 500 characters")
   .regex(
-    /^(?:#[0-9a-fA-F]{3}|#[0-9a-fA-F]{6}|linear-gradient\(.+\)|radial-gradient\(.+\))$/,
+    /^(?:#[0-9a-fA-F]{3}|#[0-9a-fA-F]{6}|linear-gradient\([a-zA-Z0-9 ,%.#-]+\)|radial-gradient\([a-zA-Z0-9 ,%.#-]+\))$/,
     "Background must be a hex color (e.g. #1a1a2e) or gradient function (e.g. linear-gradient(...))"
   );
 

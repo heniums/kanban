@@ -7,24 +7,30 @@ interface OwnerScopedOptions {
 
 export async function getBoardById(
   id: string,
-  options?: OwnerScopedOptions
+  options: OwnerScopedOptions
 ): Promise<Board | null> {
   const db = createDbClient();
-  const conditions = options?.ownerId
-    ? and(eq(boards.id, id), eq(boards.ownerId, options.ownerId), isNull(boards.deletedAt))
-    : and(eq(boards.id, id), isNull(boards.deletedAt));
-  const result = await db.select().from(boards).where(conditions);
+  const result = await db
+    .select()
+    .from(boards)
+    .where(
+      and(
+        eq(boards.id, id),
+        eq(boards.ownerId, options.ownerId),
+        isNull(boards.deletedAt)
+      )
+    );
   return result[0] ?? null;
 }
 
 export async function getBoardByIdIncludingDeleted(
   id: string,
-  options?: OwnerScopedOptions
+  options: OwnerScopedOptions
 ): Promise<Board | null> {
   const db = createDbClient();
-  const conditions = options?.ownerId
-    ? and(eq(boards.id, id), eq(boards.ownerId, options.ownerId))
-    : eq(boards.id, id);
-  const result = await db.select().from(boards).where(conditions);
+  const result = await db
+    .select()
+    .from(boards)
+    .where(and(eq(boards.id, id), eq(boards.ownerId, options.ownerId)));
   return result[0] ?? null;
 }
