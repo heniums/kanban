@@ -81,6 +81,7 @@ The first MVP delivers the product's core value: a real-time collaborative kanba
 ### In Scope (MVP v1)
 - **User Authentication:** Registration, login, session management (completed in scaffold track)
 - **Boards:** Create, open, edit metadata, soft-delete with 5s undo; each board owned by its creator; dashboard with "My Boards" and "Shared with me" sections (completed in board_mgmt track)
+- **Dashboard (`/`) Landing:** Role-aware root route — unauthenticated visitors see a marketing landing with "Get started"/"Sign in" CTAs; authenticated users with zero boards see a first-run empty-state funneling to `/boards/new`; authenticated users with ≥1 board see a dashboard home with a "Recent boards" grid (up to 6, sorted by `updatedAt` desc), a "Shared with you" preview, a "Create board" primary button, and a persistent "Go to boards" secondary button linking to `/boards` (completed in dashboard_first_board_onboarding track)
 - **Lists:** Create, rename, delete, reorder within a board
 - **Cards:** Create, edit title and description, move across lists, reorder within a list, delete
 - **Real-Time Collaboration:** Multiple users on the same board see changes live via Socket.io rooms
