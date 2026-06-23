@@ -7,6 +7,3 @@ This file tracks all major tracks for the project. Each track has its own detail
 No incomplete tracks. All tracks are either completed (in this file) or archived in `./archive/`.
 
 ---
-
-- [x] **Track: Dashboard (`/`) Improvement — First-Board Onboarding**
-*Link: [./tracks/dashboard_first_board_onboarding_20260622/](./tracks/dashboard_first_board_onboarding_20260622/)*
