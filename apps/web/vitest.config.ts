@@ -17,12 +17,16 @@ export default defineConfig({
   resolve: {
     alias: [
       {
-        find: "@/",
-        replacement: path.resolve(__dirname, "src") + "/",
+        find: "@kanban/shared/server",
+        replacement: path.resolve(__dirname, "../../packages/shared/src/server.ts"),
       },
       {
         find: "@kanban/shared",
         replacement: path.resolve(__dirname, "../../packages/shared/src/index.ts"),
+      },
+      {
+        find: "@/",
+        replacement: path.resolve(__dirname, "src") + "/",
       },
     ],
   },

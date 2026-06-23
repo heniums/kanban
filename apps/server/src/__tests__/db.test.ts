@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { sql } from "drizzle-orm";
 import { createDbClient } from "../db.js";
-import { createDbClient as sharedCreateDbClient } from "@kanban/shared";
+import { createDbClient as sharedCreateDbClient } from "@kanban/shared/server";
 
 describe("Database connection", () => {
   it("connects and responds to a simple query", async () => {

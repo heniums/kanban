@@ -1,5 +1,4 @@
-import { createDbClient, boards } from "@kanban/shared";
-import type { Board } from "@kanban/shared";
+import { createDbClient, boards, type Board } from "@kanban/shared/server";
 
 export async function createBoard(data: {
   title: string;

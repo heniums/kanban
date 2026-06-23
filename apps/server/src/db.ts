@@ -1,2 +1,2 @@
-export { createDbClient } from "@kanban/shared";
-export type { DbClient } from "@kanban/shared";
+export { createDbClient } from "@kanban/shared/server";
+export type { DbClient } from "@kanban/shared/server";

@@ -40,8 +40,8 @@ const setupDbMock = () => {
   return { db: mock, returning };
 };
 
-vi.mock("@kanban/shared", async () => {
-  const actual = await vi.importActual<typeof import("@kanban/shared")>("@kanban/shared");
+vi.mock("@kanban/shared/server", async () => {
+  const actual = await vi.importActual<typeof import("@kanban/shared/server")>("@kanban/shared/server");
   return {
     ...actual,
     createDbClient: () => db,

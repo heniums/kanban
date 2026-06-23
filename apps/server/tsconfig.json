@@ -6,7 +6,8 @@
     "moduleResolution": "bundler",
     "baseUrl": ".",
     "paths": {
-      "@kanban/shared": ["../../packages/shared/src/index.ts"]
+      "@kanban/shared": ["../../packages/shared/src/index.ts"],
+      "@kanban/shared/server": ["../../packages/shared/src/server.ts"]
     },
     "outDir": "./dist",
     "strict": true,

@@ -1,7 +1,7 @@
 import { describe, expect, it, afterAll } from "vitest";
 import { eq } from "drizzle-orm";
 
-import { createDbClient, users, boards } from "@kanban/shared";
+import { createDbClient, users, boards } from "@kanban/shared/server";
 import { seed } from "../seed.js";
 
 const db = createDbClient();

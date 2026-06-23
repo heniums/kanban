@@ -1,6 +1,5 @@
-import { createDbClient, boards } from "@kanban/shared";
+import { createDbClient, boards, type Board } from "@kanban/shared/server";
 import { eq, and } from "drizzle-orm";
-import type { Board } from "@kanban/shared";
 
 export async function restoreBoard(
   id: string,

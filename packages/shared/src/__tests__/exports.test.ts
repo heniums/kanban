@@ -19,10 +19,26 @@ describe("Shared package exports", () => {
     expect(typeof mod.createDbClient).toBe("function");
   });
 
-  it("exports from index", async () => {
+  it("exports client-safe schemas and types from index", async () => {
     const mod = await import("../index");
+    expect(mod.loginSchema).toBeDefined();
+    expect(mod.registerUserSchema).toBeDefined();
+    expect(mod.createBoardSchema).toBeDefined();
+    expect(mod.updateBoardSchema).toBeDefined();
+  });
+
+  it("does not export server-only db client from index", async () => {
+    const mod = await import("../index") as Record<string, unknown>;
+    expect(mod.createDbClient).toBeUndefined();
+    expect(mod.boards).toBeUndefined();
+    expect(mod.users).toBeUndefined();
+  });
+
+  it("exports server-only db client and tables from server entry", async () => {
+    const mod = await import("../server");
+    expect(mod.createDbClient).toBeDefined();
+    expect(typeof mod.createDbClient).toBe("function");
     expect(mod.boards).toBeDefined();
     expect(mod.users).toBeDefined();
-    expect(mod.createDbClient).toBeDefined();
   });
 });
