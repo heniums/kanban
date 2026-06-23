@@ -4,6 +4,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-No incomplete tracks. All tracks are either completed (in this file) or archived in `./archive/`.
+- [ ] **Track: Auth Refactor — Data Access Layer & Middleware Fix**
+*Link: [./tracks/auth_refactor_dal_20260623/](./tracks/auth_refactor_dal_20260623/)*
 
 ---
