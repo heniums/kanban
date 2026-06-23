@@ -49,7 +49,7 @@ Visually, this is a focused, single-purpose screen — not a list page with an e
 ### FR-4. Dashboard Home (Authenticated, ≥1 Board)
 A summary view at `/` for users who have boards. Sections:
 
-1. **Header row** — Page title "Dashboard" and a "Create board" button (links to `/boards/new`). Mirrors the header row on `/boards` for visual consistency.
+1. **Header row** — Page title "Dashboard", a primary "Create board" button (links to `/boards/new`), and a secondary "Go to boards" button (links to `/boards`). The "Go to boards" button is always visible to authenticated users with ≥1 board and provides a persistent navigation entry point to the full list of user resources. Mirrors the header row on `/boards` for visual consistency.
 2. **Recent boards** — A grid of up to 6 most-recently-updated boards the user owns, rendered using the existing `BoardCard` component. Sorted by `updatedAt` desc.
 3. **View all** — A text link to `/boards` for users with >6 boards, showing the count of additional boards.
 
@@ -60,6 +60,7 @@ If the user has any shared boards (existing `shared` list from `listBoardsAction
 ### FR-5. CTA Behavior
 - All "Create board" CTAs across the three dashboard variants link to `/boards/new`. No inline form, no modal.
 - "Get started" and "Sign in" CTAs on the marketing landing link to `/register` and `/login` respectively.
+- The "Go to boards" CTA on the dashboard home links to `/boards`. It is rendered as a secondary button (visually subordinate to "Create board") and is always visible to authenticated users with ≥1 board; it is not conditional on board count. It is the persistent navigation entry point to the user's full list of resources.
 - No new keyboard shortcuts or new entry points beyond the links above.
 
 ### FR-6. Reuse Existing Create Flow
@@ -80,7 +81,7 @@ A track is complete when **all** of the following hold:
 
 1. **AC-1. Setup routing:** Visiting `/` while signed out renders the marketing landing. No redirect to `/login`.
 2. **AC-2. Empty-state routing:** A signed-in user with zero owned boards lands on `/` and sees the first-run empty-state with a "Create your first board" button that navigates to `/boards/new`.
-3. **AC-3. Dashboard routing:** A signed-in user with ≥1 owned board lands on `/` and sees the dashboard home with a "Recent boards" grid (max 6), sorted by most-recently-updated, and a "Create board" button.
+3. **AC-3. Dashboard routing:** A signed-in user with ≥1 owned board lands on `/` and sees the dashboard home with a "Recent boards" grid (max 6), sorted by most-recently-updated, a "Create board" button, and a "Go to boards" button that links to `/boards`.
 4. **AC-4. Shared preview:** When the signed-in user has shared boards, a "Shared with you" preview of up to 3 is shown on the dashboard. When empty, the section is hidden.
 5. **AC-5. Create flow unchanged:** Submitting the form at `/boards/new` still creates a board and redirects to `/boards/[id]`. (No regression in the existing create flow.)
 6. **AC-6. View all:** A "View all" link to `/boards` is shown when the user has more than 6 owned boards (or >3 shared boards) and the count is displayed.
