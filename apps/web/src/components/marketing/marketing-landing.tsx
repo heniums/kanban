@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Zap, Layers, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PageContainer } from "@/components/layout/PageContainer";
 
 const features = [
   {
@@ -22,7 +23,7 @@ const features = [
 
 export function MarketingLanding() {
   return (
-    <main className="container py-16">
+    <PageContainer as="main" py="16">
       <section className="mx-auto flex max-w-3xl flex-col items-center text-center">
         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
           Kanban
@@ -65,6 +66,6 @@ export function MarketingLanding() {
           <Link href="/register">Get started</Link>
         </Button>
       </section>
-    </main>
+    </PageContainer>
   );
 }

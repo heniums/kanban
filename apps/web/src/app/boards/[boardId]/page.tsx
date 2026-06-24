@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { BoardActions } from "@/components/boards/board-actions";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { getBoardById } from "@/lib/data/boards";
 import { getTextColor } from "@/lib/text-color";
 import { verifySession } from "@/lib/dal";
@@ -26,7 +27,7 @@ export default async function BoardPage({ params }: BoardPageProps) {
       className="min-h-[calc(100vh-4rem)]"
       style={{ background: board.background }}
     >
-      <div className="mx-auto max-w-7xl px-4 py-8">
+      <PageContainer>
         <div className="mb-8 flex items-start justify-between gap-4">
           <div>
             <Link
@@ -62,7 +63,7 @@ export default async function BoardPage({ params }: BoardPageProps) {
             Create a list to start organizing your cards.
           </p>
         </div>
-      </div>
+      </PageContainer>
     </div>
   );
 }

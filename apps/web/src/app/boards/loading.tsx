@@ -1,8 +1,9 @@
 import { BoardCardSkeleton } from "@/components/boards/board-card";
+import { PageContainer } from "@/components/layout/PageContainer";
 
 export default function BoardsLoading() {
   return (
-    <main className="container py-8">
+    <PageContainer as="main">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <div className="h-8 w-48 animate-pulse rounded bg-muted" />
@@ -26,6 +27,6 @@ export default function BoardsLoading() {
           <div className="mx-auto h-5 w-64 animate-pulse rounded bg-muted" />
         </div>
       </section>
-    </main>
+    </PageContainer>
   );
 }
