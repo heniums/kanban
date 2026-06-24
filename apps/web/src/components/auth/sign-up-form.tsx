@@ -65,14 +65,14 @@ export function SignUpForm() {
   };
 
   return (
-    <Card className="w-full max-w-md pb-12">
+    <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle>Create an account</CardTitle>
         <CardDescription>
           Enter your details to get started with Kanban.
         </CardDescription>
       </CardHeader>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit)} className="pb-12">
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="name">Name</Label>

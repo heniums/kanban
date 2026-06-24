@@ -54,14 +54,14 @@ export function SignInForm() {
   };
 
   return (
-    <Card className="w-full max-w-md pb-12">
+    <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle>Sign in</CardTitle>
         <CardDescription>
           Enter your credentials to access your account.
         </CardDescription>
       </CardHeader>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit)} className="pb-12">
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
