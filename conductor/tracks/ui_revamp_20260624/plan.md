@@ -111,3 +111,6 @@
   - [ ] `npm test` — passes (including new `PageContainer`, font, route, form, a11y, and visual tests)
   - [ ] Manual dev-server walkthrough: open each route in light & dark, confirm AC-1 through AC-7
 - [ ] Task: Conductor - User Manual Verification 'Phase 5: Visual Baseline & Final QA' (Protocol in workflow.md)
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions 6318fac
