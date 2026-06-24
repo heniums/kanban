@@ -72,8 +72,8 @@ export function SignUpForm() {
           Enter your details to get started with Kanban.
         </CardDescription>
       </CardHeader>
-      <form onSubmit={handleSubmit(onSubmit)} className="pb-12">
-        <CardContent className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <CardContent className="space-y-4 pb-4">
           <div className="space-y-1.5">
             <Label htmlFor="name">Name</Label>
             <Input
@@ -121,10 +121,10 @@ export function SignUpForm() {
           )}
         </CardContent>
         <CardFooter className="flex-col gap-2">
-          <Button type="submit" className="mt-6 w-full" disabled={isSubmitting}>
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? "Creating account..." : "Create account"}
           </Button>
-          <p className="mt-8 text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Already have an account?{" "}
             <Link
               href="/login"

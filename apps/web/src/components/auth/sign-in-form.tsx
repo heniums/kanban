@@ -61,8 +61,8 @@ export function SignInForm() {
           Enter your credentials to access your account.
         </CardDescription>
       </CardHeader>
-      <form onSubmit={handleSubmit(onSubmit)} className="pb-12">
-        <CardContent className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <CardContent className="space-y-4 pb-4">
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -96,7 +96,7 @@ export function SignInForm() {
           )}
         </CardContent>
         <CardFooter className="flex-col gap-2">
-          <Button type="submit" className="mt-6 w-full" disabled={isSubmitting}>
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? "Signing in..." : "Sign in"}
           </Button>
           <p className="text-sm text-muted-foreground">
