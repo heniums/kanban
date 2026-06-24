@@ -7,7 +7,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -51,6 +51,22 @@
 body {
   font-family: var(--font-sans);
 }
+
+/*
+ * Typography scale (UI Revamp — FR-2)
+ * Type sizes are Tailwind v4 defaults (text-xs 12 / text-sm 14 / text-base 16 /
+ * text-lg 18 / text-xl 20 / text-2xl 24 / text-3xl 30 / text-4xl 36) and
+ * require no override. Line-heights follow the same defaults:
+ *   leading-tight   1.25   (display)
+ *   leading-snug    1.375  (headings)
+ *   leading-normal  1.5    (body)
+ *   leading-relaxed 1.625  (long-form)
+ *
+ * Heading hierarchy:
+ *   h1: text-3xl/4xl, font-semibold, leading-tight   (one per page)
+ *   h2: text-2xl,     font-semibold, leading-snug
+ *   h3: text-lg,      font-medium,  leading-snug
+ */
 
 :root {
   --background: oklch(1 0 0);
