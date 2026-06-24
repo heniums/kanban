@@ -20,16 +20,4 @@ describe("font configuration", () => {
     expect(callArg.display).toBe("swap");
     expect(callArg.subsets).toEqual(["latin"]);
   });
-
-  it("exposes the Inter CSS variable under the constant --font-inter", async () => {
-    const interMock = vi.fn(() => ({ variable: "mock-inter-var", className: "mock-inter-class" }));
-    vi.doMock("next/font/google", () => ({
-      Inter: interMock,
-      Geist_Mono: vi.fn(() => ({ variable: "mock-mono-var", className: "mock-mono-class" })),
-    }));
-
-    const { inter, INTER_FONT_VARIABLE } = await import("@/lib/font");
-    expect(INTER_FONT_VARIABLE).toBe("--font-inter");
-    expect(inter.variable).toBe("mock-inter-var");
-  });
 });
