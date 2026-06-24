@@ -1,9 +1,14 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { PageContainer } from "@/components/layout/PageContainer";
 
 export function FirstRunEmptyState() {
   return (
-    <main className="container flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center py-16 text-center">
+    <PageContainer
+      as="main"
+      py="16"
+      className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center text-center"
+    >
       <div className="mx-auto max-w-md space-y-6">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
           No boards yet.
@@ -23,6 +28,6 @@ export function FirstRunEmptyState() {
           </Link>
         </div>
       </div>
-    </main>
+    </PageContainer>
   );
 }

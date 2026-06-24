@@ -3,6 +3,7 @@ import { verifySession } from "@/lib/dal";
 import { listBoardsAction } from "@/lib/actions/boards";
 import { BoardCard } from "@/components/boards/board-card";
 import { Button } from "@/components/ui/button";
+import { PageContainer } from "@/components/layout/PageContainer";
 
 export default async function BoardsPage() {
   await verifySession();
@@ -10,7 +11,7 @@ export default async function BoardsPage() {
   const { owned } = await listBoardsAction();
 
   return (
-    <main className="container py-8">
+    <PageContainer as="main">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Boards</h1>
@@ -48,6 +49,6 @@ export default async function BoardsPage() {
           </p>
         </div>
       </section>
-    </main>
+    </PageContainer>
   );
 }

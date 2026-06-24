@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Board } from "@kanban/shared";
 import { BoardCard } from "@/components/boards/board-card";
 import { Button } from "@/components/ui/button";
+import { PageContainer } from "@/components/layout/PageContainer";
 
 const MAX_RECENT_OWNED = 6;
 const MAX_RECENT_SHARED = 3;
@@ -25,7 +26,7 @@ export function DashboardHome({ owned, shared }: DashboardHomeProps) {
   const sharedExtra = Math.max(0, shared.length - MAX_RECENT_SHARED);
 
   return (
-    <main className="container py-8">
+    <PageContainer as="main">
       <div className="mb-8 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <div className="flex items-center gap-2">
@@ -79,6 +80,6 @@ export function DashboardHome({ owned, shared }: DashboardHomeProps) {
           )}
         </section>
       )}
-    </main>
+    </PageContainer>
   );
 }
