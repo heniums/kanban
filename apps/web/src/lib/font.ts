@@ -7,7 +7,7 @@ export const inter = Inter({
   variable: INTER_FONT_VARIABLE,
   subsets: ["latin"],
   display: "swap",
-  fallback: [INTER_FONT_NAME, "ui-sans-serif", "system-ui", "sans-serif"],
+  fallback: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
 });
 
 export const interMono = Geist_Mono({
