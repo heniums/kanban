@@ -2,11 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 
-import { getSessionUserId } from "./auth";
+import { verifySession } from "@/lib/dal";
 import { restoreBoard } from "@/lib/data/boards";
 
 export async function restoreBoardAction(id: string) {
-  const userId = await getSessionUserId();
+  const { userId } = await verifySession();
 
   const restored = await restoreBoard(id, { ownerId: userId });
 

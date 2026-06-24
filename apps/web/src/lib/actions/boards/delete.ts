@@ -2,11 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 
-import { getSessionUserId } from "./auth";
+import { verifySession } from "@/lib/dal";
 import { softDeleteBoard } from "@/lib/data/boards";
 
 export async function deleteBoardAction(id: string) {
-  const userId = await getSessionUserId();
+  const { userId } = await verifySession();
 
   const deleted = await softDeleteBoard(id, { ownerId: userId });
 

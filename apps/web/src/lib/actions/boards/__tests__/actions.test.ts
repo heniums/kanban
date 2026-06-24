@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const {
-  mockAuth,
+  mockVerifySession,
   mockGetBoardById,
   mockGetBoardByIdIncludingDeleted,
   mockListBoardsByOwner,
@@ -10,7 +10,7 @@ const {
   mockSoftDeleteBoard,
   mockRestoreBoard,
 } = vi.hoisted(() => ({
-  mockAuth: vi.fn(),
+  mockVerifySession: vi.fn(),
   mockGetBoardById: vi.fn(),
   mockGetBoardByIdIncludingDeleted: vi.fn(),
   mockListBoardsByOwner: vi.fn(),
@@ -20,8 +20,8 @@ const {
   mockRestoreBoard: vi.fn(),
 }));
 
-vi.mock("@/auth", () => ({
-  auth: mockAuth,
+vi.mock("@/lib/dal", () => ({
+  verifySession: mockVerifySession,
 }));
 
 vi.mock("@/lib/data/boards", () => ({
@@ -70,7 +70,7 @@ beforeEach(() => {
 
 describe("createBoardAction", () => {
   it("creates a board with the session user's id and redirects", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-1" } });
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
     mockCreateBoard.mockResolvedValue(SAMPLE_BOARD);
 
     const formData = new FormData();
@@ -87,7 +87,7 @@ describe("createBoardAction", () => {
   });
 
   it("rejects empty title via Zod validation", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-1" } });
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
     const formData = new FormData();
     formData.set("title", "");
     formData.set("background", "#000");
@@ -98,7 +98,7 @@ describe("createBoardAction", () => {
   });
 
   it("rejects invalid background", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-1" } });
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
     const formData = new FormData();
     formData.set("title", "OK");
     formData.set("background", "<script>");
@@ -108,20 +108,20 @@ describe("createBoardAction", () => {
     expect(mockCreateBoard).not.toHaveBeenCalled();
   });
 
-  it("throws Unauthorized when not signed in", async () => {
-    mockAuth.mockResolvedValue(null);
+  it("redirects to /login when not signed in", async () => {
+    mockVerifySession.mockRejectedValue(new Error("NEXT_REDIRECT"));
     const formData = new FormData();
     formData.set("title", "OK");
     formData.set("background", "#000");
 
-    await expect(createBoardAction(formData)).rejects.toThrow("Unauthorized");
+    await expect(createBoardAction(formData)).rejects.toThrow("NEXT_REDIRECT");
     expect(mockCreateBoard).not.toHaveBeenCalled();
   });
 });
 
 describe("getBoardAction", () => {
   it("returns the board when caller is owner", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-1" } });
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
     mockGetBoardById.mockResolvedValue(SAMPLE_BOARD);
 
     const result = await getBoardAction("board-1");
@@ -130,22 +130,22 @@ describe("getBoardAction", () => {
   });
 
   it("returns null when board not found or not owned", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-1" } });
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
     mockGetBoardById.mockResolvedValue(null);
 
     const result = await getBoardAction("missing");
     expect(result).toBeNull();
   });
 
-  it("throws Unauthorized when not signed in", async () => {
-    mockAuth.mockResolvedValue(null);
-    await expect(getBoardAction("board-1")).rejects.toThrow("Unauthorized");
+  it("redirects to /login when not signed in", async () => {
+    mockVerifySession.mockRejectedValue(new Error("NEXT_REDIRECT"));
+    await expect(getBoardAction("board-1")).rejects.toThrow("NEXT_REDIRECT");
   });
 });
 
 describe("listBoardsAction", () => {
   it("returns owned boards for the current user", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-1" } });
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
     mockListBoardsByOwner.mockResolvedValue([SAMPLE_BOARD]);
 
     const result = await listBoardsAction();
@@ -154,15 +154,15 @@ describe("listBoardsAction", () => {
     expect(mockListBoardsByOwner).toHaveBeenCalledWith("user-1");
   });
 
-  it("throws Unauthorized when not signed in", async () => {
-    mockAuth.mockResolvedValue(null);
-    await expect(listBoardsAction()).rejects.toThrow("Unauthorized");
+  it("redirects to /login when not signed in", async () => {
+    mockVerifySession.mockRejectedValue(new Error("NEXT_REDIRECT"));
+    await expect(listBoardsAction()).rejects.toThrow("NEXT_REDIRECT");
   });
 });
 
 describe("updateBoardAction", () => {
   it("updates the board when caller is owner", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-1" } });
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
     mockUpdateBoard.mockResolvedValue({ ...SAMPLE_BOARD, title: "Updated" });
 
     const formData = new FormData();
@@ -177,7 +177,7 @@ describe("updateBoardAction", () => {
   });
 
   it("returns errors for invalid input", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-1" } });
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
     const formData = new FormData();
     formData.set("title", "OK");
     formData.set("background", "<script>alert(1)</script>");
@@ -187,7 +187,7 @@ describe("updateBoardAction", () => {
   });
 
   it("returns errors when board not found or not owned", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-1" } });
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
     mockUpdateBoard.mockResolvedValue(null);
     const formData = new FormData();
     formData.set("title", "Updated");
@@ -200,7 +200,7 @@ describe("updateBoardAction", () => {
 
 describe("deleteBoardAction", () => {
   it("soft-deletes when caller is owner", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-1" } });
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
     mockSoftDeleteBoard.mockResolvedValue(SAMPLE_BOARD);
 
     const result = await deleteBoardAction("board-1");
@@ -209,7 +209,7 @@ describe("deleteBoardAction", () => {
   });
 
   it("returns error when board not found or not owned", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-1" } });
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
     mockSoftDeleteBoard.mockResolvedValue(null);
 
     const result = await deleteBoardAction("board-1");
@@ -219,7 +219,7 @@ describe("deleteBoardAction", () => {
 
 describe("restoreBoardAction", () => {
   it("restores a soft-deleted board when caller is owner", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-1" } });
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
     mockRestoreBoard.mockResolvedValue(SAMPLE_BOARD);
 
     const result = await restoreBoardAction("board-1");
@@ -228,7 +228,7 @@ describe("restoreBoardAction", () => {
   });
 
   it("returns error when board not found or not owned", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-1" } });
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
     mockRestoreBoard.mockResolvedValue(null);
 
     const result = await restoreBoardAction("board-1");

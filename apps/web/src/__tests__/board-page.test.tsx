@@ -2,8 +2,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import type { Board } from "@kanban/shared";
 
-vi.mock("@/auth", () => ({
-  auth: vi.fn(),
+const { mockVerifySession, mockGetBoardById } = vi.hoisted(() => ({
+  mockVerifySession: vi.fn(),
+  mockGetBoardById: vi.fn(),
+}));
+
+vi.mock("@/lib/dal", () => ({
+  verifySession: mockVerifySession,
 }));
 
 vi.mock("next/navigation", () => ({
@@ -16,11 +21,18 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@/lib/data/boards", () => ({
-  getBoardById: vi.fn(),
+  getBoardById: mockGetBoardById,
 }));
 
-import { auth } from "@/auth";
-import { getBoardById } from "@/lib/data/boards";
+vi.mock("@/lib/actions/boards", () => ({
+  deleteBoardAction: vi.fn(),
+  restoreBoardAction: vi.fn(),
+  updateBoardAction: vi.fn(),
+  getBoardAction: vi.fn(),
+  listBoardsAction: vi.fn(),
+  createBoardAction: vi.fn(),
+}));
+
 import BoardPage from "@/app/boards/[boardId]/page";
 
 const baseBoard: Board = {
@@ -37,14 +49,11 @@ const baseBoard: Board = {
 describe("BoardPage text color", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({
-      user: { id: "user-1", email: "test@example.com" },
-      expires: "2099-01-01",
-    } as unknown as Awaited<ReturnType<typeof auth>>);
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
   });
 
   it("uses white text on dark backgrounds", async () => {
-    vi.mocked(getBoardById).mockResolvedValue({
+    mockGetBoardById.mockResolvedValue({
       ...baseBoard,
       background: "#1a1a2e",
     });
@@ -59,7 +68,7 @@ describe("BoardPage text color", () => {
   });
 
   it("uses dark text on light backgrounds", async () => {
-    vi.mocked(getBoardById).mockResolvedValue({
+    mockGetBoardById.mockResolvedValue({
       ...baseBoard,
       background: "#f5f5f5",
     });
@@ -71,5 +80,16 @@ describe("BoardPage text color", () => {
 
     const title = screen.getByRole("heading", { level: 1 });
     expect(title.style.color).toBe("rgb(10, 10, 10)");
+  });
+
+  it("calls verifySession and forwards userId to getBoardById", async () => {
+    mockGetBoardById.mockResolvedValue(baseBoard);
+    await BoardPage({
+      params: Promise.resolve({ boardId: "test-id" }),
+    });
+    expect(mockVerifySession).toHaveBeenCalledTimes(1);
+    expect(mockGetBoardById).toHaveBeenCalledWith("test-id", {
+      ownerId: "user-1",
+    });
   });
 });

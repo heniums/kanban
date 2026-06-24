@@ -3,7 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 
 const SERVER_URL = process.env.SERVER_URL || "http://localhost:3001";
 
-export const PUBLIC_ROUTES = ["/", "/login", "/register"];
+const PROTECTED_PREFIXES = ["/boards"];
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -33,8 +33,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isProtected = !PUBLIC_ROUTES.some((path) =>
-        nextUrl.pathname.startsWith(path)
+      const isProtected = PROTECTED_PREFIXES.some((p) =>
+        nextUrl.pathname.startsWith(p)
       );
       if (isProtected && !isLoggedIn) {
         return Response.redirect(new URL("/login", nextUrl));

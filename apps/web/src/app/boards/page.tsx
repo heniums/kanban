@@ -1,15 +1,11 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { verifySession } from "@/lib/dal";
 import { listBoardsAction } from "@/lib/actions/boards";
 import { BoardCard } from "@/components/boards/board-card";
 import { Button } from "@/components/ui/button";
 
 export default async function BoardsPage() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    redirect("/login");
-  }
+  await verifySession();
 
   const { owned } = await listBoardsAction();
 
