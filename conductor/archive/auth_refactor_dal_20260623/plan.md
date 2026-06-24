@@ -80,3 +80,7 @@
   - [x] Verify: unauthenticated GET to `/boards/[any-id]` redirects to `/login`
   - [x] Verify: log in, create a board, view dashboard, open the board, edit settings, delete + undo — all work
 - [x] Task: Conductor - User Manual Verification 'Phase 7: Final verification and cleanup' (Protocol in workflow.md)
+
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions 492970d
