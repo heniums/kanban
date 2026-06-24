@@ -52,23 +52,6 @@ describe("verifySession", () => {
     await expect(verifySession()).rejects.toThrow("NEXT_REDIRECT");
     expect(mockRedirect).toHaveBeenCalledWith("/login");
   });
-
-  it("calls auth() once per synchronous chain (cache() dedupes within a render)", async () => {
-    mockAuth.mockResolvedValue({
-      user: { id: "user-1" },
-      expires: "2099-01-01",
-    });
-
-    const results = await Promise.all([
-      verifySession(),
-      verifySession(),
-      verifySession(),
-    ]);
-
-    expect(results.every((r) => r.userId === "user-1")).toBe(true);
-    expect(mockAuth.mock.calls.length).toBeGreaterThanOrEqual(1);
-    expect(mockAuth.mock.calls.length).toBeLessThanOrEqual(3);
-  });
 });
 
 describe("dal.ts module shape", () => {

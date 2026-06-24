@@ -33,8 +33,6 @@ vi.mock("@/lib/actions/boards", () => ({
   createBoardAction: vi.fn(),
 }));
 
-import { verifySession } from "@/lib/dal";
-import { getBoardById } from "@/lib/data/boards";
 import BoardPage from "@/app/boards/[boardId]/page";
 
 const baseBoard: Board = {
@@ -95,6 +93,3 @@ describe("BoardPage text color", () => {
     });
   });
 });
-
-void verifySession;
-void getBoardById;

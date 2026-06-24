@@ -15,8 +15,6 @@ vi.mock("@/lib/actions/boards", () => ({
   listBoardsAction: mockListBoardsAction,
 }));
 
-import { verifySession } from "@/lib/dal";
-import { listBoardsAction } from "@/lib/actions/boards";
 import BoardsPage from "@/app/boards/page";
 
 const sampleBoards: Board[] = [
@@ -53,7 +51,9 @@ describe("BoardsPage", () => {
   });
 
   it("redirects unauthenticated users to /login", async () => {
-    await expect(BoardsPage()).rejects.toThrow("NEXT_REDIRECT");
+    await expect(BoardsPage()).rejects.toMatchObject({
+      digest: expect.stringContaining("NEXT_REDIRECT;/login"),
+    });
     expect(mockListBoardsAction).not.toHaveBeenCalled();
   });
 
@@ -126,7 +126,3 @@ describe("BoardsPage", () => {
     expect(mockListBoardsAction).toHaveBeenCalledTimes(1);
   });
 });
-
-// keep import alive for the original mocked module path
-void verifySession;
-void listBoardsAction;

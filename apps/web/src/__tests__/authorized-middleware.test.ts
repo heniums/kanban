@@ -40,8 +40,9 @@ const authorized = () => {
   return captured.config!.callbacks!.authorized!;
 };
 
-const makeRequest = (pathname: string) =>
-  ({ nextUrl: new URL(`http://localhost${pathname}`) }) as any;
+const makeRequest = (pathname: string) => ({
+  nextUrl: new URL(`http://localhost${pathname}`),
+});
 
 describe("middleware authorized callback — security regression", () => {
   it("redirects to /login when unauthenticated user visits /boards", () => {

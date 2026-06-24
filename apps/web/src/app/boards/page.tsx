@@ -5,7 +5,7 @@ import { BoardCard } from "@/components/boards/board-card";
 import { Button } from "@/components/ui/button";
 
 export default async function BoardsPage() {
-  const { userId } = await verifySession();
+  await verifySession();
 
   const { owned } = await listBoardsAction();
 
