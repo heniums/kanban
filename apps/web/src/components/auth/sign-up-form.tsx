@@ -65,7 +65,7 @@ export function SignUpForm() {
   };
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md pb-12">
       <CardHeader>
         <CardTitle>Create an account</CardTitle>
         <CardDescription>
@@ -121,10 +121,10 @@ export function SignUpForm() {
           )}
         </CardContent>
         <CardFooter className="flex-col gap-2">
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
+          <Button type="submit" className="mt-6 w-full" disabled={isSubmitting}>
             {isSubmitting ? "Creating account..." : "Create account"}
           </Button>
-          <p className="text-sm text-muted-foreground">
+          <p className="mt-8 text-sm text-muted-foreground">
             Already have an account?{" "}
             <Link
               href="/login"

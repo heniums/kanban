@@ -54,7 +54,7 @@ export function SignInForm() {
   };
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md pb-12">
       <CardHeader>
         <CardTitle>Sign in</CardTitle>
         <CardDescription>
@@ -96,7 +96,7 @@ export function SignInForm() {
           )}
         </CardContent>
         <CardFooter className="flex-col gap-2">
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
+          <Button type="submit" className="mt-6 w-full" disabled={isSubmitting}>
             {isSubmitting ? "Signing in..." : "Sign in"}
           </Button>
           <p className="text-sm text-muted-foreground">
