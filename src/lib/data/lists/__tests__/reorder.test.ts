@@ -72,4 +72,11 @@ describe("reorderLists", () => {
     expect(result).toHaveLength(2);
     expect(result.map((r: { id: string }) => r.id)).toEqual(["l1", "l3"]);
   });
+
+  it("rejects duplicate list ids", async () => {
+    await expect(
+      reorderLists("board-1", ["l1", "l2", "l1"], { ownerId: "user-1" }),
+    ).rejects.toThrow(/duplicates/);
+    expect(db.transaction).not.toHaveBeenCalled();
+  });
 });

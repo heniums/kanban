@@ -25,9 +25,20 @@ export async function reorderListsAction(input: {
     };
   }
 
-  const lists = await reorderLists(parsed.data.boardId, parsed.data.orderedListIds, {
-    ownerId: userId,
-  });
-  revalidatePath(`/boards/${parsed.data.boardId}`);
-  return { lists };
+  try {
+    const lists = await reorderLists(parsed.data.boardId, parsed.data.orderedListIds, {
+      ownerId: userId,
+    });
+    revalidatePath(`/boards/${parsed.data.boardId}`);
+    return { lists };
+  } catch (error) {
+    return {
+      errors: [
+        {
+          field: "orderedListIds",
+          message: error instanceof Error ? error.message : "Failed to reorder lists",
+        },
+      ],
+    };
+  }
 }

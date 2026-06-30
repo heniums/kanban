@@ -101,7 +101,16 @@ test.describe("List management", () => {
     const secondHandle = secondSection.getByRole("button", { name: /move list/i });
     const todoHandle = todoSection.getByRole("button", { name: /move list/i });
 
-    await secondHandle.dragTo(todoHandle);
+    const sourceBox = await secondHandle.boundingBox();
+    const targetBox = await todoHandle.boundingBox();
+    if (!sourceBox || !targetBox) throw new Error("Could not measure drag handles");
+
+    await page.mouse.move(sourceBox.x + sourceBox.width / 2, sourceBox.y + sourceBox.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(targetBox.x + targetBox.width / 2, targetBox.y + targetBox.height / 2, {
+      steps: 10,
+    });
+    await page.mouse.up();
 
     // After reorder: [Second, To Do]
     const headings = await page.getByRole("heading", { name: /To Do|Second/ }).allTextContents();

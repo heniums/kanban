@@ -127,7 +127,7 @@ export function ListColumn({ list, onRename, onDelete, dragHandleProps }: ListCo
             <AlertDialogHeader>
               <AlertDialogTitle>Delete this list?</AlertDialogTitle>
               <AlertDialogDescription>
-                This will permanently delete the list and any cards it contains.
+                This will permanently delete the list. This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

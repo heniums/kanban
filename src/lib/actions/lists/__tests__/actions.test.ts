@@ -159,4 +159,17 @@ describe("reorderListsAction", () => {
     const result = await reorderListsAction({ boardId: "bad", orderedListIds: [] });
     expect(result).toHaveProperty("errors");
   });
+
+  it("returns an error when the data layer rejects duplicate ids", async () => {
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockReorderLists.mockRejectedValue(new Error("orderedListIds must not contain duplicates"));
+    const result = await reorderListsAction({
+      boardId: "11111111-1111-1111-1111-111111111111",
+      orderedListIds: [
+        "22222222-2222-2222-2222-222222222222",
+        "22222222-2222-2222-2222-222222222222",
+      ],
+    });
+    expect(result).toHaveProperty("errors");
+  });
 });

@@ -32,6 +32,22 @@ describe("AddListForm", () => {
     });
   });
 
+  it("closes the form after a successful add and returns to button state", async () => {
+    const user = userEvent.setup();
+    const onAdd = vi.fn().mockResolvedValue(undefined);
+    render(<AddListForm onAdd={onAdd} />);
+
+    await user.click(screen.getByRole("button", { name: /add list/i }));
+    const input = screen.getByRole("textbox", { name: /list title/i });
+    await user.type(input, "Doing{Enter}");
+
+    await waitFor(() => {
+      expect(onAdd).toHaveBeenCalledWith("Doing");
+    });
+    expect(screen.queryByRole("textbox", { name: /list title/i })).toBeNull();
+    expect(screen.getByRole("button", { name: /add list/i })).toBeDefined();
+  });
+
   it("cancels on Escape and returns to button state", async () => {
     const user = userEvent.setup();
     const onAdd = vi.fn().mockResolvedValue(undefined);

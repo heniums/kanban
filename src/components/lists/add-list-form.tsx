@@ -27,7 +27,7 @@ export function AddListForm({ onAdd }: AddListFormProps) {
     }
     startTransition(async () => {
       await onAdd(trimmed);
-      setTitle("");
+      reset();
     });
   };
 

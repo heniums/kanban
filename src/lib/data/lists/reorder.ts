@@ -10,6 +10,10 @@ export async function reorderLists(
 ): Promise<List[]> {
   if (orderedListIds.length === 0) return [];
 
+  if (new Set(orderedListIds).size !== orderedListIds.length) {
+    throw new Error("orderedListIds must not contain duplicates");
+  }
+
   const db = createDbClient();
   return db.transaction(async (tx) => {
     const updated: List[] = [];

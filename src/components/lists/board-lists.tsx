@@ -34,14 +34,7 @@ interface BoardListsProps {
 export function BoardLists({ lists, onAdd, onRename, onDelete, onReorder }: BoardListsProps) {
   const [optimisticLists, setOptimisticLists] = useState(lists);
 
-  // Keep optimistic state in sync with server-provided lists
-  // (useEffect would be needed; for now the parent re-renders with new lists prop)
-  // This is intentional - the parent passes a fresh `lists` prop and the
-  // component syncs on every render.
-  if (
-    optimisticLists !== lists &&
-    optimisticLists.map((l) => l.id).join() !== lists.map((l) => l.id).join()
-  ) {
+  if (optimisticLists.map((l) => l.id).join() !== lists.map((l) => l.id).join()) {
     setOptimisticLists(lists);
   }
 
