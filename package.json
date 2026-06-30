@@ -6,10 +6,9 @@
     "apps/*"
   ],
   "scripts": {
-    "build": "npm run build -w packages/shared && npm run build --workspaces",
-    "dev": "concurrently -n server,web -c blue,green \"npm run dev -w apps/server\" \"npm run dev -w apps/web\"",
-    "start": "concurrently -n server,web -c blue,green \"npm run start -w apps/server\" \"npm run start -w apps/web\"",
-    "dev:server": "npm run dev -w apps/server",
+    "build": "npm run build --workspaces",
+    "dev": "npm run dev -w apps/web",
+    "start": "npm run start -w apps/web",
     "dev:web": "npm run dev -w apps/web",
     "typecheck": "npm run typecheck --workspaces"
   },

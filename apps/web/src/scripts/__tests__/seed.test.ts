@@ -1,10 +1,10 @@
 import { describe, expect, it, afterAll } from "vitest";
 import { eq } from "drizzle-orm";
-
+// @vitest-environment node
 import { createDbClient } from "@/lib/db/client";
 import { users } from "@/lib/db/schema/users";
 import { boards } from "@/lib/db/schema/boards";
-import { seed } from "../seed.js";
+import { seed } from "../seed";
 
 const db = createDbClient();
 
