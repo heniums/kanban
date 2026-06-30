@@ -2,7 +2,9 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { BoardActions } from "@/components/boards/board-actions";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { BoardListsClient } from "@/components/lists/board-lists-client";
 import { getBoardById } from "@/lib/data/boards";
+import { getListsByBoardId } from "@/lib/data/lists";
 import { getTextColor } from "@/lib/text-color";
 import { verifySession } from "@/lib/dal";
 
@@ -20,6 +22,7 @@ export default async function BoardPage({ params }: BoardPageProps) {
     notFound();
   }
 
+  const lists = await getListsByBoardId(boardId, { ownerId: userId });
   const textColor = getTextColor(board.background);
 
   return (
@@ -46,14 +49,7 @@ export default async function BoardPage({ params }: BoardPageProps) {
           <BoardActions board={board} />
         </div>
 
-        <div className="rounded-lg border border-current/10 bg-current/5 p-12 text-center backdrop-blur-sm">
-          <h2 className="text-lg font-semibold" style={{ color: textColor }}>
-            No lists yet
-          </h2>
-          <p className="mt-1 opacity-70" style={{ color: textColor }}>
-            Create a list to start organizing your cards.
-          </p>
-        </div>
+        <BoardListsClient boardId={board.id} initialLists={lists} />
       </PageContainer>
     </div>
   );
