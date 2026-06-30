@@ -153,3 +153,10 @@
   - [x] Tests: cover new behaviors
   - [x] e2e: replace dragTo with explicit mouse events
   - [x] Commit: `fix(conductor): Apply review suggestions for track 'lists_20260630'`
+- [x] Task: Fix optimistic reorder flicker 5a0288c
+  - [x] BoardLists: replace render-time id-sequence sync with render-time
+        prop-reference sync (uses a tracking state variable, not a ref, to
+        comply with the react-hooks/refs lint rule)
+  - [x] Add regression test that simulates a drag with synthetic pointer
+        events and asserts the optimistic order survives a re-render
+  - [x] Commit: `fix(lists): Stop reverting optimistic reorder on the next render`
