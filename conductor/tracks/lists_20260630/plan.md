@@ -2,135 +2,138 @@
 
 ## Phase 1: Database Schema & Migration
 
-- [ ] Task: Write schema tests for `lists` table (columns, constraints, foreign key)
-  - [ ] Verify tests fail
-  - [ ] Implement `lists` table in `src/lib/db/schema/lists.ts`
-  - [ ] Add `lists` export to schema index/barrel file
-  - [ ] Generate and run Drizzle migration (`npm run db:generate`, `npm run db:push`)
-  - [ ] Verify schema tests pass
-  - [ ] Commit: `feat(schema): Add lists table with board FK and position`
-- [ ] Task: Update board creation to auto-create default "To Do" list atomically
-  - [ ] Write tests for `createBoard` default list side effect
-  - [ ] Modify `createBoard` data function to insert board + list in a transaction
-  - [ ] Verify tests pass
-  - [ ] Commit: `feat(boards): Auto-create default To Do list on board creation`
-- [ ] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
+- [x] Task: Write schema tests for `lists` table (columns, constraints, foreign key) de3c4cf
+  - [x] Verify tests fail
+  - [x] Implement `lists` table in `src/lib/db/schema/lists.ts`
+  - [x] Add `lists` export to schema index/barrel file
+  - [x] Generate and run Drizzle migration (`npm run db:generate`, `npm run db:push`)
+  - [x] Verify schema tests pass
+  - [x] Commit: `feat(schema): Add lists table with board FK and position`
+- [x] Task: Update board creation to auto-create default "To Do" list atomically f5697a4
+  - [x] Write tests for `createBoard` default list side effect
+  - [x] Modify `createBoard` data function to insert board + list in a transaction
+  - [x] Verify tests pass
+  - [x] Commit: `feat(boards): Auto-create default To Do list on board creation`
+- [x] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md) 28522f8
 
 ## Phase 2: Data Layer (List CRUD)
 
-- [ ] Task: Implement `createList` data function
-  - [ ] Write unit tests for `createList`
-  - [ ] Implement `createList` with auto-position assignment
-  - [ ] Verify tests pass
-  - [ ] Commit: `feat(lists): Add createList data function`
-- [ ] Task: Implement `getListsByBoardId` data function
-  - [ ] Write unit tests for `getListsByBoardId`
-  - [ ] Implement `getListsByBoardId` with owner-scoped board verification
-  - [ ] Verify tests pass
-  - [ ] Commit: `feat(lists): Add getListsByBoardId data function`
-- [ ] Task: Implement `renameList` data function
-  - [ ] Write unit tests for `renameList`
-  - [ ] Implement `renameList` with owner-scoped verification
-  - [ ] Verify tests pass
-  - [ ] Commit: `feat(lists): Add renameList data function`
-- [ ] Task: Implement `deleteList` data function
-  - [ ] Write unit tests for `deleteList`
-  - [ ] Implement `deleteList` with position recompaction
-  - [ ] Verify tests pass
-  - [ ] Commit: `feat(lists): Add deleteList data function with position recompaction`
-- [ ] Task: Implement `reorderLists` data function
-  - [ ] Write unit tests for `reorderLists`
-  - [ ] Implement `reorderLists` with bulk position update
-  - [ ] Verify tests pass
-  - [ ] Commit: `feat(lists): Add reorderLists data function`
-- [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
+- [x] Task: Implement `createList` data function 3712cee
+  - [x] Write unit tests for `createList`
+  - [x] Implement `createList` with auto-position assignment
+  - [x] Verify tests pass
+  - [x] Commit: `feat(lists): Add createList data function`
+- [x] Task: Implement `getListsByBoardId` data function ca514e2
+  - [x] Write unit tests for `getListsByBoardId`
+  - [x] Implement `getListsByBoardId` with owner-scoped board verification
+  - [x] Verify tests pass
+  - [x] Commit: `feat(lists): Add getListsByBoardId data function`
+- [x] Task: Implement `renameList` data function b820053
+  - [x] Write unit tests for `renameList`
+  - [x] Implement `renameList` with owner-scoped verification
+  - [x] Verify tests pass
+  - [x] Commit: `feat(lists): Add renameList data function`
+- [x] Task: Implement `deleteList` data function 1da6b02
+  - [x] Write unit tests for `deleteList`
+  - [x] Implement `deleteList` with position recompaction
+  - [x] Verify tests pass
+  - [x] Commit: `feat(lists): Add deleteList data function with position recompaction`
+- [x] Task: Implement `reorderLists` data function 1293f7b
+  - [x] Write unit tests for `reorderLists`
+  - [x] Implement `reorderLists` with bulk position update
+  - [x] Verify tests pass
+  - [x] Commit: `feat(lists): Add reorderLists data function`
+- [x] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md) 28522f8
 
 ## Phase 3: Validation Schemas & Server Actions
 
-- [ ] Task: Create Zod validation schemas for list operations
-  - [ ] Write tests for list Zod schemas
-  - [ ] Implement `createListSchema`, `renameListSchema`, `reorderListsSchema`
-  - [ ] Verify tests pass
-  - [ ] Commit: `feat(schemas): Add Zod validation for list operations`
-- [ ] Task: Implement `createList` Server Action
-  - [ ] Write integration tests for `createList` action
-  - [ ] Implement `createList` Server Action with auth + validation
-  - [ ] Verify tests pass
-  - [ ] Commit: `feat(actions): Add createList Server Action`
-- [ ] Task: Implement `renameList` Server Action
-  - [ ] Write integration tests for `renameList` action
-  - [ ] Implement `renameList` Server Action with auth + validation
-  - [ ] Verify tests pass
-  - [ ] Commit: `feat(actions): Add renameList Server Action`
-- [ ] Task: Implement `deleteList` Server Action
-  - [ ] Write integration tests for `deleteList` action
-  - [ ] Implement `deleteList` Server Action with auth + validation
-  - [ ] Verify tests pass
-  - [ ] Commit: `feat(actions): Add deleteList Server Action`
-- [ ] Task: Implement `reorderLists` Server Action
-  - [ ] Write integration tests for `reorderLists` action
-  - [ ] Implement `reorderLists` Server Action with auth + validation
-  - [ ] Verify tests pass
-  - [ ] Commit: `feat(actions): Add reorderLists Server Action`
-- [ ] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
+- [x] Task: Create Zod validation schemas for list operations 19736ba
+  - [x] Write tests for list Zod schemas
+  - [x] Implement `createListSchema`, `renameListSchema`, `reorderListsSchema`
+  - [x] Verify tests pass
+  - [x] Commit: `feat(schemas): Add Zod validation for list operations`
+- [x] Task: Implement `createList` Server Action bc3f14d
+  - [x] Write integration tests for `createList` action
+  - [x] Implement `createList` Server Action with auth + validation
+  - [x] Verify tests pass
+  - [x] Commit: `feat(actions): Add Server Actions for list operations`
+- [x] Task: Implement `renameList` Server Action bc3f14d
+  - [x] Write integration tests for `renameList` action
+  - [x] Implement `renameList` Server Action with auth + validation
+  - [x] Verify tests pass
+  - [x] Commit: `feat(actions): Add Server Actions for list operations`
+- [x] Task: Implement `deleteList` Server Action bc3f14d
+  - [x] Write integration tests for `deleteList` action
+  - [x] Implement `deleteList` Server Action with auth + validation
+  - [x] Verify tests pass
+  - [x] Commit: `feat(actions): Add Server Actions for list operations`
+- [x] Task: Implement `reorderLists` Server Action bc3f14d
+  - [x] Write integration tests for `reorderLists` action
+  - [x] Implement `reorderLists` Server Action with auth + validation
+  - [x] Verify tests pass
+  - [x] Commit: `feat(actions): Add Server Actions for list operations`
+- [x] Task: Refactor: Owner-scope `createList` and wire `userId` through actions 0bf34db
+  - [x] Verify tests pass
+  - [x] Commit: `feat(actions): Owner-scope createList and wire userId through actions`
+- [x] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md) 28522f8
 
 ## Phase 4: UI Components
 
-- [ ] Task: Install dnd-kit dependencies (`@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`)
-  - [ ] Verify installation and typecheck
-  - [ ] Commit: `chore(deps): Add dnd-kit for list drag-and-drop`
-- [ ] Task: Build `ListColumn` component
-  - [ ] Write component tests for `ListColumn`
-  - [ ] Implement `ListColumn` with title, inline rename, delete button, card placeholder
-  - [ ] Verify tests pass
-  - [ ] Commit: `feat(ui): Add ListColumn component`
-- [ ] Task: Build `AddListForm` inline component
-  - [ ] Write component tests for `AddListForm`
-  - [ ] Implement inline input with Enter/blur submit and Escape cancel
-  - [ ] Verify tests pass
-  - [ ] Commit: `feat(ui): Add AddListForm inline component`
-- [ ] Task: Build `BoardLists` container component
-  - [ ] Write component tests for `BoardLists`
-  - [ ] Implement horizontal scrollable container rendering `ListColumn` array
-  - [ ] Verify tests pass
-  - [ ] Commit: `feat(ui): Add BoardLists container component`
-- [ ] Task: Conductor - User Manual Verification 'Phase 4' (Protocol in workflow.md)
+- [x] Task: Install dnd-kit dependencies (`@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`) fe33fd9
+  - [x] Verify installation and typecheck
+  - [x] Commit: `chore(deps): Add dnd-kit for list drag-and-drop`
+- [x] Task: Build `ListColumn` component 777d6c9
+  - [x] Write component tests for `ListColumn`
+  - [x] Implement `ListColumn` with title, inline rename, delete button, card placeholder
+  - [x] Verify tests pass
+  - [x] Commit: `feat(ui): Add ListColumn component`
+- [x] Task: Build `AddListForm` inline component b49be27
+  - [x] Write component tests for `AddListForm`
+  - [x] Implement inline input with Enter/blur submit and Escape cancel
+  - [x] Verify tests pass
+  - [x] Commit: `feat(ui): Add AddListForm inline component`
+- [x] Task: Build `BoardLists` container component 6d97f9a
+  - [x] Write component tests for `BoardLists`
+  - [x] Implement horizontal scrollable container rendering `ListColumn` array
+  - [x] Verify tests pass
+  - [x] Commit: `feat(ui): Add BoardLists container component`
+- [x] Task: Conductor - User Manual Verification 'Phase 4' (Protocol in workflow.md) 28522f8
 
 ## Phase 5: Board Page Integration & DnD
 
-- [ ] Task: Integrate lists into `/boards/[boardId]/page.tsx`
-  - [ ] Fetch lists via `getListsByBoardId` in the Server Component
-  - [ ] Replace empty state with `BoardLists` component
-  - [ ] Verify page renders correctly with lists
-  - [ ] Commit: `feat(board): Integrate lists into board detail page`
-- [ ] Task: Implement drag-and-drop reordering
-  - [ ] Write component/integration tests for DnD behavior
-  - [ ] Wrap `BoardLists` with `DndContext` and `SortableContext`
-  - [ ] Connect `reorderLists` Server Action to drag end event
-  - [ ] Implement optimistic UI update with rollback on error
-  - [ ] Add keyboard accessibility handlers
-  - [ ] Verify tests pass
-  - [ ] Commit: `feat(board): Add drag-and-drop list reordering`
-- [ ] Task: Conductor - User Manual Verification 'Phase 5' (Protocol in workflow.md)
+- [x] Task: Integrate lists into `/boards/[boardId]/page.tsx` bd21875
+  - [x] Fetch lists via `getListsByBoardId` in the Server Component
+  - [x] Replace empty state with `BoardLists` component
+  - [x] Verify page renders correctly with lists
+  - [x] Commit: `feat(board): Integrate lists into board detail page with DnD wiring`
+- [x] Task: Implement drag-and-drop reordering bd21875
+  - [x] Write component/integration tests for DnD behavior
+  - [x] Wrap `BoardLists` with `DndContext` and `SortableContext`
+  - [x] Connect `reorderLists` Server Action to drag end event
+  - [x] Implement optimistic UI update with rollback on error
+  - [x] Add keyboard accessibility handlers
+  - [x] Verify tests pass
+  - [x] Commit: `feat(board): Integrate lists into board detail page with DnD wiring`
+- [x] Task: Conductor - User Manual Verification 'Phase 5' (Protocol in workflow.md) 28522f8
 
 ## Phase 6: E2E Tests & Final Verification
 
-- [ ] Task: Write E2E tests for list CRUD flows
-  - [ ] E2E test: Create a board and verify default "To Do" list appears
-  - [ ] E2E test: Create a new list
-  - [ ] E2E test: Rename a list inline
-  - [ ] E2E test: Delete a list with confirmation
-  - [ ] E2E test: Reorder lists via drag-and-drop
-  - [ ] Verify all E2E tests pass
-  - [ ] Commit: `test(e2e): Add list management end-to-end tests`
-- [ ] Task: Final verification and coverage check
-  - [ ] Run full test suite: `npm test`
-  - [ ] Run typecheck: `npm run typecheck`
-  - [ ] Run lint: `npm run lint`
-  - [ ] Verify ≥ 80% code coverage
-  - [ ] Manual smoke test in browser
-  - [ ] Commit: `chore: Final verification and cleanup`
-- [ ] Task: Conductor - User Manual Verification 'Phase 6' (Protocol in workflow.md)
+- [x] Task: Write E2E tests for list CRUD flows cdd4ed7
+  - [x] E2E test: Create a board and verify default "To Do" list appears
+  - [x] E2E test: Create a new list
+  - [x] E2E test: Rename a list inline
+  - [x] E2E test: Delete a list with confirmation
+  - [x] E2E test: Reorder lists via drag-and-drop
+  - [x] Verify all E2E tests pass
+  - [x] Commit: `test(e2e): Add list management end-to-end tests`
+- [x] Task: Final verification and coverage check 28522f8
+  - [x] Run full test suite: `npm test`
+  - [x] Run typecheck: `npm run typecheck`
+  - [x] Run lint: `npm run lint`
+  - [x] Verify ≥ 80% code coverage
+  - [x] Manual smoke test in browser
+  - [x] Commit: `chore(conductor): Mark track 'Implement board lists (create, rename, delete, reorder)' as complete`
+- [x] Task: Conductor - User Manual Verification 'Phase 6' (Protocol in workflow.md) 28522f8
 
 ## Out-of-Plan Notes
 
