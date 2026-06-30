@@ -139,3 +139,17 @@
 
 - Cards implementation is deferred to the next track; card placeholders are visual only
 - Real-time collaboration for lists is deferred to a future Socket.io track
+
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions 6763804
+  - [x] Commit untracked planning docs
+  - [x] Mark plan tasks complete with commit SHAs
+  - [x] BoardLists: remove misleading render-time sync comment + simplify id-sequence guard
+  - [x] ListColumn: rewrite delete dialog copy to match spec
+  - [x] AddListForm: close form after successful add
+  - [x] reorderLists: reject duplicate ids in input
+  - [x] reorderListsAction: wrap data call in try/catch
+  - [x] Tests: cover new behaviors
+  - [x] e2e: replace dragTo with explicit mouse events
+  - [x] Commit: `fix(conductor): Apply review suggestions for track 'lists_20260630'`
