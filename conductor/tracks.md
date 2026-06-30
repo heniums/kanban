@@ -8,5 +8,5 @@ All tracks are complete. See `conductor/archive/` for historical track folders.
 
 ---
 
-- [ ] **Track: Implement board lists (create, rename, delete, reorder)**
+- [x] **Track: Implement board lists (create, rename, delete, reorder)**
       _Link: [./tracks/lists_20260630/](./tracks/lists_20260630/)_
