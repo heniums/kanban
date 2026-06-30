@@ -21,7 +21,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 
-import { apiFetch } from "@/lib/api";
+import { registerAction } from "@/lib/actions/auth/register";
 
 export function SignUpForm() {
   const router = useRouter();
@@ -38,10 +38,12 @@ export function SignUpForm() {
   const onSubmit = async (data: RegisterUserInput) => {
     setServerError("");
     try {
-      await apiFetch("/api/server/auth/register", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      const result = await registerAction(data);
+
+      if (!result.ok) {
+        setServerError(result.error);
+        return;
+      }
 
       const signInResult = await signIn("credentials", {
         email: data.email,
@@ -57,10 +59,8 @@ export function SignUpForm() {
 
       router.push("/");
       router.refresh();
-    } catch (err) {
-      setServerError(
-        err instanceof Error ? err.message : "Network error. Please try again."
-      );
+    } catch {
+      setServerError("Network error. Please try again.");
     }
   };
 

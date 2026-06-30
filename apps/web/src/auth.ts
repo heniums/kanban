@@ -1,7 +1,6 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-
-const SERVER_URL = process.env.SERVER_URL || "http://localhost:3001";
+import { verifyCredentials } from "@/lib/data/auth";
 
 const PROTECTED_PREFIXES = ["/boards"];
 
@@ -13,19 +12,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       authorize: async (credentials) => {
-        const res = await fetch(`${SERVER_URL}/api/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: credentials.email,
-            password: credentials.password,
-          }),
-        });
-
-        if (!res.ok) return null;
-
-        const data = await res.json();
-        return data.user ?? null;
+        if (!credentials?.email || !credentials?.password) {
+          return null;
+        }
+        const user = await verifyCredentials(
+          String(credentials.email),
+          String(credentials.password),
+        );
+        return user ?? null;
       },
     }),
   ],
