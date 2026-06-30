@@ -4,5 +4,4 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [x] **Track: Merge Monorepo into Single Next.js Project**
-      _Link: [./tracks/merge_monorepo_to_single_20260630/](./tracks/merge_monorepo_to_single_20260630/)_
+All tracks are complete. See `conductor/archive/` for historical track folders.
