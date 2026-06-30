@@ -1,6 +1,6 @@
 "use server";
 
-import { createBoardSchema } from "@kanban/shared";
+import { createBoardSchema } from "@/lib/schemas/board";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 

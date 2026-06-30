@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { sql } from "drizzle-orm";
-import { createDbClient } from "../db";
+// @vitest-environment node
+import { createDbClient } from "@/lib/db/client";
 
 describe("createDbClient", () => {
   it("returns a drizzle client that connects and responds to a simple query", async () => {

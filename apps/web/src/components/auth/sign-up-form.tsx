@@ -6,8 +6,8 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
-import { registerUserSchema } from "@kanban/shared";
-import type { RegisterUserInput } from "@kanban/shared";
+import { registerUserSchema } from "@/lib/schemas/user";
+import type { RegisterUserInput } from "@/lib/schemas/user";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

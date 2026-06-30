@@ -1,7 +1,9 @@
 import "dotenv/config";
 import { hash } from "bcryptjs";
 import { eq } from "drizzle-orm";
-import { createDbClient, users, boards } from "@kanban/shared/server";
+import { createDbClient } from "@/lib/db/client";
+import { users } from "@/lib/db/schema/users";
+import { boards } from "@/lib/db/schema/boards";
 
 export async function seed() {
   const db = createDbClient();

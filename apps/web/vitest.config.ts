@@ -2,8 +2,11 @@ import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import { fileURLToPath } from "url";
+import dotenv from "dotenv";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 export default defineConfig({
   plugins: [react()],
@@ -17,16 +20,12 @@ export default defineConfig({
   resolve: {
     alias: [
       {
-        find: "@kanban/shared/server",
-        replacement: path.resolve(__dirname, "../../packages/shared/src/server.ts"),
-      },
-      {
-        find: "@kanban/shared",
-        replacement: path.resolve(__dirname, "../../packages/shared/src/index.ts"),
-      },
-      {
         find: "@/",
         replacement: path.resolve(__dirname, "src") + "/",
+      },
+      {
+        find: /^server-only$/,
+        replacement: path.resolve(__dirname, "src/__tests__/server-only-mock.ts"),
       },
     ],
   },

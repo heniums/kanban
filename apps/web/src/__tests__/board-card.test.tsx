@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { BoardCard, BoardCardSkeleton } from "@/components/boards/board-card";
-import type { Board } from "@kanban/shared";
+import type { Board } from "@/lib/db/schema/boards";
 
 const baseBoard: Board = {
   id: "test-id",

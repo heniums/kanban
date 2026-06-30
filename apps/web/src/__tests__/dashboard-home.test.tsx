@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import type { Board } from "@kanban/shared";
+import type { Board } from "@/lib/db/schema/boards";
 
 vi.mock("@/components/boards/board-card", () => ({
   BoardCard: ({ board }: { board: Board }) => (

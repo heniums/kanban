@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
-import type { Board } from "@kanban/shared";
+import type { Board } from "@/lib/db/schema/boards";
 
 const { mockVerifySession, mockGetBoardById } = vi.hoisted(() => ({
   mockVerifySession: vi.fn(),

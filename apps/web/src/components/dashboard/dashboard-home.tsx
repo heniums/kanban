@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Board } from "@kanban/shared";
+import type { Board } from "@/lib/db/schema/boards";
 import { BoardCard } from "@/components/boards/board-card";
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/PageContainer";

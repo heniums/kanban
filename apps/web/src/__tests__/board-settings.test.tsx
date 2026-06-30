@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { Board } from "@kanban/shared";
+import type { Board } from "@/lib/db/schema/boards";
 import { BACKGROUNDS } from "@/components/boards/background-picker";
 
 vi.mock("next/navigation", () => ({

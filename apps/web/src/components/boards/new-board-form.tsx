@@ -3,8 +3,8 @@
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { createBoardSchema } from "@kanban/shared";
-import type { CreateBoardInput } from "@kanban/shared";
+import { createBoardSchema } from "@/lib/schemas/board";
+import type { CreateBoardInput } from "@/lib/schemas/board";
 
 import { createBoardAction } from "@/lib/actions/boards";
 import { Button } from "@/components/ui/button";

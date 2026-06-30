@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { createBoardSchema, updateBoardSchema } from "../schemas/board";
+import { describe, expect, it } from "vitest";
+import { createBoardSchema, updateBoardSchema } from "@/lib/schemas/board";
 
 describe("createBoardSchema", () => {
   const validInput = {

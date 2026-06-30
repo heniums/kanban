@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from "express";
 import { hash, compare } from "bcryptjs";
 import { eq } from "drizzle-orm";
 
-import { loginSchema, registerUserSchema } from "@kanban/shared";
+import { loginSchema, registerUserSchema } from "@/lib/schemas/user";
 
 import { createDbClient } from "../db.js";
 import { users } from "../schema/users.js";

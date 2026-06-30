@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loginSchema, registerUserSchema, userSchema } from "@kanban/shared";
+import { loginSchema, registerUserSchema, userSchema } from "@/lib/schemas/user";
 
 describe("Shared schemas", () => {
   describe("userSchema", () => {

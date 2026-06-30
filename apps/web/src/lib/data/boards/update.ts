@@ -1,4 +1,5 @@
-import { createDbClient, boards, type Board } from "@kanban/shared/server";
+import { createDbClient } from "@/lib/db/client";
+import { boards, type Board } from "@/lib/db/schema/boards";
 import { eq, and, isNull } from "drizzle-orm";
 
 export async function updateBoard(

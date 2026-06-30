@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import type { Board } from "@kanban/shared";
+import type { Board } from "@/lib/db/schema/boards";
 
 import { deleteBoardAction, restoreBoardAction } from "@/lib/actions/boards";
 import { Button } from "@/components/ui/button";

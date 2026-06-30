@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { sql } from "drizzle-orm";
-import { createDbClient } from "../db";
-import { boards } from "../schema/boards";
+// @vitest-environment node
+import { createDbClient } from "@/lib/db/client";
+import { boards } from "@/lib/db/schema/boards";
 
 const db = createDbClient();
 

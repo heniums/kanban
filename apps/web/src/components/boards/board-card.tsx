@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Board } from "@kanban/shared";
+import type { Board } from "@/lib/db/schema/boards";
 
 interface BoardCardProps {
   board: Board;

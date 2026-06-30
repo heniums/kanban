@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { updateBoardSchema } from "@kanban/shared";
-import type { UpdateBoardInput, Board } from "@kanban/shared";
+import { updateBoardSchema } from "@/lib/schemas/board";
+import type { UpdateBoardInput } from "@/lib/schemas/board";
+import type { Board } from "@/lib/db/schema/boards";
 
 import { updateBoardAction } from "@/lib/actions/boards";
 import { Button } from "@/components/ui/button";

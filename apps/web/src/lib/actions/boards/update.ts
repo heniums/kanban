@@ -1,6 +1,6 @@
 "use server";
 
-import { updateBoardSchema } from "@kanban/shared";
+import { updateBoardSchema } from "@/lib/schemas/board";
 import { revalidatePath } from "next/cache";
 
 import { verifySession } from "@/lib/dal";
