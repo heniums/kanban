@@ -52,11 +52,12 @@ async function getOwnerOf(boardId: string): Promise<string | null> {
 describe("getListsByBoardId (integration)", () => {
   it("returns lists in position order for the owner", async () => {
     const boardId = await ensureTestBoard();
-    await createList({ boardId, title: "A" });
-    await createList({ boardId, title: "B" });
-    await createList({ boardId, title: "C" });
+    const ownerId = (await getOwnerOf(boardId))!;
+    await createList({ boardId, title: "A" }, { ownerId });
+    await createList({ boardId, title: "B" }, { ownerId });
+    await createList({ boardId, title: "C" }, { ownerId });
 
-    const result = await getListsByBoardId(boardId, { ownerId: (await getOwnerOf(boardId))! });
+    const result = await getListsByBoardId(boardId, { ownerId });
 
     expect(result.map((l) => l.title)).toEqual(["A", "B", "C"]);
     expect(result.map((l) => l.position)).toEqual([0, 1, 2]);
@@ -68,8 +69,9 @@ describe("getListsByBoardId (integration)", () => {
 describe("createList (integration)", () => {
   it("auto-assigns the next position based on existing lists", async () => {
     const boardId = await ensureTestBoard();
-    const l0 = await createList({ boardId, title: "Zero" });
-    const l1 = await createList({ boardId, title: "One" });
+    const ownerId = (await getOwnerOf(boardId))!;
+    const l0 = await createList({ boardId, title: "Zero" }, { ownerId });
+    const l1 = await createList({ boardId, title: "One" }, { ownerId });
     expect(l0.position).toBe(0);
     expect(l1.position).toBe(1);
 
@@ -80,10 +82,10 @@ describe("createList (integration)", () => {
 describe("renameList (integration)", () => {
   it("updates the list title", async () => {
     const boardId = await ensureTestBoard();
-    const list = await createList({ boardId, title: "Original" });
-    const ownerId = await getOwnerOf(boardId);
+    const ownerId = (await getOwnerOf(boardId))!;
+    const list = await createList({ boardId, title: "Original" }, { ownerId });
 
-    const updated = await renameList(list.id, { title: "Renamed" }, { ownerId: ownerId! });
+    const updated = await renameList(list.id, { title: "Renamed" }, { ownerId });
 
     expect(updated?.title).toBe("Renamed");
 
@@ -94,16 +96,16 @@ describe("renameList (integration)", () => {
 describe("deleteList (integration) — position recompaction", () => {
   it("recompacts positions after deletion", async () => {
     const boardId = await ensureTestBoard();
-    const l0 = await createList({ boardId, title: "L0" });
-    const l1 = await createList({ boardId, title: "L1" });
-    const l2 = await createList({ boardId, title: "L2" });
-    const l3 = await createList({ boardId, title: "L3" });
-    const ownerId = await getOwnerOf(boardId);
+    const ownerId = (await getOwnerOf(boardId))!;
+    const l0 = await createList({ boardId, title: "L0" }, { ownerId });
+    const l1 = await createList({ boardId, title: "L1" }, { ownerId });
+    const l2 = await createList({ boardId, title: "L2" }, { ownerId });
+    const l3 = await createList({ boardId, title: "L3" }, { ownerId });
 
-    const result = await deleteList(l1.id, { ownerId: ownerId! });
+    const result = await deleteList(l1.id, { ownerId });
     expect(result?.id).toBe(l1.id);
 
-    const after = await getListsByBoardId(boardId, { ownerId: ownerId! });
+    const after = await getListsByBoardId(boardId, { ownerId });
     const positions = after
       .sort((a, b) => a.position - b.position)
       .map((l) => ({ title: l.title, position: l.position }));
@@ -123,14 +125,14 @@ describe("deleteList (integration) — position recompaction", () => {
 describe("reorderLists (integration)", () => {
   it("reorders lists to match the new positions", async () => {
     const boardId = await ensureTestBoard();
-    const a = await createList({ boardId, title: "A" });
-    const b = await createList({ boardId, title: "B" });
-    const c = await createList({ boardId, title: "C" });
-    const ownerId = await getOwnerOf(boardId);
+    const ownerId = (await getOwnerOf(boardId))!;
+    const a = await createList({ boardId, title: "A" }, { ownerId });
+    const b = await createList({ boardId, title: "B" }, { ownerId });
+    const c = await createList({ boardId, title: "C" }, { ownerId });
 
-    await reorderLists(boardId, [c.id, a.id, b.id], { ownerId: ownerId! });
+    await reorderLists(boardId, [c.id, a.id, b.id], { ownerId });
 
-    const after = await getListsByBoardId(boardId, { ownerId: ownerId! });
+    const after = await getListsByBoardId(boardId, { ownerId });
     expect(after.map((l) => l.title)).toEqual(["C", "A", "B"]);
     expect(after.map((l) => l.position)).toEqual([0, 1, 2]);
 

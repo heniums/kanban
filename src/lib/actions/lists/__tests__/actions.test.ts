@@ -50,10 +50,10 @@ describe("createListAction", () => {
       title: "Doing",
     });
 
-    expect(mockCreateList).toHaveBeenCalledWith({
-      boardId: "11111111-1111-1111-1111-111111111111",
-      title: "Doing",
-    });
+    expect(mockCreateList).toHaveBeenCalledWith(
+      { boardId: "11111111-1111-1111-1111-111111111111", title: "Doing" },
+      { ownerId: "user-1" },
+    );
     expect(result).toHaveProperty("list");
   });
 
@@ -62,6 +62,16 @@ describe("createListAction", () => {
     const result = await createListAction({ boardId: "bad-uuid", title: "" });
     expect(result).toHaveProperty("errors");
     expect(mockCreateList).not.toHaveBeenCalled();
+  });
+
+  it("returns an error when the board is not owned", async () => {
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockCreateList.mockRejectedValue(new Error("Board not found or not owned"));
+    const result = await createListAction({
+      boardId: "11111111-1111-1111-1111-111111111111",
+      title: "X",
+    });
+    expect(result).toHaveProperty("errors");
   });
 
   it("redirects to /login when not signed in", async () => {

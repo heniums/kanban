@@ -26,7 +26,11 @@ export async function createListAction(input: {
     };
   }
 
-  const list = await createList(parsed.data);
-  revalidatePath(`/boards/${input.boardId}`);
-  return { list };
+  try {
+    const list = await createList(parsed.data, { ownerId: userId });
+    revalidatePath(`/boards/${input.boardId}`);
+    return { list };
+  } catch {
+    return { errors: [{ field: "", message: "Board not found or not owned" }] };
+  }
 }

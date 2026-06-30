@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 let db: any;
 let returningImpl: any;
-let selectResult: any[] = [];
+let selectResults: any[] = [];
+let selectCall = 0;
 let capturedValues: unknown = null;
 let tx: any;
 
@@ -11,7 +12,8 @@ const setupDbMock = () => {
   const returning = vi.fn();
 
   mock.select = vi.fn(() => {
-    mock.then = (onFulfilled: (v: any) => any) => Promise.resolve(onFulfilled(selectResult));
+    mock.then = (onFulfilled: (v: any) => any) =>
+      Promise.resolve(onFulfilled(selectResults[selectCall++] ?? []));
     return mock;
   });
   mock.insert = vi.fn(() => mock);
@@ -48,6 +50,10 @@ vi.mock("@/lib/db/schema/lists", () => ({
   lists: { _table: "lists" },
 }));
 
+vi.mock("@/lib/db/schema/boards", () => ({
+  boards: { _table: "boards" },
+}));
+
 import { createList } from "../create";
 
 beforeEach(() => {
@@ -55,18 +61,19 @@ beforeEach(() => {
   db = m.db;
   tx = m.db;
   returningImpl = m.returning;
-  selectResult = [];
+  selectResults = [];
+  selectCall = 0;
   capturedValues = null;
 });
 
 describe("createList", () => {
   it("inserts a list with position = max(existing positions) + 1 and returns it", async () => {
-    selectResult = [{ value: 2 }];
+    selectResults = [[{ id: "board-1" }], [{ value: 2 }]];
     returningImpl.mockResolvedValueOnce([
       { id: "list-new", title: "Doing", boardId: "board-1", position: 3 },
     ]);
 
-    const result = await createList({ boardId: "board-1", title: "Doing" });
+    const result = await createList({ boardId: "board-1", title: "Doing" }, { ownerId: "user-1" });
 
     expect(db.transaction).toHaveBeenCalled();
     expect(db.from).toHaveBeenCalled();
@@ -80,22 +87,23 @@ describe("createList", () => {
   });
 
   it("starts position at 0 when no existing lists on the board", async () => {
-    selectResult = [{ value: null }];
+    selectResults = [[{ id: "board-1" }], [{ value: null }]];
     returningImpl.mockResolvedValueOnce([
       { id: "list-new", title: "To Do", boardId: "board-1", position: 0 },
     ]);
 
-    const result = await createList({ boardId: "board-1", title: "To Do" });
+    const result = await createList({ boardId: "board-1", title: "To Do" }, { ownerId: "user-1" });
 
     expect((capturedValues as { position: number }).position).toBe(0);
     expect(result.position).toBe(0);
   });
 
-  it("rolls back via transaction if any step fails", async () => {
-    selectResult = [{ value: 0 }];
-    returningImpl.mockRejectedValueOnce(new Error("boom"));
+  it("rejects when the board is not found or not owned", async () => {
+    selectResults = [[]];
 
-    await expect(createList({ boardId: "board-1", title: "X" })).rejects.toThrow("boom");
+    await expect(
+      createList({ boardId: "missing", title: "X" }, { ownerId: "user-1" }),
+    ).rejects.toThrow(/not found or not owned/);
     expect(db.transaction).toHaveBeenCalled();
   });
 });
