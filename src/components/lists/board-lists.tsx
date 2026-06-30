@@ -33,8 +33,9 @@ interface BoardListsProps {
 
 export function BoardLists({ lists, onAdd, onRename, onDelete, onReorder }: BoardListsProps) {
   const [optimisticLists, setOptimisticLists] = useState(lists);
-
-  if (optimisticLists.map((l) => l.id).join() !== lists.map((l) => l.id).join()) {
+  const [lastSyncedLists, setLastSyncedLists] = useState(lists);
+  if (lastSyncedLists !== lists) {
+    setLastSyncedLists(lists);
     setOptimisticLists(lists);
   }
 
