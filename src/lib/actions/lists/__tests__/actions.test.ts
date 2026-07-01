@@ -24,10 +24,22 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
+const { mockEmitToBoard } = vi.hoisted(() => ({
+  mockEmitToBoard: vi.fn(),
+}));
+
+vi.mock("@/lib/realtime/events", () => ({
+  emitToBoard: mockEmitToBoard,
+  REALTIME_EVENTS: {
+    LIST_REORDERED: "list:reordered",
+  },
+}));
+
 import { createListAction } from "../create";
 import { renameListAction } from "../update";
 import { deleteListAction } from "../delete";
 import { reorderListsAction } from "../reorder";
+import { emitToBoard, REALTIME_EVENTS } from "@/lib/realtime/events";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -171,5 +183,48 @@ describe("reorderListsAction", () => {
       ],
     });
     expect(result).toHaveProperty("errors");
+  });
+
+  it("emits LIST_REORDERED after a successful reorder", async () => {
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockReorderLists.mockResolvedValue([
+      { id: "l2", boardId: "b1", position: 0, title: "B" },
+      { id: "l1", boardId: "b1", position: 1, title: "A" },
+    ]);
+
+    const boardId = "11111111-1111-1111-1111-111111111111";
+    const orderedListIds = [
+      "22222222-2222-2222-2222-222222222222",
+      "33333333-3333-3333-3333-333333333333",
+    ];
+
+    const result = await reorderListsAction({ boardId, orderedListIds });
+
+    expect(result).toHaveProperty("lists");
+    expect(emitToBoard).toHaveBeenCalledWith(boardId, REALTIME_EVENTS.LIST_REORDERED, {
+      boardId,
+      orderedListIds,
+    });
+  });
+
+  it("does not emit LIST_REORDERED on validation error", async () => {
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    const result = await reorderListsAction({ boardId: "bad", orderedListIds: [] });
+    expect(result).toHaveProperty("errors");
+    expect(emitToBoard).not.toHaveBeenCalled();
+  });
+
+  it("does not emit LIST_REORDERED when the data layer throws", async () => {
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockReorderLists.mockRejectedValue(new Error("orderedListIds must not contain duplicates"));
+    const result = await reorderListsAction({
+      boardId: "11111111-1111-1111-1111-111111111111",
+      orderedListIds: [
+        "22222222-2222-2222-2222-222222222222",
+        "22222222-2222-2222-2222-222222222222",
+      ],
+    });
+    expect(result).toHaveProperty("errors");
+    expect(emitToBoard).not.toHaveBeenCalled();
   });
 });
