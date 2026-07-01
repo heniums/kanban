@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { BoardActions } from "@/components/boards/board-actions";
+import { BoardHero } from "@/components/boards/board-hero";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { BoardLists } from "@/components/lists/board-lists";
 import { getBoardById } from "@/lib/data/boards";
@@ -26,29 +27,19 @@ export default async function BoardPage({ params }: BoardPageProps) {
   const textColor = getTextColor(board.background);
 
   return (
-    <div className="min-h-[calc(100vh-4rem)]" style={{ background: board.background }}>
-      <PageContainer>
-        <div className="mb-8 flex items-start justify-between gap-4">
-          <div>
-            <Link
-              href="/boards"
-              className="mb-2 inline-block text-sm opacity-70 hover:opacity-100"
-              style={{ color: textColor }}
-            >
-              &larr; All boards
-            </Link>
-            <h1 className="text-3xl font-bold" style={{ color: textColor }}>
-              {board.title}
-            </h1>
-            {board.description && (
-              <p className="mt-1 opacity-80" style={{ color: textColor }}>
-                {board.description}
-              </p>
-            )}
-          </div>
-          <BoardActions board={board} />
-        </div>
+    <div className="bg-background min-h-[calc(100vh-4rem)]">
+      <BoardHero board={board} variant="full">
+        <Link
+          href="/boards"
+          className="rounded-md px-2 py-1 text-sm opacity-80 hover:opacity-100"
+          style={{ color: textColor }}
+        >
+          &larr; All boards
+        </Link>
+        <BoardActions board={board} />
+      </BoardHero>
 
+      <PageContainer>
         <BoardLists boardId={board.id} initialLists={lists} />
       </PageContainer>
     </div>
