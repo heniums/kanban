@@ -20,21 +20,37 @@ describe("BoardCard", () => {
     expect(screen.getByText("My Test Board")).toBeDefined();
   });
 
-  it("renders the description when present", () => {
-    render(<BoardCard board={baseBoard} />);
-    expect(screen.getByText("A description")).toBeDefined();
-  });
-
   it("links to the board page", () => {
     render(<BoardCard board={baseBoard} />);
     const link = screen.getByRole("link");
     expect(link.getAttribute("href")).toBe("/boards/test-id");
   });
 
-  it("renders the background on the preview swatch", () => {
+  it("renders a compact hero region on the card", () => {
     render(<BoardCard board={baseBoard} />);
-    const swatch = document.querySelector('[style*="background"]');
-    expect(swatch).toBeTruthy();
+    const hero = screen.getByRole("region", { name: /my test board board header/i });
+    expect(hero).toBeDefined();
+  });
+
+  it("renders the board title inside the hero", () => {
+    render(<BoardCard board={baseBoard} />);
+    const hero = screen.getByRole("region", { name: /my test board board header/i });
+    expect(hero.textContent).toContain("My Test Board");
+  });
+
+  it("applies the board background to the hero", () => {
+    render(<BoardCard board={baseBoard} />);
+    const hero = screen.getByRole("region", { name: /my test board board header/i });
+    const styleAttr = hero.getAttribute("style") ?? "";
+    expect(styleAttr.includes("1a1a2e") || styleAttr.includes("26, 26, 46")).toBe(true);
+  });
+
+  it("the whole card navigates to the board page when clicked (hero is inside the link)", () => {
+    render(<BoardCard board={baseBoard} />);
+    const hero = screen.getByRole("region", { name: /my test board board header/i });
+    const link = hero.closest("a");
+    expect(link).toBeTruthy();
+    expect(link!.getAttribute("href")).toBe("/boards/test-id");
   });
 });
 
