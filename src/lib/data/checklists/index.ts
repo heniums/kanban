@@ -42,31 +42,6 @@ export async function createChecklist(
   });
 }
 
-export async function updateChecklist(
-  checklistId: string,
-  data: { title: string },
-  options: { ownerId: string },
-): Promise<Checklist | null> {
-  const db = createDbClient();
-  return db.transaction(async (tx) => {
-    const [row] = await tx
-      .select({ id: checklists.id, cardId: checklists.cardId })
-      .from(checklists)
-      .innerJoin(cards, sql`${cards.id} = ${checklists.cardId}`)
-      .innerJoin(boards, sql`${boards.id} = ${cards.boardId}`)
-      .where(
-        sql`${checklists.id} = ${checklistId} AND ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL`,
-      );
-    if (!row) return null;
-    const [updated] = await tx
-      .update(checklists)
-      .set({ title: data.title })
-      .where(eq(checklists.id, checklistId))
-      .returning();
-    return updated ?? null;
-  });
-}
-
 export async function deleteChecklist(
   checklistId: string,
   options: { ownerId: string },
@@ -87,21 +62,6 @@ export async function deleteChecklist(
       sql`UPDATE checklists SET position = position - 1 WHERE card_id = ${row.cardId} AND position > ${row.position}`,
     );
     return { id: row.id, cardId: row.cardId, position: row.position, title: "" };
-  });
-}
-
-export async function getChecklistsByCardId(
-  cardId: string,
-  options: { ownerId: string },
-): Promise<Checklist[]> {
-  const db = createDbClient();
-  return db.transaction(async (tx) => {
-    await assertCardOwnedBy(tx, cardId, options.ownerId);
-    return tx
-      .select()
-      .from(checklists)
-      .where(sql`${checklists.cardId} = ${cardId}`)
-      .orderBy(sql`${checklists.position} ASC`);
   });
 }
 
@@ -205,48 +165,4 @@ export async function getChecklistProgressByBoardId(
     if (r.total > 0) out[r.card_id] = { total: r.total, completed: r.completed };
   }
   return out;
-}
-
-export async function getChecklistsAndItemsByCardId(
-  cardId: string,
-  options: { ownerId: string },
-): Promise<{
-  checklists: Array<{
-    id: string;
-    cardId: string;
-    title: string;
-    position: number;
-    items: Array<{
-      id: string;
-      checklistId: string;
-      content: string;
-      isCompleted: boolean;
-      position: number;
-    }>;
-  }>;
-}> {
-  const db = createDbClient();
-  return db.transaction(async (tx) => {
-    await assertCardOwnedBy(tx, cardId, options.ownerId);
-    const cl = await tx
-      .select()
-      .from(checklists)
-      .where(sql`${checklists.cardId} = ${cardId}`)
-      .orderBy(sql`${checklists.position} ASC`);
-    const items = await tx
-      .select()
-      .from(checklistItems)
-      .where(
-        sql`${checklistItems.checklistId} IN (SELECT id FROM ${checklists} WHERE ${checklists.cardId} = ${cardId})`,
-      )
-      .orderBy(sql`${checklistItems.position} ASC`);
-    const itemsByChecklist = new Map<string, typeof items>();
-    for (const i of items) {
-      if (!itemsByChecklist.has(i.checklistId)) itemsByChecklist.set(i.checklistId, []);
-      itemsByChecklist.get(i.checklistId)!.push(i);
-    }
-    return {
-      checklists: cl.map((c) => ({ ...c, items: itemsByChecklist.get(c.id) ?? [] })),
-    };
-  });
 }

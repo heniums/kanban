@@ -3,7 +3,6 @@ import { render, screen, cleanup } from "@testing-library/react";
 import { BoardCards } from "@/components/cards/board-cards";
 import type { List } from "@/lib/db/schema/lists";
 import type { CardSummary } from "@/components/cards/card-item";
-import type { Label } from "@/lib/db/schema/labels";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
@@ -68,8 +67,6 @@ const baseLists: List[] = [
   },
 ];
 
-const baseLabels: Label[] = [];
-
 function makeCard(id: string, listId: string, position: number, title: string): CardSummary {
   return {
     id,
@@ -107,12 +104,7 @@ beforeEach(() => {
 describe("BoardCards drag-and-drop wiring", () => {
   it("marks every card article as draggable (sortable) via dnd-kit's aria-roledescription", () => {
     render(
-      <BoardCards
-        boardId="b1"
-        initialLists={baseLists}
-        initialCardsByList={makeInitialCards()}
-        boardLabels={baseLabels}
-      />,
+      <BoardCards boardId="b1" initialLists={baseLists} initialCardsByList={makeInitialCards()} />,
     );
     const cards = screen.getAllByTestId("card-item");
     expect(cards).toHaveLength(4);
@@ -126,12 +118,7 @@ describe("BoardCards drag-and-drop wiring", () => {
 
   it("does not render the legacy hidden 'Move card' button as the only drag handle", () => {
     render(
-      <BoardCards
-        boardId="b1"
-        initialLists={baseLists}
-        initialCardsByList={makeInitialCards()}
-        boardLabels={baseLabels}
-      />,
+      <BoardCards boardId="b1" initialLists={baseLists} initialCardsByList={makeInitialCards()} />,
     );
     // The hidden sr-only button is gone — the article itself is the handle
     const moveButtons = screen.queryAllByRole("button", { name: /move card/i });
@@ -140,12 +127,7 @@ describe("BoardCards drag-and-drop wiring", () => {
 
   it("makes the article the pointer-event target for drag (cursor: grab)", () => {
     render(
-      <BoardCards
-        boardId="b1"
-        initialLists={baseLists}
-        initialCardsByList={makeInitialCards()}
-        boardLabels={baseLabels}
-      />,
+      <BoardCards boardId="b1" initialLists={baseLists} initialCardsByList={makeInitialCards()} />,
     );
     const cards = screen.getAllByTestId("card-item");
     for (const c of cards) {

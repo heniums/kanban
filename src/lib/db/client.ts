@@ -15,5 +15,3 @@ export function createDbClient() {
   }
   return _db;
 }
-
-export type DbClient = ReturnType<typeof createDbClient>;

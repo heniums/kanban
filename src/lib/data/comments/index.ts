@@ -62,24 +62,6 @@ export async function deleteComment(
   return deleted ?? null;
 }
 
-export async function getCommentsByCardId(
-  cardId: string,
-  options: { userId: string },
-  pagination: { limit: number; offset: number } = { limit: 50, offset: 0 },
-): Promise<Comment[]> {
-  const db = createDbClient();
-  return db.transaction(async (tx) => {
-    await assertCardOwnedBy(tx, cardId, options.userId);
-    return tx
-      .select()
-      .from(comments)
-      .where(sql`${comments.cardId} = ${cardId}`)
-      .orderBy(sql`${comments.createdAt} ASC`)
-      .limit(pagination.limit)
-      .offset(pagination.offset);
-  });
-}
-
 export async function getCommentCountsByBoardId(
   boardId: string,
   options: { userId: string },

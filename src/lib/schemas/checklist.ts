@@ -7,11 +7,6 @@ export const createChecklistSchema = z.object({
   title: z.string().min(1).max(200),
 });
 
-export const updateChecklistSchema = z.object({
-  checklistId: uuid,
-  title: z.string().min(1).max(200),
-});
-
 export const deleteChecklistSchema = z.object({
   checklistId: uuid,
 });
@@ -30,7 +25,3 @@ export const updateChecklistItemSchema = z.object({
 export const deleteChecklistItemSchema = z.object({
   itemId: uuid,
 });
-
-export type CreateChecklistInput = z.infer<typeof createChecklistSchema>;
-export type CreateChecklistItemInput = z.infer<typeof createChecklistItemSchema>;
-export type UpdateChecklistItemInput = z.infer<typeof updateChecklistItemSchema>;

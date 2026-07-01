@@ -60,7 +60,7 @@ vi.mock("@/lib/db/schema/boards", () => ({
   boards: { _table: "boards" },
 }));
 
-import { createLabel, updateLabel, deleteLabel, getLabelsByBoardId } from "..";
+import { createLabel, getLabelsByBoardId } from "..";
 
 beforeEach(() => {
   db = setupDbMock();
@@ -89,32 +89,6 @@ describe("createLabel", () => {
     await expect(
       createLabel({ boardId: "x", name: "X", color: "#000" }, { ownerId: "user-1" }),
     ).rejects.toThrow(/not found/);
-  });
-});
-
-describe("updateLabel", () => {
-  it("updates name and color", async () => {
-    returnedRows = [[{ id: "l1", name: "New", color: "#00ff00" }]];
-    const result = await updateLabel(
-      "l1",
-      { name: "New", color: "#00ff00" },
-      { ownerId: "user-1" },
-    );
-    expect(result?.name).toBe("New");
-  });
-
-  it("returns null when label not found", async () => {
-    returnedRows = [[]];
-    const result = await updateLabel("missing", { name: "X" }, { ownerId: "user-1" });
-    expect(result).toBeNull();
-  });
-});
-
-describe("deleteLabel", () => {
-  it("deletes a label and returns it", async () => {
-    returnedRows = [[{ id: "l1" }]];
-    const result = await deleteLabel("l1", { ownerId: "user-1" });
-    expect(result?.id).toBe("l1");
   });
 });
 

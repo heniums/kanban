@@ -11,7 +11,7 @@ import {
   getCardLabelsByBoardId,
   getCardAssigneesByBoardId,
 } from "@/lib/data/cards";
-import { getLabelsByBoardId } from "@/lib/data/labels";
+
 import { getChecklistProgressByBoardId } from "@/lib/data/checklists";
 import { getCommentCountsByBoardId } from "@/lib/data/comments";
 import { verifySession } from "@/lib/dal";
@@ -32,21 +32,14 @@ export default async function BoardPage({ params }: BoardPageProps) {
   }
 
   const lists = await getListsByBoardId(boardId, { ownerId: userId });
-  const [
-    allCards,
-    cardLabelsMap,
-    cardAssigneesMap,
-    checklistProgressMap,
-    commentCountsMap,
-    boardLabels,
-  ] = await Promise.all([
-    getCardsByBoardId(boardId, { ownerId: userId }),
-    getCardLabelsByBoardId(boardId, { ownerId: userId }),
-    getCardAssigneesByBoardId(boardId, { ownerId: userId }),
-    getChecklistProgressByBoardId(boardId, { ownerId: userId }),
-    getCommentCountsByBoardId(boardId, { userId }),
-    getLabelsByBoardId(boardId, { ownerId: userId }),
-  ]);
+  const [allCards, cardLabelsMap, cardAssigneesMap, checklistProgressMap, commentCountsMap] =
+    await Promise.all([
+      getCardsByBoardId(boardId, { ownerId: userId }),
+      getCardLabelsByBoardId(boardId, { ownerId: userId }),
+      getCardAssigneesByBoardId(boardId, { ownerId: userId }),
+      getChecklistProgressByBoardId(boardId, { ownerId: userId }),
+      getCommentCountsByBoardId(boardId, { userId }),
+    ]);
 
   const cardsByList: Record<string, CardSummary[]> = {};
   for (const list of lists) {
@@ -78,12 +71,7 @@ export default async function BoardPage({ params }: BoardPageProps) {
       </BoardHero>
 
       <PageContainer>
-        <BoardCards
-          boardId={board.id}
-          initialLists={lists}
-          initialCardsByList={cardsByList}
-          boardLabels={boardLabels}
-        />
+        <BoardCards boardId={board.id} initialLists={lists} initialCardsByList={cardsByList} />
       </PageContainer>
     </div>
   );

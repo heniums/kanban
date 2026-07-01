@@ -3,9 +3,9 @@
 import { create } from "zustand";
 import type { Card } from "@/lib/db/schema/cards";
 
-export type RealtimeCard = Card;
+type RealtimeCard = Card;
 
-export interface BoardCardState {
+interface BoardCardState {
   boardId: string | null;
   cardsByList: Record<string, RealtimeCard[]>;
   lists: { id: string; title: string; position: number }[];
@@ -14,7 +14,6 @@ export interface BoardCardState {
   updateCard: (card: RealtimeCard) => void;
   deleteCard: (cardId: string, listId: string) => void;
   moveCard: (cardId: string, targetListId: string, targetPosition: number) => void;
-  reset: () => void;
 }
 
 export const useBoardCardStore = create<BoardCardState>((set) => ({
@@ -87,5 +86,4 @@ export const useBoardCardStore = create<BoardCardState>((set) => ({
       }
       return { cardsByList: list };
     }),
-  reset: () => set({ boardId: null, cardsByList: {}, lists: [] }),
 }));

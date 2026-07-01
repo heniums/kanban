@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
@@ -20,15 +19,6 @@ export function CardList({ listId, isDropTarget }: CardListProps) {
   const cards = useBoardCardStore((s) => s.cardsByList[listId] ?? []);
   const addCard = useBoardCardStore((s) => s.addCard);
   const { setNodeRef } = useDroppable({ id: `list-drop-${listId}`, data: { listId } });
-
-  useEffect(() => {
-    function onCardEvent(e: Event) {
-      const detail = (e as CustomEvent<{ card?: CardSummary }>).detail;
-      if (detail?.card) addCard(detail.card);
-    }
-    window.addEventListener("card:created", onCardEvent as EventListener);
-    return () => window.removeEventListener("card:created", onCardEvent as EventListener);
-  }, [addCard]);
 
   const handleAdd = async (title: string) => {
     const result = await createCardAction({ listId, title });

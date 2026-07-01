@@ -1,5 +1,5 @@
 import { describe, expect, it, afterAll } from "vitest";
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 // @vitest-environment node
 import { createDbClient } from "@/lib/db/client";
 import { users } from "@/lib/db/schema/users";
@@ -10,7 +10,7 @@ import { cardLabels } from "@/lib/db/schema/card-labels";
 import { cardAssignees } from "@/lib/db/schema/card-assignees";
 import { labels } from "@/lib/db/schema/labels";
 import { getListsByBoardId } from "@/lib/data/lists";
-import { createCard, getCardsByListId, moveCard, reorderCards, updateCard, deleteCard } from "..";
+import { createCard, moveCard, reorderCards, updateCard, deleteCard } from "..";
 
 const db = createDbClient();
 
@@ -36,6 +36,10 @@ async function ensureTestBoard() {
 async function getOwnerOf(boardId: string): Promise<string | null> {
   const [b] = await db.select().from(boards).where(eq(boards.id, boardId));
   return b?.ownerId ?? null;
+}
+
+async function getCardsByListIdDirect(listId: string) {
+  return db.select().from(cards).where(eq(cards.listId, listId)).orderBy(asc(cards.position));
 }
 
 async function resetList(boardId: string, ownerId: string) {
@@ -107,7 +111,7 @@ describe("getCardsByListId (integration)", () => {
     await createCard({ listId: l0.id, title: "B" }, { ownerId });
     await createCard({ listId: l0.id, title: "C" }, { ownerId });
 
-    const result = await getCardsByListId(l0.id, { ownerId });
+    const result = await getCardsByListIdDirect(l0.id);
     expect(result.map((c) => c.title)).toEqual(["A", "B", "C"]);
     expect(result.map((c) => c.position)).toEqual([0, 1, 2]);
   });
@@ -159,7 +163,7 @@ describe("deleteCard (integration) — position recompaction", () => {
 
     await deleteCard(c1.id, { ownerId });
 
-    const remaining = await getCardsByListId(l0.id, { ownerId });
+    const remaining = await getCardsByListIdDirect(l0.id);
     const sorted = remaining.sort((a, b) => a.position - b.position);
     expect(sorted.map((c) => c.title)).toEqual(["C0", "C2"]);
     expect(sorted.map((c) => c.position)).toEqual([0, 1]);
@@ -181,8 +185,8 @@ describe("moveCard (integration)", () => {
     expect(moved?.listId).toBe(l1.id);
     expect(moved?.position).toBe(0);
 
-    const inL0 = await getCardsByListId(l0.id, { ownerId });
-    const inL1 = await getCardsByListId(l1.id, { ownerId });
+    const inL0 = await getCardsByListIdDirect(l0.id);
+    const inL1 = await getCardsByListIdDirect(l1.id);
     expect(inL0.map((c) => c.title)).toEqual(["C0"]);
     expect(inL0.map((c) => c.position)).toEqual([0]);
     const l1Sorted = inL1.sort((a, b) => a.position - b.position);
@@ -203,7 +207,7 @@ describe("reorderCards (integration)", () => {
 
     await reorderCards(l0.id, [c.id, a.id, b.id], { ownerId });
 
-    const after = await getCardsByListId(l0.id, { ownerId });
+    const after = await getCardsByListIdDirect(l0.id);
     expect(after.map((c) => c.title)).toEqual(["C", "A", "B"]);
     expect(after.map((c) => c.position)).toEqual([0, 1, 2]);
 

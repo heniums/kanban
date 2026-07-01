@@ -43,7 +43,6 @@ interface BoardCardsProps {
   boardId: string;
   initialLists: List[];
   initialCardsByList: Record<string, CardSummary[]>;
-  boardLabels?: unknown;
 }
 
 export function BoardCards({ boardId, initialLists, initialCardsByList }: BoardCardsProps) {

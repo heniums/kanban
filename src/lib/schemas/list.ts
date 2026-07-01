@@ -16,7 +16,3 @@ export const reorderListsSchema = z.object({
   boardId: uuid,
   orderedListIds: z.array(uuid),
 });
-
-export type CreateListInput = z.infer<typeof createListSchema>;
-export type RenameListInput = z.infer<typeof renameListSchema>;
-export type ReorderListsInput = z.infer<typeof reorderListsSchema>;

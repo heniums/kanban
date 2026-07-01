@@ -11,4 +11,3 @@ export const checklists = pgTable("checklists", {
 });
 
 export type Checklist = typeof checklists.$inferSelect;
-export type NewChecklist = typeof checklists.$inferInsert;

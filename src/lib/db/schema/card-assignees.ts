@@ -16,6 +16,3 @@ export const cardAssignees = pgTable(
     pk: primaryKey({ columns: [table.cardId, table.userId] }),
   }),
 );
-
-export type CardAssignee = typeof cardAssignees.$inferSelect;
-export type NewCardAssignee = typeof cardAssignees.$inferInsert;

@@ -17,6 +17,3 @@ export const cardLabels = pgTable(
     pk: primaryKey({ columns: [table.cardId, table.labelId] }),
   }),
 );
-
-export type CardLabel = typeof cardLabels.$inferSelect;
-export type NewCardLabel = typeof cardLabels.$inferInsert;

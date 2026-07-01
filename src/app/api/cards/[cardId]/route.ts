@@ -10,7 +10,7 @@ import { boards } from "@/lib/db/schema/boards";
 import { checklists } from "@/lib/db/schema/checklists";
 import { checklistItems } from "@/lib/db/schema/checklist-items";
 import { comments } from "@/lib/db/schema/comments";
-import { users, type User } from "@/lib/db/schema/users";
+import { users } from "@/lib/db/schema/users";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ cardId: string }> }) {
   const { userId } = await verifySession();
@@ -88,33 +88,3 @@ export async function GET(_request: Request, { params }: { params: Promise<{ car
     boardMembers,
   });
 }
-
-export type CardDetailResponse = {
-  card: typeof cards.$inferSelect;
-  labels: { id: string; name: string; color: string }[];
-  boardId: string;
-  boardLabels: (typeof labels.$inferSelect)[];
-  assignees: { id: string; name: string; email: string }[];
-  checklists: Array<{
-    id: string;
-    cardId: string;
-    title: string;
-    position: number;
-    items: Array<{
-      id: string;
-      checklistId: string;
-      content: string;
-      isCompleted: boolean;
-      position: number;
-    }>;
-  }>;
-  comments: Array<{
-    id: string;
-    cardId: string;
-    userId: string;
-    content: string;
-    createdAt: Date;
-    updatedAt: Date;
-  }>;
-  boardMembers: User[];
-};

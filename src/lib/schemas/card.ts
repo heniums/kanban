@@ -43,8 +43,3 @@ export const reorderCardsSchema = z.object({
   listId: uuid,
   orderedCardIds: z.array(uuid),
 });
-
-export type CreateCardInput = z.infer<typeof createCardSchema>;
-export type UpdateCardInput = z.infer<typeof updateCardSchema>;
-export type MoveCardInput = z.infer<typeof moveCardSchema>;
-export type ReorderCardsInput = z.infer<typeof reorderCardsSchema>;

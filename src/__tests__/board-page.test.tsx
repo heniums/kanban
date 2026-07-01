@@ -68,7 +68,6 @@ vi.mock("@/lib/actions/boards", () => ({
   deleteBoardAction: vi.fn(),
   restoreBoardAction: vi.fn(),
   updateBoardAction: vi.fn(),
-  getBoardAction: vi.fn(),
   listBoardsAction: vi.fn(),
   createBoardAction: vi.fn(),
 }));

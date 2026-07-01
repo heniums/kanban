@@ -2,12 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { verifySession } from "@/lib/dal";
-import {
-  createComment,
-  updateComment,
-  deleteComment,
-  getCommentsByCardId,
-} from "@/lib/data/comments";
+import { createComment, updateComment, deleteComment } from "@/lib/data/comments";
 import { createDbClient } from "@/lib/db/client";
 import { cards } from "@/lib/db/schema/cards";
 import { sql } from "drizzle-orm";
@@ -15,7 +10,6 @@ import {
   createCommentSchema,
   updateCommentSchema,
   deleteCommentSchema,
-  getCommentsByCardIdSchema,
 } from "@/lib/schemas/comment";
 import { emitToBoard, REALTIME_EVENTS } from "@/lib/realtime/events";
 import type { Comment } from "@/lib/db/schema/comments";
@@ -85,13 +79,4 @@ export async function deleteCommentAction(input: unknown): Promise<Result<{ card
   } catch (err) {
     return { errors: [{ field: "", message: err instanceof Error ? err.message : "Failed" }] };
   }
-}
-
-export async function getCommentsByCardIdAction(input: unknown): Promise<Result<Comment[]>> {
-  const { userId } = await verifySession();
-  const parsed = getCommentsByCardIdSchema.safeParse(input);
-  if (!parsed.success) return { errors: formatZodErrors(parsed.error) };
-  const { cardId, limit = 50, offset = 0 } = parsed.data;
-  const list = await getCommentsByCardId(cardId, { userId }, { limit, offset });
-  return { data: list };
 }

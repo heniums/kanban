@@ -262,22 +262,6 @@ export async function reorderCards(
   });
 }
 
-export async function getCardsByListId(
-  listId: string,
-  options: { ownerId: string },
-): Promise<Card[]> {
-  const db = createDbClient();
-  const rows = await db
-    .select({ card: cards })
-    .from(cards)
-    .innerJoin(boards, sql`${boards.id} = ${cards.boardId}`)
-    .where(
-      sql`${cards.listId} = ${listId} AND ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL`,
-    )
-    .orderBy(sql`${cards.position} ASC`);
-  return rows.map((r) => r.card);
-}
-
 export async function getCardById(
   cardId: string,
   options: { ownerId: string },

@@ -15,13 +15,3 @@ export const updateCommentSchema = z.object({
 export const deleteCommentSchema = z.object({
   commentId: uuid,
 });
-
-export const getCommentsByCardIdSchema = z.object({
-  cardId: uuid,
-  limit: z.number().int().min(1).max(100).optional(),
-  offset: z.number().int().min(0).optional(),
-});
-
-export type CreateCommentInput = z.infer<typeof createCommentSchema>;
-export type UpdateCommentInput = z.infer<typeof updateCommentSchema>;
-export type GetCommentsByCardIdInput = z.infer<typeof getCommentsByCardIdSchema>;

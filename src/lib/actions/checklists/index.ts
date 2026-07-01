@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { verifySession } from "@/lib/dal";
 import {
   createChecklist,
-  updateChecklist,
   deleteChecklist,
   createChecklistItem,
   updateChecklistItem,
@@ -14,7 +13,6 @@ import { createDbClient } from "@/lib/db/client";
 import { cards } from "@/lib/db/schema/cards";
 import {
   createChecklistSchema,
-  updateChecklistSchema,
   deleteChecklistSchema,
   createChecklistItemSchema,
   updateChecklistItemSchema,
@@ -47,28 +45,6 @@ export async function createChecklistAction(
   if (!parsed.success) return { errors: formatZodErrors(parsed.error) };
   try {
     const cl = await createChecklist(parsed.data, { ownerId: userId });
-    const boardId = await revalidateForCard(cl.cardId);
-    if (boardId)
-      emitToBoard(boardId, REALTIME_EVENTS.CHECKLIST_UPDATED, { cardId: cl.cardId, boardId });
-    return { data: { id: cl.id, cardId: cl.cardId } };
-  } catch (err) {
-    return { errors: [{ field: "", message: err instanceof Error ? err.message : "Failed" }] };
-  }
-}
-
-export async function updateChecklistAction(
-  input: unknown,
-): Promise<Result<{ id: string; cardId: string }>> {
-  const { userId } = await verifySession();
-  const parsed = updateChecklistSchema.safeParse(input);
-  if (!parsed.success) return { errors: formatZodErrors(parsed.error) };
-  try {
-    const cl = await updateChecklist(
-      parsed.data.checklistId,
-      { title: parsed.data.title },
-      { ownerId: userId },
-    );
-    if (!cl) return { errors: [{ field: "", message: "Checklist not found" }] };
     const boardId = await revalidateForCard(cl.cardId);
     if (boardId)
       emitToBoard(boardId, REALTIME_EVENTS.CHECKLIST_UPDATED, { cardId: cl.cardId, boardId });
