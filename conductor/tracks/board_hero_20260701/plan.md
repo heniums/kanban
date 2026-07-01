@@ -68,3 +68,7 @@
   - [ ] Manual verification of phase deliverables
 - [ ] Task: Commit polish and migration
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Background Migration & Polish' (Protocol in workflow.md)
+
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions 20cbcbc
