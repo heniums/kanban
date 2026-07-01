@@ -66,13 +66,13 @@ beforeEach(() => {
 });
 
 describe("CardDetail modal", () => {
-  it("uses a wide layout (much wider than 2xl)", async () => {
+  it("renders at the full available width (no sm:max-w-sm constraint)", async () => {
     render(<CardDetail boardId="b1" lists={[{ id: "l1", title: "To Do" }]} />);
     await openModal();
-    const titleInput = screen.getByLabelText(/card title/i);
-    const dialog = titleInput.closest('[role="dialog"]');
-    expect(dialog).toBeTruthy();
-    expect(dialog!.className).toMatch(/w-\[min\(96vw,1100px\)\]/);
+    const dialog = screen.getByRole("dialog");
+    expect(dialog.className).toMatch(/w-\[min\(96vw,1280px\)\]/);
+    expect(dialog.className).toMatch(/max-w-none/);
+    expect(dialog.className).toMatch(/sm:max-w-none/);
   });
 
   it("does not render a built-in X close button inside the dialog", async () => {
@@ -83,16 +83,24 @@ describe("CardDetail modal", () => {
     expect(closeBtn).toBeNull();
   });
 
-  it("renders the 'Due date' text label", async () => {
+  it("renders the 'Due date' and 'Labels' text labels", async () => {
     render(<CardDetail boardId="b1" lists={[{ id: "l1", title: "To Do" }]} />);
     await openModal();
     expect(screen.getByText("Due date")).toBeDefined();
+    expect(screen.getByText("Labels")).toBeDefined();
   });
 
-  it("does not render a 'Labels' text label (icon only)", async () => {
+  it("places 'Due date' and 'Labels' on the same horizontal bar", async () => {
     render(<CardDetail boardId="b1" lists={[{ id: "l1", title: "To Do" }]} />);
     await openModal();
-    expect(screen.queryByText("Labels")).toBeNull();
+    const dueDateField = screen.getByText("Due date").closest("div[class*='flex-col']")!;
+    const labelsField = screen.getByText("Labels").closest("div[class*='flex-col']")!;
+    // Both fields share the same parent bar
+    expect(dueDateField.parentElement).toBe(labelsField.parentElement);
+    const bar = dueDateField.parentElement!;
+    expect(bar.className).toMatch(/flex/);
+    // The bar wraps so future modules can be added inline
+    expect(bar.className).toMatch(/flex-wrap/);
   });
 
   it("renders the title, description and due date inputs", async () => {
@@ -162,18 +170,33 @@ describe("CardDetail modal", () => {
     });
   });
 
+  it("keeps the label list, the trigger, and the create form in one unified section", async () => {
+    const user = userEvent.setup();
+    render(<CardDetail boardId="b1" lists={[{ id: "l1", title: "To Do" }]} />);
+    await openModal();
+
+    // The trigger and the attached chip are siblings in the same section
+    const attached = screen.getByTestId("attached-label");
+    const trigger = screen.getByRole("button", { name: /add or create label/i });
+    expect(attached.parentElement).toBe(trigger.parentElement);
+
+    // Open the popover and find both the list AND the create form in the same content
+    await user.click(trigger);
+    const popover = await screen.findByText("Available labels");
+    const popoverRoot = popover.closest('[data-slot="popover-content"]') as HTMLElement;
+    expect(popoverRoot.textContent).toContain("Available labels");
+    expect(popoverRoot.textContent).toContain("Create new label");
+  });
+
   it("opens a label picker popover with only available (unselected) labels", async () => {
     const user = userEvent.setup();
     render(<CardDetail boardId="b1" lists={[{ id: "l1", title: "To Do" }]} />);
     await openModal();
-    await user.click(screen.getByRole("button", { name: /^add label$/i }));
-    // Wait for the popover to appear
+    await user.click(screen.getByRole("button", { name: /add or create label/i }));
     const popover = await screen.findByText("Available labels");
     const popoverRoot = popover.closest('[data-slot="popover-content"]') as HTMLElement;
-    expect(popoverRoot).toBeTruthy();
     expect(popoverRoot.textContent).toContain("Feature");
     expect(popoverRoot.textContent).toContain("Chore");
-    // "Bug" is already attached and should NOT appear in the popover
     expect(popoverRoot.textContent).not.toContain("Bug");
   });
 
@@ -190,7 +213,7 @@ describe("CardDetail modal", () => {
     const user = userEvent.setup();
     render(<CardDetail boardId="b1" lists={[{ id: "l1", title: "To Do" }]} />);
     await openModal();
-    await user.click(screen.getByRole("button", { name: /^add label$/i }));
+    await user.click(screen.getByRole("button", { name: /add or create label/i }));
     await user.click(await screen.findByText("Feature"));
     await waitFor(() => {
       const attached = screen.getAllByTestId("attached-label");
@@ -205,6 +228,24 @@ describe("CardDetail modal", () => {
     await user.click(screen.getByRole("button", { name: /remove bug/i }));
     await waitFor(() => {
       expect(screen.queryByTestId("attached-label")).toBeNull();
+    });
+  });
+
+  it("expands the inline create-new-label form inside the popover and creates on submit", async () => {
+    const user = userEvent.setup();
+    render(<CardDetail boardId="b1" lists={[{ id: "l1", title: "To Do" }]} />);
+    await openModal();
+    await user.click(screen.getByRole("button", { name: /add or create label/i }));
+    await user.click(await screen.findByText("Create new label"));
+    const nameInput = await screen.findByPlaceholderText(/label name/i);
+    await user.type(nameInput, "Urgent");
+    await user.click(screen.getByRole("button", { name: /^create$/i }));
+    await waitFor(() => {
+      expect(mockCreateLabelAction).toHaveBeenCalledWith({
+        boardId: "b1",
+        name: "Urgent",
+        color: expect.any(String),
+      });
     });
   });
 });

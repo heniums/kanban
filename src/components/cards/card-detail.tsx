@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useTransition, useRef, type ReactNode } from "react";
+import { useEffect, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, Tag, Trash2, Plus, X, Check } from "lucide-react";
+import { Calendar, Tag, Trash2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -17,12 +17,12 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { Card } from "@/lib/db/schema/cards";
 import type { Label } from "@/lib/db/schema/labels";
 import { updateCardAction, deleteCardAction } from "@/lib/actions/cards";
 import { createLabelAction } from "@/lib/actions/labels";
+import { cn } from "@/lib/utils";
 
 export interface CardDetailData {
   card: Card;
@@ -51,7 +51,6 @@ export function CardDetail({ boardId, lists }: CardDetailProps) {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [newlyCreatedLabelIds, setNewlyCreatedLabelIds] = useState<string[]>([]);
   const router = useRouter();
-  const lastSyncedCardId = useRef<string | null>(null);
 
   useEffect(() => {
     function onOpen(e: Event) {
@@ -74,7 +73,6 @@ export function CardDetail({ boardId, lists }: CardDetailProps) {
           labelIds: body.labels.map((l) => l.id),
         });
         setNewlyCreatedLabelIds([]);
-        lastSyncedCardId.current = body.card.id;
         setOpen(true);
       } catch {
         toast.error("Failed to load card");
@@ -161,11 +159,11 @@ export function CardDetail({ boardId, lists }: CardDetailProps) {
   return (
     <Dialog open={open} onOpenChange={(o) => (o ? setOpen(true) : close())}>
       <DialogContent
-        className="max-h-[92vh] w-[min(96vw,1100px)] max-w-none overflow-y-auto p-0 sm:rounded-xl"
+        className="max-h-[92vh] w-[min(96vw,1280px)] max-w-none overflow-y-auto p-0 sm:max-w-none sm:rounded-xl"
         showCloseButton={false}
       >
         {data && draft && (
-          <div className="flex flex-col gap-6 p-7">
+          <div className="flex flex-col gap-6 p-8">
             <div className="flex items-start justify-between gap-3">
               <TitleEditor
                 value={draft.title}
@@ -190,28 +188,30 @@ export function CardDetail({ boardId, lists }: CardDetailProps) {
                   disabled={isPending}
                 />
               </MetadataField>
-              <MetadataField icon={<Tag className="size-3.5" />}>
-                <LabelPicker
+              <MetadataField
+                label="Labels"
+                icon={<Tag className="size-3.5" />}
+                className="min-w-0 flex-1"
+              >
+                <LabelsControl
                   boardLabels={data.boardLabels}
                   selectedIds={draft.labelIds}
-                  onAdd={(labelId) =>
-                    setDraft({ ...draft, labelIds: [...draft.labelIds, labelId] })
-                  }
+                  onToggle={(labelId) => {
+                    const has = draft.labelIds.includes(labelId);
+                    setDraft({
+                      ...draft,
+                      labelIds: has
+                        ? draft.labelIds.filter((id) => id !== labelId)
+                        : [...draft.labelIds, labelId],
+                    });
+                  }}
                   onCreateLabel={handleCreateLabel}
                   newlyCreatedIds={newlyCreatedLabelIds}
                   disabled={isPending}
                 />
               </MetadataField>
+              {/* Future modules slot in here, e.g. assignees, watchers */}
             </MetadataBar>
-
-            <AttachedLabels
-              boardLabels={data.boardLabels}
-              selectedIds={draft.labelIds}
-              onRemove={(labelId) =>
-                setDraft({ ...draft, labelIds: draft.labelIds.filter((id) => id !== labelId) })
-              }
-              newlyCreatedIds={newlyCreatedLabelIds}
-            />
 
             <DescriptionEditor
               value={draft.description}
@@ -283,14 +283,16 @@ function MetadataBar({ children }: { children: ReactNode }) {
 function MetadataField({
   label,
   icon,
+  className,
   children,
 }: {
   label?: string;
   icon?: ReactNode;
+  className?: string;
   children: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className={cn("flex flex-col gap-1.5", className)}>
       <div className="text-muted-foreground flex items-center gap-1.5 text-xs font-medium">
         {icon}
         {label && <span>{label}</span>}
@@ -300,149 +302,92 @@ function MetadataField({
   );
 }
 
-function AttachedLabels({
+function LabelsControl({
   boardLabels,
   selectedIds,
-  onRemove,
-  newlyCreatedIds,
-}: {
-  boardLabels: Label[];
-  selectedIds: string[];
-  onRemove: (id: string) => void;
-  newlyCreatedIds: string[];
-}) {
-  if (selectedIds.length === 0) return null;
-  const byId = new Map(boardLabels.map((l) => [l.id, l] as const));
-  return (
-    <div className="flex flex-col gap-1.5">
-      <div className="text-muted-foreground text-xs font-medium">Attached labels</div>
-      <div className="flex flex-wrap items-center gap-1.5">
-        {selectedIds.map((id) => {
-          const l = byId.get(id);
-          if (!l) return null;
-          const isNew = newlyCreatedIds.includes(id);
-          return (
-            <span
-              key={id}
-              data-testid="attached-label"
-              className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs text-white ${isNew ? "ring-1 ring-emerald-400" : ""}`}
-              style={{ backgroundColor: l.color }}
-            >
-              {l.name}
-              <button
-                type="button"
-                onClick={() => onRemove(id)}
-                aria-label={`Remove ${l.name}`}
-                className="-mr-1 inline-flex size-4 items-center justify-center rounded-full hover:bg-white/20"
-              >
-                <X className="size-3" />
-              </button>
-            </span>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function LabelPicker({
-  boardLabels,
-  selectedIds,
-  onAdd,
+  onToggle,
   onCreateLabel,
   newlyCreatedIds,
   disabled,
 }: {
   boardLabels: Label[];
   selectedIds: string[];
-  onAdd: (labelId: string) => void;
+  onToggle: (labelId: string) => void;
   onCreateLabel: (name: string, color: string) => Promise<Label | null>;
   newlyCreatedIds: string[];
   disabled: boolean;
 }) {
   const selected = new Set(selectedIds);
+  const byId = new Map(boardLabels.map((l) => [l.id, l] as const));
+  const attached = selectedIds.map((id) => byId.get(id)).filter((l): l is Label => !!l);
   const available = boardLabels.filter((l) => !selected.has(l.id));
-  const [creating, setCreating] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [newColor, setNewColor] = useState("#3b82f6");
+
+  const [name, setName] = useState("");
+  const [color, setColor] = useState("#3b82f6");
+  const [createOpen, setCreateOpen] = useState(false);
+
+  const submitCreate = async () => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    const created = await onCreateLabel(trimmed, color);
+    if (created) {
+      setName("");
+      setColor("#3b82f6");
+      setCreateOpen(false);
+    }
+  };
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={disabled}
-          aria-label="Add label"
-        >
-          <Plus className="size-3.5" /> Label
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-64">
-        {creating ? (
-          <div className="flex flex-col gap-2">
-            <div className="text-muted-foreground text-xs">Create a new label</div>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                value={newColor}
-                onChange={(e) => setNewColor(e.target.value)}
-                className="h-8 w-10 cursor-pointer rounded border"
-                aria-label="Label color"
-              />
-              <Input
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder="Label name"
-                maxLength={50}
-                autoFocus
-                className="h-8"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    if (newName.trim()) {
-                      void onCreateLabel(newName.trim(), newColor);
-                      setNewName("");
-                      setNewColor("#3b82f6");
-                      setCreating(false);
-                    }
-                  } else if (e.key === "Escape") {
-                    setCreating(false);
-                  }
-                }}
-              />
+    <div className="flex flex-wrap items-center gap-1.5">
+      {attached.length === 0 && (
+        <span className="text-muted-foreground text-xs">No labels attached.</span>
+      )}
+      {attached.map((l) => {
+        const isNew = newlyCreatedIds.includes(l.id);
+        return (
+          <span
+            key={l.id}
+            data-testid="attached-label"
+            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs text-white ${isNew ? "ring-1 ring-emerald-400" : ""}`}
+            style={{ backgroundColor: l.color }}
+          >
+            {l.name}
+            <button
+              type="button"
+              onClick={() => onToggle(l.id)}
+              disabled={disabled}
+              aria-label={`Remove ${l.name}`}
+              className="-mr-1 inline-flex size-4 items-center justify-center rounded-full hover:bg-white/20"
+            >
+              <X className="size-3" />
+            </button>
+          </span>
+        );
+      })}
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={disabled}
+            aria-label="Add or create label"
+            title="Add or create label"
+          >
+            <Plus className="size-3.5" /> Add label
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="start" className="w-80 p-0">
+          <div className="flex flex-col">
+            <div className="border-b px-3 py-2">
+              <div className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
+                Available labels
+              </div>
             </div>
-            <div className="flex items-center justify-end gap-1">
-              <Button type="button" size="sm" variant="ghost" onClick={() => setCreating(false)}>
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                onClick={async () => {
-                  const name = newName.trim();
-                  if (!name) return;
-                  await onCreateLabel(name, newColor);
-                  setNewName("");
-                  setNewColor("#3b82f6");
-                  setCreating(false);
-                }}
-                disabled={!newName.trim()}
-              >
-                Create
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-1">
-            <div className="text-muted-foreground px-1 pb-1 text-[11px] font-medium tracking-wide uppercase">
-              Available labels
-            </div>
-            <div className="max-h-56 overflow-y-auto">
+            <div className="max-h-56 overflow-y-auto p-1">
               {available.length === 0 ? (
-                <div className="text-muted-foreground px-2 py-3 text-center text-xs">
-                  No labels left to add.
+                <div className="text-muted-foreground px-2 py-6 text-center text-xs">
+                  Every board label is already attached.
                 </div>
               ) : (
                 available.map((l) => {
@@ -451,7 +396,7 @@ function LabelPicker({
                     <button
                       key={l.id}
                       type="button"
-                      onClick={() => onAdd(l.id)}
+                      onClick={() => onToggle(l.id)}
                       className="hover:bg-muted flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs"
                     >
                       <span
@@ -460,26 +405,72 @@ function LabelPicker({
                       />
                       <span className="flex-1 truncate">{l.name}</span>
                       {isNew && <span className="text-muted-foreground text-[10px]">new</span>}
-                      <Check className="text-muted-foreground size-3.5 opacity-0" />
                     </button>
                   );
                 })
               )}
             </div>
-            <div className="border-t pt-1">
-              <button
-                type="button"
-                onClick={() => setCreating(true)}
-                className="hover:bg-muted flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs"
-              >
-                <Plus className="size-3.5" />
-                <span>Create new label</span>
-              </button>
+            <div className="bg-muted/30 border-t p-3">
+              {createOpen ? (
+                <div className="flex flex-col gap-2">
+                  <div className="text-foreground text-[11px] font-medium tracking-wide uppercase">
+                    Create new label
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={color}
+                      onChange={(e) => setColor(e.target.value)}
+                      className="h-8 w-10 shrink-0 cursor-pointer rounded border"
+                      aria-label="Label color"
+                    />
+                    <Input
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Label name"
+                      maxLength={50}
+                      autoFocus
+                      className="h-8"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          void submitCreate();
+                        } else if (e.key === "Escape") {
+                          e.preventDefault();
+                          setCreateOpen(false);
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-end gap-1">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setCreateOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="button" size="sm" onClick={submitCreate} disabled={!name.trim()}>
+                      Create
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setCreateOpen(true)}
+                  className="hover:bg-muted flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs"
+                >
+                  <Plus className="size-3.5" />
+                  <span>Create new label</span>
+                </button>
+              )}
             </div>
           </div>
-        )}
-      </PopoverContent>
-    </Popover>
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 }
 
