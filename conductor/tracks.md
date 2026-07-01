@@ -13,5 +13,5 @@ All tracks are complete. See `conductor/archive/` for historical track folders.
 
 ---
 
-- [ ] **Track: fix bug: cannot reorder lists**
+- [x] **Track: fix bug: cannot reorder lists**
       _Link: [./tracks/list_reorder_fix_20260701/](./tracks/list_reorder_fix_20260701/)_
