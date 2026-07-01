@@ -26,6 +26,10 @@ export type CommentDeletedPayload = {
   cardId: string;
   boardId: string;
 };
+export type ListsReorderedPayload = {
+  boardId: string;
+  orderedListIds: string[];
+};
 
 export const REALTIME_EVENTS = {
   CARD_CREATED: "card:created",
@@ -36,6 +40,7 @@ export const REALTIME_EVENTS = {
   COMMENT_CREATED: "comment:created",
   COMMENT_UPDATED: "comment:updated",
   COMMENT_DELETED: "comment:deleted",
+  LIST_REORDERED: "list:reordered",
 } as const;
 
 export const REALTIME_JOIN_BOARD = "board:join" as const;
