@@ -3,10 +3,18 @@ import { render, screen } from "@testing-library/react";
 import type { Board } from "@/lib/db/schema/boards";
 import type { List } from "@/lib/db/schema/lists";
 
-const { mockVerifySession, mockGetBoardById, mockGetListsByBoardId } = vi.hoisted(() => ({
+const {
+  mockVerifySession,
+  mockGetBoardById,
+  mockGetListsByBoardId,
+  mockGetCardsByBoardId,
+  mockGetLabelsByBoardId,
+} = vi.hoisted(() => ({
   mockVerifySession: vi.fn(),
   mockGetBoardById: vi.fn(),
   mockGetListsByBoardId: vi.fn(),
+  mockGetCardsByBoardId: vi.fn(),
+  mockGetLabelsByBoardId: vi.fn(),
 }));
 
 vi.mock("@/lib/dal", () => ({
@@ -28,6 +36,14 @@ vi.mock("@/lib/data/boards", () => ({
 
 vi.mock("@/lib/data/lists", () => ({
   getListsByBoardId: mockGetListsByBoardId,
+}));
+
+vi.mock("@/lib/data/cards", () => ({
+  getCardsByBoardId: mockGetCardsByBoardId,
+}));
+
+vi.mock("@/lib/data/labels", () => ({
+  getLabelsByBoardId: mockGetLabelsByBoardId,
 }));
 
 vi.mock("@/lib/actions/boards", () => ({
@@ -68,6 +84,8 @@ describe("BoardPage text color", () => {
     vi.clearAllMocks();
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
     mockGetListsByBoardId.mockResolvedValue(baseLists);
+    mockGetCardsByBoardId.mockResolvedValue([]);
+    mockGetLabelsByBoardId.mockResolvedValue([]);
   });
 
   it("uses white text on dark backgrounds", async () => {
@@ -117,6 +135,8 @@ describe("BoardPage hero section", () => {
     vi.clearAllMocks();
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
     mockGetListsByBoardId.mockResolvedValue(baseLists);
+    mockGetCardsByBoardId.mockResolvedValue([]);
+    mockGetLabelsByBoardId.mockResolvedValue([]);
   });
 
   it("renders a hero region with an aria-label derived from the board title", async () => {
@@ -191,7 +211,7 @@ describe("BoardPage hero section", () => {
     });
     render(jsx);
     const hero = screen.getByRole("region", { name: /my test board board header/i });
-    const lists = screen.getByTestId("board-lists");
+    const lists = screen.getByTestId("board-cards");
     expect(lists).toBeDefined();
     expect(hero.contains(lists)).toBe(false);
   });

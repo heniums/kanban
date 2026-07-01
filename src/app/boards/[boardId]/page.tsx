@@ -3,10 +3,13 @@ import Link from "next/link";
 import { BoardActions } from "@/components/boards/board-actions";
 import { BoardHero } from "@/components/boards/board-hero";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { BoardLists } from "@/components/lists/board-lists";
+import { BoardCards } from "@/components/cards/board-cards";
 import { getBoardById } from "@/lib/data/boards";
 import { getListsByBoardId } from "@/lib/data/lists";
+import { getCardsByBoardId } from "@/lib/data/cards";
+import { getLabelsByBoardId } from "@/lib/data/labels";
 import { verifySession } from "@/lib/dal";
+import type { CardSummary } from "@/components/cards/card-item";
 
 interface BoardPageProps {
   params: Promise<{ boardId: string }>;
@@ -23,6 +26,23 @@ export default async function BoardPage({ params }: BoardPageProps) {
   }
 
   const lists = await getListsByBoardId(boardId, { ownerId: userId });
+  const allCards = await getCardsByBoardId(boardId, { ownerId: userId });
+  const boardLabels = await getLabelsByBoardId(boardId, { ownerId: userId });
+
+  const cardsByList: Record<string, CardSummary[]> = {};
+  for (const list of lists) {
+    cardsByList[list.id] = [];
+  }
+  for (const card of allCards) {
+    if (!cardsByList[card.listId]) cardsByList[card.listId] = [];
+    cardsByList[card.listId].push({
+      ...card,
+      labels: [],
+      assignees: [],
+      checklistProgress: null,
+      commentCount: 0,
+    });
+  }
 
   return (
     <div className="bg-background min-h-[calc(100vh-4rem)]">
@@ -39,7 +59,12 @@ export default async function BoardPage({ params }: BoardPageProps) {
       </BoardHero>
 
       <PageContainer>
-        <BoardLists boardId={board.id} initialLists={lists} />
+        <BoardCards
+          boardId={board.id}
+          initialLists={lists}
+          initialCardsByList={cardsByList}
+          boardLabels={boardLabels}
+        />
       </PageContainer>
     </div>
   );

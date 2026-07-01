@@ -290,3 +290,19 @@ export async function getCardById(
     );
   return card?.card ?? null;
 }
+
+export async function getCardsByBoardId(
+  boardId: string,
+  options: { ownerId: string },
+): Promise<Card[]> {
+  const db = createDbClient();
+  const rows = await db
+    .select({ card: cards })
+    .from(cards)
+    .innerJoin(boards, sql`${boards.id} = ${cards.boardId}`)
+    .where(
+      sql`${cards.boardId} = ${boardId} AND ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL`,
+    )
+    .orderBy(sql`${cards.listId} ASC, ${cards.position} ASC`);
+  return rows.map((r) => r.card);
+}
