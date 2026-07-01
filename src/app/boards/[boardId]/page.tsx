@@ -6,7 +6,6 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { BoardLists } from "@/components/lists/board-lists";
 import { getBoardById } from "@/lib/data/boards";
 import { getListsByBoardId } from "@/lib/data/lists";
-import { getTextColor } from "@/lib/text-color";
 import { verifySession } from "@/lib/dal";
 
 interface BoardPageProps {
@@ -24,19 +23,22 @@ export default async function BoardPage({ params }: BoardPageProps) {
   }
 
   const lists = await getListsByBoardId(boardId, { ownerId: userId });
-  const textColor = getTextColor(board.background);
 
   return (
     <div className="bg-background min-h-[calc(100vh-4rem)]">
+      <PageContainer>
+        <div className="py-4">
+          <Link
+            href="/boards"
+            className="text-muted-foreground hover:text-foreground text-sm underline-offset-4 hover:underline"
+          >
+            &larr; All boards
+          </Link>
+        </div>
+      </PageContainer>
+
       <BoardHero board={board} variant="full">
-        <Link
-          href="/boards"
-          className="rounded-md px-2 py-1 text-sm opacity-80 hover:opacity-100"
-          style={{ color: textColor }}
-        >
-          &larr; All boards
-        </Link>
-        <BoardActions board={board} />
+        <BoardActions board={board} variant="overlay" />
       </BoardHero>
 
       <PageContainer>

@@ -195,4 +195,36 @@ describe("BoardPage hero section", () => {
     expect(lists).toBeDefined();
     expect(hero.contains(lists)).toBe(false);
   });
+
+  it("renders the 'All boards' breadcrumb above the hero (not inside it)", async () => {
+    mockGetBoardById.mockResolvedValue(baseBoard);
+    const jsx = await BoardPage({
+      params: Promise.resolve({ boardId: "test-id" }),
+    });
+    const { container } = render(jsx);
+    const hero = screen.getByRole("region", { name: /my test board board header/i });
+    const breadcrumb = screen.getByRole("link", { name: /all boards/i });
+    // The breadcrumb must be outside the hero
+    expect(hero.contains(breadcrumb)).toBe(false);
+    // The breadcrumb must appear in the DOM before the hero
+    const all = Array.from(container.querySelectorAll("a, section"));
+    const breadcrumbIdx = all.indexOf(breadcrumb);
+    const heroIdx = all.indexOf(hero);
+    expect(breadcrumbIdx).toBeGreaterThanOrEqual(0);
+    expect(heroIdx).toBeGreaterThanOrEqual(0);
+    expect(breadcrumbIdx).toBeLessThan(heroIdx);
+  });
+
+  it("renders action buttons with an overlay (glass) style that contrasts any background", async () => {
+    mockGetBoardById.mockResolvedValue(baseBoard);
+    const jsx = await BoardPage({
+      params: Promise.resolve({ boardId: "test-id" }),
+    });
+    render(jsx);
+    const settings = screen.getByRole("button", { name: /^settings$/i });
+    const del = screen.getByRole("button", { name: /^delete$/i });
+    // Both buttons should use a backdrop-blur + semi-transparent overlay class
+    expect(settings.className).toMatch(/backdrop-blur/);
+    expect(del.className).toMatch(/backdrop-blur/);
+  });
 });
