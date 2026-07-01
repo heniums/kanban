@@ -26,18 +26,15 @@ export default async function BoardPage({ params }: BoardPageProps) {
 
   return (
     <div className="bg-background min-h-[calc(100vh-4rem)]">
-      <PageContainer>
-        <div className="py-4">
-          <Link
-            href="/boards"
-            className="text-muted-foreground hover:text-foreground text-sm underline-offset-4 hover:underline"
-          >
+      <BoardHero
+        board={board}
+        variant="full"
+        breadcrumb={
+          <Link href="/boards" className="text-sm underline-offset-4 hover:underline">
             &larr; All boards
           </Link>
-        </div>
-      </PageContainer>
-
-      <BoardHero board={board} variant="full">
+        }
+      >
         <BoardActions board={board} variant="overlay" />
       </BoardHero>
 

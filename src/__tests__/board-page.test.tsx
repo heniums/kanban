@@ -196,23 +196,21 @@ describe("BoardPage hero section", () => {
     expect(hero.contains(lists)).toBe(false);
   });
 
-  it("renders the 'All boards' breadcrumb above the hero (not inside it)", async () => {
+  it("renders the 'All boards' breadcrumb inside the hero, above the title", async () => {
     mockGetBoardById.mockResolvedValue(baseBoard);
     const jsx = await BoardPage({
       params: Promise.resolve({ boardId: "test-id" }),
     });
-    const { container } = render(jsx);
+    render(jsx);
     const hero = screen.getByRole("region", { name: /my test board board header/i });
     const breadcrumb = screen.getByRole("link", { name: /all boards/i });
-    // The breadcrumb must be outside the hero
-    expect(hero.contains(breadcrumb)).toBe(false);
-    // The breadcrumb must appear in the DOM before the hero
-    const all = Array.from(container.querySelectorAll("a, section"));
-    const breadcrumbIdx = all.indexOf(breadcrumb);
-    const heroIdx = all.indexOf(hero);
-    expect(breadcrumbIdx).toBeGreaterThanOrEqual(0);
-    expect(heroIdx).toBeGreaterThanOrEqual(0);
-    expect(breadcrumbIdx).toBeLessThan(heroIdx);
+    // The breadcrumb lives inside the hero
+    expect(hero.contains(breadcrumb)).toBe(true);
+    // The breadcrumb is positioned above the h1 in the DOM
+    const title = screen.getByRole("heading", { level: 1 });
+    expect(
+      breadcrumb.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it("renders action buttons with an overlay (glass) style that contrasts any background", async () => {

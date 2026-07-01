@@ -10,6 +10,7 @@ interface BoardHeroProps {
   variant: BoardHeroVariant;
   className?: string;
   children?: ReactNode;
+  breadcrumb?: ReactNode;
 }
 
 const VARIANT_CLASSES: Record<BoardHeroVariant, string> = {
@@ -17,7 +18,7 @@ const VARIANT_CLASSES: Record<BoardHeroVariant, string> = {
   compact: "h-24",
 };
 
-export function BoardHero({ board, variant, className, children }: BoardHeroProps) {
+export function BoardHero({ board, variant, className, children, breadcrumb }: BoardHeroProps) {
   const textColor = getTextColor(board.background);
   const isFull = variant === "full";
 
@@ -39,6 +40,7 @@ export function BoardHero({ board, variant, className, children }: BoardHeroProp
       >
         {isFull ? (
           <>
+            <div className="opacity-80 hover:opacity-100">{breadcrumb}</div>
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <h1 className="truncate text-3xl font-bold" style={{ color: textColor }}>
