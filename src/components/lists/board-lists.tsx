@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   DndContext,
   PointerSensor,
@@ -22,21 +24,25 @@ import type { List } from "@/lib/db/schema/lists";
 import { ListColumn } from "@/components/lists/list-column";
 import { AddListForm } from "@/components/lists/add-list-form";
 import { cn } from "@/lib/utils";
+import {
+  createListAction,
+  renameListAction,
+  deleteListAction,
+  reorderListsAction,
+} from "@/lib/actions/lists";
 
 interface BoardListsProps {
-  lists: List[];
-  onAdd: (title: string) => Promise<void> | void;
-  onRename: (listId: string, title: string) => Promise<void> | void;
-  onDelete: (listId: string) => Promise<void> | void;
-  onReorder: (orderedListIds: string[]) => Promise<void> | void;
+  boardId: string;
+  initialLists: List[];
 }
 
-export function BoardLists({ lists, onAdd, onRename, onDelete, onReorder }: BoardListsProps) {
-  const [optimisticLists, setOptimisticLists] = useState(lists);
-  const [lastSyncedLists, setLastSyncedLists] = useState(lists);
-  if (lastSyncedLists !== lists) {
-    setLastSyncedLists(lists);
-    setOptimisticLists(lists);
+export function BoardLists({ boardId, initialLists }: BoardListsProps) {
+  const router = useRouter();
+  const [optimisticLists, setOptimisticLists] = useState(initialLists);
+  const [lastSyncedLists, setLastSyncedLists] = useState(initialLists);
+  if (lastSyncedLists !== initialLists) {
+    setLastSyncedLists(initialLists);
+    setOptimisticLists(initialLists);
   }
 
   const sensors = useSensors(
@@ -53,23 +59,63 @@ export function BoardLists({ lists, onAdd, onRename, onDelete, onReorder }: Boar
     const next = arrayMove(optimisticLists, oldIndex, newIndex);
     setOptimisticLists(next);
     const orderedIds = next.map((l) => l.id);
-    Promise.resolve(onReorder(orderedIds)).catch(() => {
-      // Rollback to server state on error
-      setOptimisticLists(lists);
-    });
+    reorderListsAction({ boardId, orderedListIds: orderedIds })
+      .then((result) => {
+        if ("errors" in result) {
+          toast.error(result.errors.map((e) => e.message).join(", "));
+          setOptimisticLists(initialLists);
+        } else {
+          router.refresh();
+        }
+      })
+      .catch(() => {
+        setOptimisticLists(initialLists);
+      });
   };
 
   const handleAdd = async (title: string) => {
-    await onAdd(title);
+    const tempId = crypto.randomUUID();
+    const now = new Date();
+    const tempList: List = {
+      id: tempId,
+      boardId,
+      title,
+      position: optimisticLists.length,
+      createdAt: now,
+      updatedAt: now,
+    };
+    setOptimisticLists((prev) => [...prev, tempList]);
+
+    const result = await createListAction({ boardId, title });
+    if ("errors" in result) {
+      toast.error(result.errors.map((e) => e.message).join(", "));
+      setOptimisticLists((prev) => prev.filter((l) => l.id !== tempId));
+      return;
+    }
+    router.refresh();
   };
 
   const handleRename = async (listId: string, title: string) => {
-    await onRename(listId, title);
     setOptimisticLists((prev) => prev.map((l) => (l.id === listId ? { ...l, title } : l)));
+    const result = await renameListAction({ listId, title });
+    if ("errors" in result) {
+      toast.error(result.errors.map((e) => e.message).join(", "));
+      setOptimisticLists(initialLists);
+      return;
+    }
+    router.refresh();
   };
 
   const handleDelete = async (listId: string) => {
-    await onDelete(listId);
+    setOptimisticLists((prev) => prev.filter((l) => l.id !== listId));
+
+    const result = await deleteListAction({ listId });
+    if ("error" in result) {
+      toast.error(result.error);
+      setOptimisticLists(initialLists);
+      return;
+    }
+    router.refresh();
   };
 
   return (

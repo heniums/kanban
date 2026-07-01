@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { BoardActions } from "@/components/boards/board-actions";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { BoardListsClient } from "@/components/lists/board-lists-client";
+import { BoardLists } from "@/components/lists/board-lists";
 import { getBoardById } from "@/lib/data/boards";
 import { getListsByBoardId } from "@/lib/data/lists";
 import { getTextColor } from "@/lib/text-color";
@@ -49,7 +49,7 @@ export default async function BoardPage({ params }: BoardPageProps) {
           <BoardActions board={board} />
         </div>
 
-        <BoardListsClient boardId={board.id} initialLists={lists} />
+        <BoardLists boardId={board.id} initialLists={lists} />
       </PageContainer>
     </div>
   );

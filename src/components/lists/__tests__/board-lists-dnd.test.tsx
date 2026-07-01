@@ -2,6 +2,26 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, act } from "@testing-library/react";
 import { BoardLists } from "@/components/lists/board-lists";
 import type { List } from "@/lib/db/schema/lists";
+import { reorderListsAction } from "@/lib/actions/lists";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    refresh: vi.fn(),
+    push: vi.fn(),
+  }),
+}));
+
+vi.mock("@/lib/actions/lists", () => ({
+  createListAction: vi.fn().mockResolvedValue({ list: {} }),
+  renameListAction: vi.fn().mockResolvedValue({ list: {} }),
+  deleteListAction: vi.fn().mockResolvedValue({ success: true }),
+  reorderListsAction: vi.fn().mockResolvedValue({ lists: [] }),
+}));
+
+vi.mock("sonner", () => {
+  const toast = Object.assign(vi.fn(), { error: vi.fn() });
+  return { toast };
+});
 
 const sampleLists: List[] = [
   {
@@ -56,58 +76,27 @@ describe("BoardLists drag-and-drop", () => {
   });
 
   it("renders the lists in a horizontally scrollable container", () => {
-    render(
-      <BoardLists
-        lists={sampleLists}
-        onAdd={vi.fn()}
-        onRename={vi.fn()}
-        onDelete={vi.fn()}
-        onReorder={vi.fn()}
-      />,
-    );
+    render(<BoardLists boardId="board-1" initialLists={sampleLists} />);
     const container = screen.getByTestId("board-lists");
     expect(container.className).toMatch(/overflow-x-auto/);
   });
 
   it("renders all list columns from the provided lists", () => {
-    render(
-      <BoardLists
-        lists={sampleLists}
-        onAdd={vi.fn()}
-        onRename={vi.fn()}
-        onDelete={vi.fn()}
-        onReorder={vi.fn()}
-      />,
-    );
+    render(<BoardLists boardId="board-1" initialLists={sampleLists} />);
     expect(screen.getByText("To Do")).toBeDefined();
     expect(screen.getByText("Doing")).toBeDefined();
     expect(screen.getByText("Done")).toBeDefined();
   });
 
   it("exposes a move-list handle for each list (drag affordance)", () => {
-    render(
-      <BoardLists
-        lists={sampleLists}
-        onAdd={vi.fn()}
-        onRename={vi.fn()}
-        onDelete={vi.fn()}
-        onReorder={vi.fn()}
-      />,
-    );
+    render(<BoardLists boardId="board-1" initialLists={sampleLists} />);
     const handles = screen.getAllByRole("button", { name: /move list/i });
     expect(handles).toHaveLength(sampleLists.length);
   });
 
   it("preserves the optimistic order through a re-render (no revert flicker)", async () => {
-    const onReorder = vi.fn().mockResolvedValue(undefined);
     const { container, rerender } = render(
-      <BoardLists
-        lists={sampleLists}
-        onAdd={vi.fn()}
-        onRename={vi.fn()}
-        onDelete={vi.fn()}
-        onReorder={onReorder}
-      />,
+      <BoardLists boardId="board-1" initialLists={sampleLists} />,
     );
 
     const handles = Array.from(
@@ -129,18 +118,13 @@ describe("BoardLists drag-and-drop", () => {
       document.dispatchEvent(pointerEvent("pointerup", 50, 100));
     });
 
-    expect(onReorder).toHaveBeenCalledWith(["l2", "l1", "l3"]);
+    expect(reorderListsAction).toHaveBeenCalledWith({
+      boardId: "board-1",
+      orderedListIds: ["l2", "l1", "l3"],
+    });
     expect(dragHandleOrder(container)).toEqual(["l2", "l1", "l3"]);
 
-    rerender(
-      <BoardLists
-        lists={sampleLists}
-        onAdd={vi.fn()}
-        onRename={vi.fn()}
-        onDelete={vi.fn()}
-        onReorder={onReorder}
-      />,
-    );
+    rerender(<BoardLists boardId="board-1" initialLists={sampleLists} />);
 
     expect(dragHandleOrder(container)).toEqual(["l2", "l1", "l3"]);
   });
