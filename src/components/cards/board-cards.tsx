@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   DndContext,
   PointerSensor,
   KeyboardSensor,
-  closestCorners,
+  closestCenter,
+  useDroppable,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -53,11 +54,7 @@ export function BoardCards({ boardId, initialLists, initialCardsByList }: BoardC
   const storeCardsByList = useBoardCardStore((s) => s.cardsByList);
   const storeLists = useBoardCardStore((s) => s.lists);
 
-  const lastBoardIdRef = useRef<string | null>(null);
-
   useEffect(() => {
-    if (lastBoardIdRef.current === boardId) return;
-    lastBoardIdRef.current = boardId;
     const flatCards: CardSummary[] = [];
     for (const listId of Object.keys(initialCardsByList)) {
       for (const c of initialCardsByList[listId]) flatCards.push(c);
@@ -104,18 +101,27 @@ export function BoardCards({ boardId, initialLists, initialCardsByList }: BoardC
     if (storeLists.some((l) => l.id === activeId)) {
       if (activeId === overId) return;
       const oldIndex = storeLists.findIndex((l) => l.id === activeId);
-      const newIndex = storeLists.findIndex((l) => l.id === overId);
-      if (oldIndex < 0 || newIndex < 0) return;
+      if (oldIndex < 0) return;
+      let newIndex: number;
+      if (overId === "list-drop-end") {
+        newIndex = storeLists.length - 1;
+      } else {
+        newIndex = storeLists.findIndex((l) => l.id === overId);
+      }
+      if (newIndex < 0) return;
       const next = arrayMove(storeLists, oldIndex, newIndex);
+      useBoardCardStore.getState().reorderLists(next.map((l) => l.id));
       reorderListsAction({ boardId, orderedListIds: next.map((l) => l.id) })
         .then((result) => {
           if ("errors" in result) {
             toast.error(result.errors.map((e) => e.message).join(", "));
-          } else {
             router.refresh();
           }
         })
-        .catch(() => toast.error("Failed to reorder lists"));
+        .catch(() => {
+          toast.error("Failed to reorder lists");
+          router.refresh();
+        });
       return;
     }
 
@@ -215,7 +221,7 @@ export function BoardCards({ boardId, initialLists, initialCardsByList }: BoardC
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCorners}
+      collisionDetection={closestCenter}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
@@ -247,6 +253,7 @@ export function BoardCards({ boardId, initialLists, initialCardsByList }: BoardC
           <div className="shrink-0">
             <AddListForm onAdd={handleAddList} />
           </div>
+          <ListEndDropZone />
         </div>
       </SortableContext>
       <DragOverlay>
@@ -272,6 +279,17 @@ export function BoardCards({ boardId, initialLists, initialCardsByList }: BoardC
   );
 }
 
+function ListEndDropZone() {
+  const { setNodeRef, isOver } = useDroppable({ id: "list-drop-end", data: { type: "list-end" } });
+  return (
+    <div
+      ref={setNodeRef}
+      data-testid="list-drop-end"
+      className={`h-full min-h-[120px] w-4 shrink-0 rounded transition-colors ${isOver ? "bg-primary/20" : "bg-transparent"}`}
+    />
+  );
+}
+
 function SortableListColumn({
   list,
   onRename,
@@ -294,7 +312,7 @@ function SortableListColumn({
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes}>
+    <div ref={setNodeRef} style={style} {...attributes} data-testid={`sortable-list-${list.id}`}>
       <ListColumn list={list} onRename={onRename} onDelete={onDelete} dragHandleProps={listeners}>
         {children}
       </ListColumn>

@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
 import { BoardCards } from "@/components/cards/board-cards";
+import { useBoardCardStore } from "@/lib/realtime/board-store";
 import type { List } from "@/lib/db/schema/lists";
 import type { CardSummary } from "@/components/cards/card-item";
 
@@ -21,7 +22,7 @@ vi.mock("@/lib/actions/lists", () => ({
   createListAction: vi.fn().mockResolvedValue({ data: {} }),
   renameListAction: vi.fn().mockResolvedValue({ data: {} }),
   deleteListAction: vi.fn().mockResolvedValue({ success: true }),
-  reorderListsAction: vi.fn().mockResolvedValue({ data: [] }),
+  reorderListsAction: vi.fn().mockResolvedValue({ lists: [] }),
 }));
 
 vi.mock("@/lib/actions/labels", () => ({
@@ -96,9 +97,49 @@ function makeInitialCards(): Record<string, CardSummary[]> {
   };
 }
 
+const originalGetBoundingClientRect = HTMLElement.prototype.getBoundingClientRect;
+
+beforeAll(() => {
+  HTMLElement.prototype.getBoundingClientRect = function () {
+    const testId = this.getAttribute("data-testid");
+    if (testId?.startsWith("sortable-list-")) {
+      const id = testId.replace("sortable-list-", "");
+      const index = baseLists.findIndex((l) => l.id === id);
+      const x = index * 320;
+      return {
+        x,
+        y: 0,
+        width: 300,
+        height: 200,
+        top: 0,
+        left: x,
+        right: x + 300,
+        bottom: 200,
+        toJSON: () => ({}),
+      } as DOMRect;
+    }
+    return {
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      toJSON: () => ({}),
+    } as DOMRect;
+  };
+});
+
+afterAll(() => {
+  HTMLElement.prototype.getBoundingClientRect = originalGetBoundingClientRect;
+});
+
 beforeEach(() => {
   vi.clearAllMocks();
   cleanup();
+  useBoardCardStore.setState({ boardId: null, cardsByList: {}, lists: [] });
 });
 
 describe("BoardCards drag-and-drop wiring", () => {
@@ -133,5 +174,50 @@ describe("BoardCards drag-and-drop wiring", () => {
     for (const c of cards) {
       expect(c.className).toMatch(/cursor-grab/);
     }
+  });
+
+  it("updates the store when initialLists changes after a server reorder", () => {
+    const { rerender } = render(
+      <BoardCards boardId="b1" initialLists={baseLists} initialCardsByList={makeInitialCards()} />,
+    );
+    expect(useBoardCardStore.getState().lists.map((l) => l.id)).toEqual(["l1", "l2"]);
+
+    const reordered = [baseLists[1], baseLists[0]];
+    rerender(
+      <BoardCards boardId="b1" initialLists={reordered} initialCardsByList={makeInitialCards()} />,
+    );
+    expect(useBoardCardStore.getState().lists.map((l) => l.id)).toEqual(["l2", "l1"]);
+  });
+
+  it("reflects a renamed list in the store when initialLists changes", () => {
+    const { rerender } = render(
+      <BoardCards boardId="b1" initialLists={baseLists} initialCardsByList={makeInitialCards()} />,
+    );
+    expect(screen.getByRole("heading", { name: "To Do" })).toBeTruthy();
+
+    const renamed = [{ ...baseLists[0], title: "Backlog" }, baseLists[1]];
+    rerender(
+      <BoardCards boardId="b1" initialLists={renamed} initialCardsByList={makeInitialCards()} />,
+    );
+    expect(useBoardCardStore.getState().lists[0].title).toBe("Backlog");
+    expect(screen.getByRole("heading", { name: "Backlog" })).toBeTruthy();
+  });
+
+  it("removes a deleted list from the store when initialLists changes", () => {
+    const { rerender } = render(
+      <BoardCards boardId="b1" initialLists={baseLists} initialCardsByList={makeInitialCards()} />,
+    );
+    expect(screen.getByRole("heading", { name: "Doing" })).toBeTruthy();
+
+    const afterDelete = [baseLists[0]];
+    rerender(
+      <BoardCards
+        boardId="b1"
+        initialLists={afterDelete}
+        initialCardsByList={makeInitialCards()}
+      />,
+    );
+    expect(useBoardCardStore.getState().lists.map((l) => l.id)).toEqual(["l1"]);
+    expect(screen.queryByRole("heading", { name: "Doing" })).toBeNull();
   });
 });
