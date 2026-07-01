@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { BoardHero } from "@/components/boards/board-hero";
+import { BACKGROUNDS } from "@/components/boards/background-picker";
 import type { Board } from "@/lib/db/schema/boards";
 
 const baseBoard: Board = {
@@ -114,4 +115,22 @@ describe("BoardHero", () => {
     render(<BoardHero board={baseBoard} variant="compact" />);
     expect(screen.queryByText("Board description")).toBeNull();
   });
+});
+
+describe("BoardHero migration: all built-in backgrounds render correctly", () => {
+  for (const option of BACKGROUNDS) {
+    it(`renders the hero with background '${option.label}' without throwing`, () => {
+      expect(() =>
+        render(<BoardHero board={{ ...baseBoard, background: option.value }} variant="full" />),
+      ).not.toThrow();
+    });
+
+    it(`overlaid text on '${option.label}' has a readable color (white or near-black)`, () => {
+      render(<BoardHero board={{ ...baseBoard, background: option.value }} variant="full" />);
+      const heading = screen.getByRole("heading", { level: 1 });
+      const color = heading.style.color;
+      // getTextColor returns either "white" or "#0a0a0a" — both are high contrast
+      expect(color === "white" || color === "rgb(10, 10, 10)").toBe(true);
+    });
+  }
 });
