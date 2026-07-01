@@ -15,6 +15,7 @@ import {
   type CommentCreatedPayload,
   type CommentUpdatedPayload,
   type CommentDeletedPayload,
+  type ListsReorderedPayload,
 } from "@/lib/realtime/types";
 
 export function useBoardSocket(boardId: string | null) {
@@ -72,6 +73,11 @@ export function useBoardSocket(boardId: string | null) {
     socket.on(REALTIME_EVENTS.COMMENT_DELETED, (payload: CommentDeletedPayload) => {
       if (payload?.boardId === boardId) {
         window.dispatchEvent(new CustomEvent("board:comment-updated", { detail: payload }));
+      }
+    });
+    socket.on(REALTIME_EVENTS.LIST_REORDERED, (payload: ListsReorderedPayload) => {
+      if (payload?.boardId === boardId) {
+        useBoardCardStore.getState().reorderLists(payload.orderedListIds);
       }
     });
 
