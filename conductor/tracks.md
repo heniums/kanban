@@ -8,5 +8,5 @@ All tracks are complete. See `conductor/archive/` for historical track folders.
 
 ---
 
-- [ ] **Track: Implement card CRUD and frontend**
+- [x] **Track: Implement card CRUD and frontend**
       _Link: [./tracks/cards_20260701/](./tracks/cards_20260701/)_

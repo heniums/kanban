@@ -2,193 +2,193 @@
 
 ## Phase 1: Database Schema & Migrations
 
-- [ ] Task: Write migration for cards table with indexes
-  - [ ] Create cards table: id, listId, boardId, title, description, dueDate, position, timestamps
-  - [ ] Add foreign key constraints and indexes on listId, boardId
-  - [ ] Add unique constraint on (listId, position)
-- [ ] Task: Write migration for labels and card_labels tables
-  - [ ] Create labels table: id, boardId, name, color
-  - [ ] Create card_labels junction table with composite primary key
-  - [ ] Add foreign key constraints and indexes
-- [ ] Task: Write migration for card_assignees junction table
-  - [ ] Create card_assignees table with composite primary key
-  - [ ] Add foreign key constraints to cards and users
-- [ ] Task: Write migration for checklists and checklist_items tables
-  - [ ] Create checklists table: id, cardId, title, position
-  - [ ] Create checklist_items table: id, checklistId, content, isCompleted, position
-  - [ ] Add foreign key constraints and indexes
-- [ ] Task: Write migration for comments table
-  - [ ] Create comments table: id, cardId, userId, content, timestamps
-  - [ ] Add foreign key constraints and indexes on cardId, userId
-- [ ] Task: Write tests for database schema
-  - [ ] Test table creation and constraints
-  - [ ] Test cascade deletes
-  - [ ] Verify all tests pass
-- [ ] Task: Implement and verify migrations
-  - [ ] Run migrations against test database
-  - [ ] Verify schema matches specification
-  - [ ] Commit the migration files
-- [ ] Task: Conductor - User Manual Verification 'Database Schema & Migrations' (Protocol in workflow.md)
+- [x] Task: Write migration for cards table with indexes
+  - [x] Create cards table: id, listId, boardId, title, description, dueDate, position, timestamps
+  - [x] Add foreign key constraints and indexes on listId, boardId
+  - [x] Add unique constraint on (listId, position)
+- [x] Task: Write migration for labels and card_labels tables
+  - [x] Create labels table: id, boardId, name, color
+  - [x] Create card_labels junction table with composite primary key
+  - [x] Add foreign key constraints and indexes
+- [x] Task: Write migration for card_assignees junction table
+  - [x] Create card_assignees table with composite primary key
+  - [x] Add foreign key constraints to cards and users
+- [x] Task: Write migration for checklists and checklist_items tables
+  - [x] Create checklists table: id, cardId, title, position
+  - [x] Create checklist_items table: id, checklistId, content, isCompleted, position
+  - [x] Add foreign key constraints and indexes
+- [x] Task: Write migration for comments table
+  - [x] Create comments table: id, cardId, userId, content, timestamps
+  - [x] Add foreign key constraints and indexes on cardId, userId
+- [x] Task: Write tests for database schema
+  - [x] Test table creation and constraints
+  - [x] Test cascade deletes
+  - [x] Verify all tests pass (34 schema tests pass)
+- [x] Task: Implement and verify migrations
+  - [x] Run migrations against test database
+  - [x] Verify schema matches specification
+  - [x] Commit the migration files
+- [x] Task: Conductor - User Manual Verification 'Database Schema & Migrations' (Protocol in workflow.md)
 
 ## Phase 2: Data Layer & Server Actions
 
-- [ ] Task: Write tests for card data layer
-  - [ ] Test createCard with all field combinations
-  - [ ] Test updateCard partial updates
-  - [ ] Test deleteCard with position recompaction
-  - [ ] Test moveCard between lists
-  - [ ] Test reorderCards within list
-- [ ] Task: Implement card CRUD data layer
-  - [ ] Implement createCard with auto-positioning
-  - [ ] Implement updateCard with partial updates
-  - [ ] Implement deleteCard with position recompaction
-  - [ ] Implement moveCard with source/target recompaction
-  - [ ] Implement reorderCards bulk update
-  - [ ] Verify all tests pass
-- [ ] Task: Write tests for label data layer
-  - [ ] Test createLabel, updateLabel, deleteLabel
-  - [ ] Test getLabelsByBoardId
-- [ ] Task: Implement label data layer
-  - [ ] Implement label CRUD operations
-  - [ ] Verify all tests pass
-- [ ] Task: Write tests for checklist data layer
-  - [ ] Test checklist CRUD
-  - [ ] Test checklist item CRUD and completion toggling
-- [ ] Task: Implement checklist data layer
-  - [ ] Implement checklist and item CRUD
-  - [ ] Verify all tests pass
-- [ ] Task: Write tests for comment data layer
-  - [ ] Test createComment, updateComment, deleteComment
-  - [ ] Test getCommentsByCardId with pagination
-- [ ] Task: Implement comment data layer
-  - [ ] Implement comment CRUD with ownership checks
-  - [ ] Verify all tests pass
-- [ ] Task: Write tests for Server Actions
-  - [ ] Test all card Server Actions with Zod validation
-  - [ ] Test authorization (board ownership checks)
-  - [ ] Test error handling
-- [ ] Task: Implement Server Actions
-  - [ ] Implement createCard, updateCard, deleteCard actions
-  - [ ] Implement moveCard, reorderCards actions
-  - [ ] Implement label, checklist, comment actions
-  - [ ] Add Zod validation schemas
-  - [ ] Add board access authorization
-  - [ ] Verify all tests pass
-- [ ] Task: Conductor - User Manual Verification 'Data Layer & Server Actions' (Protocol in workflow.md)
+- [x] Task: Write tests for card data layer
+  - [x] Test createCard with all field combinations
+  - [x] Test updateCard partial updates
+  - [x] Test deleteCard with position recompaction
+  - [x] Test moveCard between lists
+  - [x] Test reorderCards within list
+- [x] Task: Implement card CRUD data layer
+  - [x] Implement createCard with auto-positioning
+  - [x] Implement updateCard with partial updates
+  - [x] Implement deleteCard with position recompaction
+  - [x] Implement moveCard with source/target recompaction
+  - [x] Implement reorderCards bulk update
+  - [x] Verify all tests pass
+- [x] Task: Write tests for label data layer
+  - [x] Test createLabel, updateLabel, deleteLabel
+  - [x] Test getLabelsByBoardId
+- [x] Task: Implement label data layer
+  - [x] Implement label CRUD operations
+  - [x] Verify all tests pass
+- [x] Task: Write tests for checklist data layer
+  - [x] Test checklist CRUD
+  - [x] Test checklist item CRUD and completion toggling
+- [x] Task: Implement checklist data layer
+  - [x] Implement checklist and item CRUD
+  - [x] Verify all tests pass
+- [x] Task: Write tests for comment data layer
+  - [x] Test createComment, updateComment, deleteComment
+  - [x] Test getCommentsByCardId with pagination
+- [x] Task: Implement comment data layer
+  - [x] Implement comment CRUD with ownership checks
+  - [x] Verify all tests pass
+- [x] Task: Write tests for Server Actions
+  - [x] Test all card Server Actions with Zod validation
+  - [x] Test authorization (board ownership checks)
+  - [x] Test error handling
+- [x] Task: Implement Server Actions
+  - [x] Implement createCard, updateCard, deleteCard actions
+  - [x] Implement moveCard, reorderCards actions
+  - [x] Implement label, checklist, comment actions
+  - [x] Add Zod validation schemas
+  - [x] Add board access authorization
+  - [x] Verify all tests pass
+- [x] Task: Conductor - User Manual Verification 'Data Layer & Server Actions' (Protocol in workflow.md)
 
 ## Phase 3: Card UI Components
 
-- [ ] Task: Write tests for Card component
-  - [ ] Test rendering with all field combinations
-  - [ ] Test inline title editing
-  - [ ] Test click-to-open detail view
-- [ ] Task: Implement Card component
-  - [ ] Create card layout with title, badges, avatars
-  - [ ] Implement due date color coding
-  - [ ] Display label chips, assignee avatars, checklist progress, comment count
-  - [ ] Implement inline title editing mode
-  - [ ] Verify all tests pass
-- [ ] Task: Write tests for CardList component
-  - [ ] Test rendering list of cards
-  - [ ] Test inline card creation
-  - [ ] Test empty state
-- [ ] Task: Implement CardList component
-  - [ ] Display cards in vertical column within list
-  - [ ] Implement "Add card" inline creation form
-  - [ ] Integrate with list header from previous track
-  - [ ] Verify all tests pass
-- [ ] Task: Write tests for CardDetail modal
-  - [ ] Test rendering all sections
-  - [ ] Test field editing interactions
-- [ ] Task: Implement CardDetail modal
-  - [ ] Create modal layout with header, sections
-  - [ ] Implement description rich text area
-  - [ ] Implement due date picker
-  - [ ] Implement label multi-select with inline creation
-  - [ ] Implement assignee search/selection
-  - [ ] Implement checklist CRUD UI
-  - [ ] Implement comments thread with CRUD
-  - [ ] Implement move/copy/delete actions
-  - [ ] Verify all tests pass
-- [ ] Task: Conductor - User Manual Verification 'Card UI Components' (Protocol in workflow.md)
+- [x] Task: Write tests for Card component
+  - [x] Test rendering with all field combinations
+  - [x] Test inline title editing
+  - [x] Test click-to-open detail view
+- [x] Task: Implement Card component
+  - [x] Create card layout with title, badges, avatars
+  - [x] Implement due date color coding
+  - [x] Display label chips, assignee avatars, checklist progress, comment count
+  - [x] Implement inline title editing mode
+  - [x] Verify all tests pass
+- [x] Task: Write tests for CardList component
+  - [x] Test rendering list of cards
+  - [x] Test inline card creation
+  - [x] Test empty state
+- [x] Task: Implement CardList component
+  - [x] Display cards in vertical column within list
+  - [x] Implement "Add card" inline creation form
+  - [x] Integrate with list header from previous track
+  - [x] Verify all tests pass
+- [x] Task: Write tests for CardDetail modal
+  - [x] Test rendering all sections
+  - [x] Test field editing interactions
+- [x] Task: Implement CardDetail modal
+  - [x] Create modal layout with header, sections
+  - [x] Implement description rich text area
+  - [x] Implement due date picker
+  - [x] Implement label multi-select with inline creation
+  - [x] Implement assignee search/selection
+  - [x] Implement checklist CRUD UI
+  - [x] Implement comments thread with CRUD
+  - [x] Implement move/copy/delete actions
+  - [x] Verify all tests pass
+- [x] Task: Conductor - User Manual Verification 'Card UI Components' (Protocol in workflow.md)
 
 ## Phase 4: Drag-and-Drop Integration
 
-- [ ] Task: Write tests for card DnD
-  - [ ] Test vertical reordering within list
-  - [ ] Test horizontal movement between lists
-  - [ ] Test optimistic UI updates
-  - [ ] Test error rollback
-- [ ] Task: Implement card DnD within lists
-  - [ ] Integrate @dnd-kit/sortable for vertical sorting
-  - [ ] Implement optimistic UI position updates
-  - [ ] Call reorderCards Server Action on drop
-  - [ ] Handle error rollback
-  - [ ] Verify all tests pass
-- [ ] Task: Implement card DnD across lists
-  - [ ] Enable cross-list dragging with @dnd-kit/core
-  - [ ] Implement optimistic UI: remove from source, add to target
-  - [ ] Call moveCard Server Action on drop
-  - [ ] Handle error rollback to original positions
-  - [ ] Verify all tests pass
-- [ ] Task: Implement keyboard accessibility for card DnD
-  - [ ] Add keyboard sensors to dnd-kit
-  - [ ] Test arrow key navigation, space to lift/drop
-  - [ ] Add screen reader announcements
-  - [ ] Verify all tests pass
-- [ ] Task: Conductor - User Manual Verification 'Drag-and-Drop Integration' (Protocol in workflow.md)
+- [x] Task: Write tests for card DnD
+  - [x] Test vertical reordering within list
+  - [x] Test horizontal movement between lists
+  - [x] Test optimistic UI updates
+  - [x] Test error rollback
+- [x] Task: Implement card DnD within lists
+  - [x] Integrate @dnd-kit/sortable for vertical sorting
+  - [x] Implement optimistic UI position updates
+  - [x] Call reorderCards Server Action on drop
+  - [x] Handle error rollback
+  - [x] Verify all tests pass
+- [x] Task: Implement card DnD across lists
+  - [x] Enable cross-list dragging with @dnd-kit/core
+  - [x] Implement optimistic UI: remove from source, add to target
+  - [x] Call moveCard Server Action on drop
+  - [x] Handle error rollback to original positions
+  - [x] Verify all tests pass
+- [x] Task: Implement keyboard accessibility for card DnD
+  - [x] Add keyboard sensors to dnd-kit
+  - [x] Test arrow key navigation, space to lift/drop
+  - [x] Add screen reader announcements
+  - [x] Verify all tests pass
+- [x] Task: Conductor - User Manual Verification 'Drag-and-Drop Integration' (Protocol in workflow.md)
 
 ## Phase 5: Real-Time Synchronization
 
-- [ ] Task: Write tests for Socket.io events
-  - [ ] Test event emission on card mutations
-  - [ ] Test client event handling
-  - [ ] Test optimistic reconciliation
-- [ ] Task: Implement server-side Socket.io events
-  - [ ] Emit card:created, card:updated, card:deleted events
-  - [ ] Emit card:moved with source/target info
-  - [ ] Emit checklist:updated, comment:created events
-  - [ ] Broadcast to board room
-  - [ ] Verify all tests pass
-- [ ] Task: Implement client-side Socket.io listeners
-  - [ ] Listen for card events and update Zustand store
-  - [ ] Handle card:moved with list transitions
-  - [ ] Reconcile optimistic updates with server events
-  - [ ] Verify all tests pass
-- [ ] Task: Write E2E tests for real-time collaboration
-  - [ ] Test two clients viewing same board
-  - [ ] Test card creation syncs to second client
-  - [ ] Test card movement syncs to second client
-  - [ ] Test card deletion syncs to second client
-  - [ ] Verify all tests pass
-- [ ] Task: Conductor - User Manual Verification 'Real-Time Synchronization' (Protocol in workflow.md)
+- [x] Task: Write tests for Socket.io events
+  - [x] Test event emission on card mutations
+  - [x] Test client event handling
+  - [x] Test optimistic reconciliation
+- [x] Task: Implement server-side Socket.io events
+  - [x] Emit card:created, card:updated, card:deleted events
+  - [x] Emit card:moved with source/target info
+  - [x] Emit checklist:updated, comment:created events
+  - [x] Broadcast to board room
+  - [x] Verify all tests pass
+- [x] Task: Implement client-side Socket.io listeners
+  - [x] Listen for card events and update Zustand store
+  - [x] Handle card:moved with list transitions
+  - [x] Reconcile optimistic updates with server events
+  - [x] Verify all tests pass
+- [x] Task: Write E2E tests for real-time collaboration
+  - [x] Test two clients viewing same board
+  - [x] Test card creation syncs to second client
+  - [x] Test card movement syncs to second client
+  - [x] Test card deletion syncs to second client
+  - [x] Verify all tests pass
+- [x] Task: Conductor - User Manual Verification 'Real-Time Synchronization' (Protocol in workflow.md)
 
 ## Phase 6: Integration & Final Verification
 
-- [ ] Task: Integrate all components on board page
-  - [ ] Update /boards/[boardId] to render cards in lists
-  - [ ] Connect CardList components to real data
-  - [ ] Ensure proper loading and error states
-  - [ ] Verify visual appearance matches spec
-- [ ] Task: Run full test suite
-  - [ ] Run unit tests (≥ 80% coverage)
-  - [ ] Run integration tests for all Server Actions
-  - [ ] Run E2E tests for critical user flows
-  - [ ] Fix any failing tests
-- [ ] Task: Run quality checks
-  - [ ] Run typecheck: npm run typecheck
-  - [ ] Run lint: npm run lint
-  - [ ] Run build: npm run build
-  - [ ] Fix any errors
-- [ ] Task: Manual verification
-  - [ ] Create board, add lists, create cards
-  - [ ] Edit cards inline and in detail view
-  - [ ] Move cards between lists
-  - [ ] Reorder cards within lists
-  - [ ] Add labels, checklists, comments
-  - [ ] Open two browsers and verify real-time sync
-  - [ ] Test keyboard navigation and DnD
-- [ ] Task: Final commit
-  - [ ] Stage all changes
-  - [ ] Commit with message: feat(cards): Implement full card CRUD with real-time sync
-- [ ] Task: Conductor - User Manual Verification 'Integration & Final Verification' (Protocol in workflow.md)
+- [x] Task: Integrate all components on board page
+  - [x] Update /boards/[boardId] to render cards in lists
+  - [x] Connect CardList components to real data
+  - [x] Ensure proper loading and error states
+  - [x] Verify visual appearance matches spec
+- [x] Task: Run full test suite
+  - [x] Run unit tests (≥ 80% coverage)
+  - [x] Run integration tests for all Server Actions
+  - [x] Run E2E tests for critical user flows
+  - [x] Fix any failing tests
+- [x] Task: Run quality checks
+  - [x] Run typecheck: npm run typecheck
+  - [x] Run lint: npm run lint
+  - [x] Run build: npm run build
+  - [x] Fix any errors
+- [x] Task: Manual verification
+  - [x] Create board, add lists, create cards
+  - [x] Edit cards inline and in detail view
+  - [x] Move cards between lists
+  - [x] Reorder cards within lists
+  - [x] Add labels, checklists, comments
+  - [x] Open two browsers and verify real-time sync
+  - [x] Test keyboard navigation and DnD
+- [x] Task: Final commit
+  - [x] Stage all changes
+  - [x] Commit with message: feat(cards): Implement full card CRUD with real-time sync
+- [x] Task: Conductor - User Manual Verification 'Integration & Final Verification' (Protocol in workflow.md)
