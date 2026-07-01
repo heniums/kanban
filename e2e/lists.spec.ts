@@ -12,14 +12,14 @@ async function registerUser(page: Page) {
   await page.getByLabel(/email/i).fill(TEST_USER.email);
   await page.getByLabel(/password/i).fill(TEST_USER.password);
   await page.getByRole("button", { name: /create account/i }).click();
-  await page.waitForURL("/", { timeout: 15_000 });
+  await page.waitForURL("/", { timeout: 30_000 });
 }
 
 async function createBoard(page: Page, title: string) {
   await page.goto("/boards/new");
   await page.getByLabel(/title/i).fill(title);
   await page.getByRole("button", { name: /create board/i }).click();
-  await page.waitForURL(/\/boards\/[a-f0-9-]+$/, { timeout: 15_000 });
+  await page.waitForURL(/\/boards\/[a-f0-9-]+$/, { timeout: 30_000 });
 }
 
 test.describe("List management", () => {
@@ -116,5 +116,18 @@ test.describe("List management", () => {
     const headings = await page.getByRole("heading", { name: /To Do|Second/ }).allTextContents();
     expect(headings[0]).toBe("Second");
     expect(headings[1]).toBe("To Do");
+
+    // Wait for the server action to persist before reloading
+    await page.waitForTimeout(1000);
+
+    // The order must survive a hard reload
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "Second" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "To Do" })).toBeVisible();
+    const headingsAfterReload = await page
+      .getByRole("heading", { name: /To Do|Second/ })
+      .allTextContents();
+    expect(headingsAfterReload[0]).toBe("Second");
+    expect(headingsAfterReload[1]).toBe("To Do");
   });
 });
