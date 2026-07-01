@@ -4,11 +4,9 @@ import { comments, type Comment } from "@/lib/db/schema/comments";
 import { cards } from "@/lib/db/schema/cards";
 import { boards } from "@/lib/db/schema/boards";
 
-async function assertCardOwnedBy(
-  tx: ReturnType<typeof createDbClient>,
-  cardId: string,
-  ownerId: string,
-): Promise<void> {
+type Tx = Parameters<Parameters<ReturnType<typeof createDbClient>["transaction"]>[0]>[0];
+
+async function assertCardOwnedBy(tx: Tx, cardId: string, ownerId: string): Promise<void> {
   const [row] = await tx
     .select({ id: cards.id })
     .from(cards)
