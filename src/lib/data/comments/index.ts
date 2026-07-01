@@ -41,7 +41,9 @@ export async function updateComment(
   const [updated] = await db
     .update(comments)
     .set({ content: data.content })
-    .where(sql`${comments.id} = ${commentId} AND ${comments.userId} = ${options.userId}`)
+    .where(
+      sql`${comments.id} = ${commentId} AND ${comments.userId} = ${options.userId} AND ${comments.cardId} IN (SELECT id FROM ${cards} WHERE ${cards.boardId} IN (SELECT id FROM ${boards} WHERE ${boards.ownerId} = ${options.userId} AND ${boards.deletedAt} IS NULL))`,
+    )
     .returning();
   return updated ?? null;
 }
@@ -53,7 +55,9 @@ export async function deleteComment(
   const db = createDbClient();
   const [deleted] = await db
     .delete(comments)
-    .where(sql`${comments.id} = ${commentId} AND ${comments.userId} = ${options.userId}`)
+    .where(
+      sql`${comments.id} = ${commentId} AND ${comments.userId} = ${options.userId} AND ${comments.cardId} IN (SELECT id FROM ${cards} WHERE ${cards.boardId} IN (SELECT id FROM ${boards} WHERE ${boards.ownerId} = ${options.userId} AND ${boards.deletedAt} IS NULL))`,
+    )
     .returning();
   return deleted ?? null;
 }
@@ -74,4 +78,31 @@ export async function getCommentsByCardId(
       .limit(pagination.limit)
       .offset(pagination.offset);
   });
+}
+
+export async function getCommentCountsByBoardId(
+  boardId: string,
+  options: { userId: string },
+): Promise<Record<string, number>> {
+  const db = createDbClient();
+  const rows = (
+    await db.execute(
+      sql`SELECT c.id AS card_id, COALESCE(cnt.n, 0)::int AS n
+         FROM ${cards} c
+         LEFT JOIN (
+           SELECT card_id, COUNT(*)::int AS n
+           FROM ${comments}
+           GROUP BY card_id
+         ) cnt ON cnt.card_id = c.id
+         INNER JOIN ${boards} b ON b.id = c.board_id
+         WHERE c.board_id = ${boardId}
+           AND b.owner_id = ${options.userId}
+           AND b.deleted_at IS NULL`,
+    )
+  ).rows as Array<{ card_id: string; n: number }>;
+  const out: Record<string, number> = {};
+  for (const r of rows) {
+    if (r.n > 0) out[r.card_id] = r.n;
+  }
+  return out;
 }

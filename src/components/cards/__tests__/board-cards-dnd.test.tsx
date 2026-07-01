@@ -15,6 +15,7 @@ vi.mock("@/lib/actions/cards", () => ({
   reorderCardsAction: vi.fn().mockResolvedValue({ data: [] }),
   updateCardAction: vi.fn().mockResolvedValue({ data: {} }),
   deleteCardAction: vi.fn().mockResolvedValue({ data: { boardId: "b1" } }),
+  copyCardAction: vi.fn().mockResolvedValue({ data: {} }),
 }));
 
 vi.mock("@/lib/actions/lists", () => ({
@@ -28,6 +29,24 @@ vi.mock("@/lib/actions/labels", () => ({
   createLabelAction: vi
     .fn()
     .mockResolvedValue({ data: { id: "x", boardId: "b1", name: "X", color: "#000" } }),
+}));
+
+vi.mock("@/lib/actions/checklists", () => ({
+  createChecklistAction: vi.fn().mockResolvedValue({ data: { id: "cl1", cardId: "c1" } }),
+  deleteChecklistAction: vi.fn().mockResolvedValue({ data: { cardId: "c1" } }),
+  createChecklistItemAction: vi.fn().mockResolvedValue({ data: { id: "i1", checklistId: "cl1" } }),
+  updateChecklistItemAction: vi.fn().mockResolvedValue({ data: { id: "i1" } }),
+  deleteChecklistItemAction: vi.fn().mockResolvedValue({ data: { id: "i1" } }),
+}));
+
+vi.mock("@/lib/actions/comments", () => ({
+  createCommentAction: vi.fn().mockResolvedValue({ data: { id: "cm1" } }),
+  updateCommentAction: vi.fn().mockResolvedValue({ data: { id: "cm1" } }),
+  deleteCommentAction: vi.fn().mockResolvedValue({ data: { cardId: "c1" } }),
+}));
+
+vi.mock("@/lib/realtime/use-board-socket", () => ({
+  useBoardSocket: () => ({ current: null }),
 }));
 
 const baseLists: List[] = [

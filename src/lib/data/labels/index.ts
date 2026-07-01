@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { createDbClient } from "@/lib/db/client";
-import { labels, type Label } from "@/lib/db/schema/labels";
+import { labels, type Label, type NewLabel } from "@/lib/db/schema/labels";
 import { boards } from "@/lib/db/schema/boards";
 
 export async function createLabel(
@@ -32,7 +32,7 @@ export async function updateLabel(
   options: { ownerId: string },
 ): Promise<Label | null> {
   const db = createDbClient();
-  const patch: Record<string, unknown> = {};
+  const patch: Partial<NewLabel> = {};
   if (data.name !== undefined) patch.name = data.name;
   if (data.color !== undefined) patch.color = data.color;
   if (Object.keys(patch).length === 0) {

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
@@ -7,16 +8,27 @@ import { useDroppable } from "@dnd-kit/core";
 import { CardItem, type CardItemSortable, type CardSummary } from "@/components/cards/card-item";
 import { AddCardForm } from "@/components/cards/add-card-form";
 import { createCardAction } from "@/lib/actions/cards";
+import { useBoardCardStore } from "@/lib/realtime/board-store";
 
 interface CardListProps {
   listId: string;
-  cards: CardSummary[];
   isDropTarget?: boolean;
 }
 
-export function CardList({ listId, cards: cardList, isDropTarget }: CardListProps) {
+export function CardList({ listId, isDropTarget }: CardListProps) {
   const router = useRouter();
+  const cards = useBoardCardStore((s) => s.cardsByList[listId] ?? []);
+  const addCard = useBoardCardStore((s) => s.addCard);
   const { setNodeRef } = useDroppable({ id: `list-drop-${listId}`, data: { listId } });
+
+  useEffect(() => {
+    function onCardEvent(e: Event) {
+      const detail = (e as CustomEvent<{ card?: CardSummary }>).detail;
+      if (detail?.card) addCard(detail.card);
+    }
+    window.addEventListener("card:created", onCardEvent as EventListener);
+    return () => window.removeEventListener("card:created", onCardEvent as EventListener);
+  }, [addCard]);
 
   const handleAdd = async (title: string) => {
     const result = await createCardAction({ listId, title });
@@ -24,6 +36,7 @@ export function CardList({ listId, cards: cardList, isDropTarget }: CardListProp
       toast.error(result.errors.map((e) => e.message).join(", "));
       return;
     }
+    if (result.data) addCard(result.data);
     router.refresh();
   };
 
@@ -33,8 +46,8 @@ export function CardList({ listId, cards: cardList, isDropTarget }: CardListProp
       className={`flex min-h-[24px] flex-col gap-2 ${isDropTarget ? "bg-muted/30 rounded" : ""}`}
       data-list-id={listId}
     >
-      <SortableContext items={cardList.map((c) => c.id)} strategy={verticalListSortingStrategy}>
-        {cardList.map((card) => (
+      <SortableContext items={cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+        {cards.map((card) => (
           <SortableCardItem key={card.id} card={card} />
         ))}
       </SortableContext>

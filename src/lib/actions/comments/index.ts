@@ -17,6 +17,7 @@ import {
   deleteCommentSchema,
   getCommentsByCardIdSchema,
 } from "@/lib/schemas/comment";
+import { emitToBoard, REALTIME_EVENTS } from "@/lib/realtime/events";
 import type { Comment } from "@/lib/db/schema/comments";
 
 type Result<T> = { data: T } | { errors: Array<{ field: string; message: string }> };
@@ -32,6 +33,7 @@ async function revalidateForCard(cardId: string) {
     .from(cards)
     .where(sql`${cards.id} = ${cardId}`);
   if (row) revalidatePath(`/boards/${row.boardId}`);
+  return row?.boardId ?? null;
 }
 
 export async function createCommentAction(input: unknown): Promise<Result<Comment>> {
@@ -40,7 +42,9 @@ export async function createCommentAction(input: unknown): Promise<Result<Commen
   if (!parsed.success) return { errors: formatZodErrors(parsed.error) };
   try {
     const comment = await createComment(parsed.data, { userId });
-    await revalidateForCard(comment.cardId);
+    const boardId = await revalidateForCard(comment.cardId);
+    if (boardId)
+      emitToBoard(boardId, REALTIME_EVENTS.COMMENT_CREATED, { cardId: comment.cardId, boardId });
     return { data: comment };
   } catch (err) {
     return { errors: [{ field: "", message: err instanceof Error ? err.message : "Failed" }] };
@@ -58,7 +62,9 @@ export async function updateCommentAction(input: unknown): Promise<Result<Commen
       { userId },
     );
     if (!comment) return { errors: [{ field: "", message: "Comment not found" }] };
-    await revalidateForCard(comment.cardId);
+    const boardId = await revalidateForCard(comment.cardId);
+    if (boardId)
+      emitToBoard(boardId, REALTIME_EVENTS.COMMENT_UPDATED, { cardId: comment.cardId, boardId });
     return { data: comment };
   } catch (err) {
     return { errors: [{ field: "", message: err instanceof Error ? err.message : "Failed" }] };
@@ -72,7 +78,9 @@ export async function deleteCommentAction(input: unknown): Promise<Result<{ card
   try {
     const deleted = await deleteComment(parsed.data.commentId, { userId });
     if (!deleted) return { errors: [{ field: "", message: "Comment not found" }] };
-    await revalidateForCard(deleted.cardId);
+    const boardId = await revalidateForCard(deleted.cardId);
+    if (boardId)
+      emitToBoard(boardId, REALTIME_EVENTS.COMMENT_DELETED, { cardId: deleted.cardId, boardId });
     return { data: { cardId: deleted.cardId } };
   } catch (err) {
     return { errors: [{ field: "", message: err instanceof Error ? err.message : "Failed" }] };

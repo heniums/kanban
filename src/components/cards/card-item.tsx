@@ -29,7 +29,6 @@ interface CardItemProps {
   onOpen?: (card: CardSummary) => void;
   sortable?: CardItemSortable;
   isDragging?: boolean;
-  hideDragHandle?: boolean;
 }
 
 function dueDateColor(dueDate: Date | null | undefined): { className: string; tooltip: string } {
@@ -61,7 +60,6 @@ export function CardItem({
   onOpen,
   sortable,
   isDragging: externalIsDragging,
-  hideDragHandle,
 }: CardItemProps) {
   const router = useRouter();
   const [isRenaming, setIsRenaming] = useState(false);

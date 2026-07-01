@@ -20,6 +20,7 @@ import {
   updateChecklistItemSchema,
   deleteChecklistItemSchema,
 } from "@/lib/schemas/checklist";
+import { emitToBoard, REALTIME_EVENTS } from "@/lib/realtime/events";
 import { sql } from "drizzle-orm";
 
 type Result<T> = { data: T } | { errors: Array<{ field: string; message: string }> };
@@ -35,6 +36,7 @@ async function revalidateForCard(cardId: string) {
     .from(cards)
     .where(sql`${cards.id} = ${cardId}`);
   if (row) revalidatePath(`/boards/${row.boardId}`);
+  return row?.boardId ?? null;
 }
 
 export async function createChecklistAction(
@@ -45,7 +47,9 @@ export async function createChecklistAction(
   if (!parsed.success) return { errors: formatZodErrors(parsed.error) };
   try {
     const cl = await createChecklist(parsed.data, { ownerId: userId });
-    await revalidateForCard(cl.cardId);
+    const boardId = await revalidateForCard(cl.cardId);
+    if (boardId)
+      emitToBoard(boardId, REALTIME_EVENTS.CHECKLIST_UPDATED, { cardId: cl.cardId, boardId });
     return { data: { id: cl.id, cardId: cl.cardId } };
   } catch (err) {
     return { errors: [{ field: "", message: err instanceof Error ? err.message : "Failed" }] };
@@ -65,7 +69,9 @@ export async function updateChecklistAction(
       { ownerId: userId },
     );
     if (!cl) return { errors: [{ field: "", message: "Checklist not found" }] };
-    await revalidateForCard(cl.cardId);
+    const boardId = await revalidateForCard(cl.cardId);
+    if (boardId)
+      emitToBoard(boardId, REALTIME_EVENTS.CHECKLIST_UPDATED, { cardId: cl.cardId, boardId });
     return { data: { id: cl.id, cardId: cl.cardId } };
   } catch (err) {
     return { errors: [{ field: "", message: err instanceof Error ? err.message : "Failed" }] };
@@ -79,7 +85,9 @@ export async function deleteChecklistAction(input: unknown): Promise<Result<{ ca
   try {
     const cl = await deleteChecklist(parsed.data.checklistId, { ownerId: userId });
     if (!cl) return { errors: [{ field: "", message: "Checklist not found" }] };
-    await revalidateForCard(cl.cardId);
+    const boardId = await revalidateForCard(cl.cardId);
+    if (boardId)
+      emitToBoard(boardId, REALTIME_EVENTS.CHECKLIST_UPDATED, { cardId: cl.cardId, boardId });
     return { data: { cardId: cl.cardId } };
   } catch (err) {
     return { errors: [{ field: "", message: err instanceof Error ? err.message : "Failed" }] };
@@ -94,6 +102,17 @@ export async function createChecklistItemAction(
   if (!parsed.success) return { errors: formatZodErrors(parsed.error) };
   try {
     const item = await createChecklistItem(parsed.data, { ownerId: userId });
+    const db = createDbClient();
+    const [row] = await db
+      .select({ boardId: cards.boardId })
+      .from(cards)
+      .where(sql`${cards.id} = (SELECT card_id FROM checklists WHERE id = ${item.checklistId})`);
+    if (row) {
+      emitToBoard(row.boardId, REALTIME_EVENTS.CHECKLIST_UPDATED, {
+        cardId: row.boardId,
+        boardId: row.boardId,
+      });
+    }
     return { data: { id: item.id, checklistId: item.checklistId } };
   } catch (err) {
     return { errors: [{ field: "", message: err instanceof Error ? err.message : "Failed" }] };
@@ -108,6 +127,17 @@ export async function updateChecklistItemAction(input: unknown): Promise<Result<
   try {
     const item = await updateChecklistItem(itemId, patch, { ownerId: userId });
     if (!item) return { errors: [{ field: "", message: "Item not found" }] };
+    const db = createDbClient();
+    const [row] = await db
+      .select({ boardId: cards.boardId })
+      .from(cards)
+      .where(sql`${cards.id} = (SELECT card_id FROM checklists WHERE id = ${item.checklistId})`);
+    if (row) {
+      emitToBoard(row.boardId, REALTIME_EVENTS.CHECKLIST_UPDATED, {
+        cardId: row.boardId,
+        boardId: row.boardId,
+      });
+    }
     return { data: { id: item.id } };
   } catch (err) {
     return { errors: [{ field: "", message: err instanceof Error ? err.message : "Failed" }] };
@@ -121,6 +151,17 @@ export async function deleteChecklistItemAction(input: unknown): Promise<Result<
   try {
     const item = await deleteChecklistItem(parsed.data.itemId, { ownerId: userId });
     if (!item) return { errors: [{ field: "", message: "Item not found" }] };
+    const db = createDbClient();
+    const [row] = await db
+      .select({ boardId: cards.boardId })
+      .from(cards)
+      .where(sql`${cards.id} = (SELECT card_id FROM checklists WHERE id = ${item.checklistId})`);
+    if (row) {
+      emitToBoard(row.boardId, REALTIME_EVENTS.CHECKLIST_UPDATED, {
+        cardId: row.boardId,
+        boardId: row.boardId,
+      });
+    }
     return { data: { id: item.id } };
   } catch (err) {
     return { errors: [{ field: "", message: err instanceof Error ? err.message : "Failed" }] };

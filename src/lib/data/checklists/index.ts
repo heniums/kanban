@@ -1,7 +1,11 @@
 import { eq, sql } from "drizzle-orm";
 import { createDbClient } from "@/lib/db/client";
 import { checklists, type Checklist } from "@/lib/db/schema/checklists";
-import { checklistItems, type ChecklistItem } from "@/lib/db/schema/checklist-items";
+import {
+  checklistItems,
+  type ChecklistItem,
+  type NewChecklistItem,
+} from "@/lib/db/schema/checklist-items";
 import { cards } from "@/lib/db/schema/cards";
 import { boards } from "@/lib/db/schema/boards";
 
@@ -140,7 +144,7 @@ export async function updateChecklistItem(
   options: { ownerId: string },
 ): Promise<ChecklistItem | null> {
   const db = createDbClient();
-  const patch: Record<string, unknown> = {};
+  const patch: Partial<NewChecklistItem> = {};
   if (data.content !== undefined) patch.content = data.content;
   if (data.isCompleted !== undefined) patch.isCompleted = data.isCompleted;
   if (Object.keys(patch).length === 0) return null;
@@ -173,5 +177,76 @@ export async function deleteChecklistItem(
       sql`UPDATE checklist_items SET position = position - 1 WHERE checklist_id = ${item.checklistId} AND position > ${item.position}`,
     );
     return item;
+  });
+}
+
+export async function getChecklistProgressByBoardId(
+  boardId: string,
+  options: { ownerId: string },
+): Promise<Record<string, { total: number; completed: number }>> {
+  const db = createDbClient();
+  const rows = (
+    await db.execute(
+      sql`SELECT c.id AS card_id,
+                COALESCE(SUM(CASE WHEN ci.id IS NOT NULL THEN 1 ELSE 0 END), 0)::int AS total,
+                COALESCE(SUM(CASE WHEN ci.is_completed = true THEN 1 ELSE 0 END), 0)::int AS completed
+         FROM ${cards} c
+         LEFT JOIN ${checklists} cl ON cl.card_id = c.id
+         LEFT JOIN ${checklistItems} ci ON ci.checklist_id = cl.id
+         INNER JOIN ${boards} b ON b.id = c.board_id
+         WHERE c.board_id = ${boardId}
+           AND b.owner_id = ${options.ownerId}
+           AND b.deleted_at IS NULL
+         GROUP BY c.id`,
+    )
+  ).rows as Array<{ card_id: string; total: number; completed: number }>;
+  const out: Record<string, { total: number; completed: number }> = {};
+  for (const r of rows) {
+    if (r.total > 0) out[r.card_id] = { total: r.total, completed: r.completed };
+  }
+  return out;
+}
+
+export async function getChecklistsAndItemsByCardId(
+  cardId: string,
+  options: { ownerId: string },
+): Promise<{
+  checklists: Array<{
+    id: string;
+    cardId: string;
+    title: string;
+    position: number;
+    items: Array<{
+      id: string;
+      checklistId: string;
+      content: string;
+      isCompleted: boolean;
+      position: number;
+    }>;
+  }>;
+}> {
+  const db = createDbClient();
+  return db.transaction(async (tx) => {
+    await assertCardOwnedBy(tx, cardId, options.ownerId);
+    const cl = await tx
+      .select()
+      .from(checklists)
+      .where(sql`${checklists.cardId} = ${cardId}`)
+      .orderBy(sql`${checklists.position} ASC`);
+    const items = await tx
+      .select()
+      .from(checklistItems)
+      .where(
+        sql`${checklistItems.checklistId} IN (SELECT id FROM ${checklists} WHERE ${checklists.cardId} = ${cardId})`,
+      )
+      .orderBy(sql`${checklistItems.position} ASC`);
+    const itemsByChecklist = new Map<string, typeof items>();
+    for (const i of items) {
+      if (!itemsByChecklist.has(i.checklistId)) itemsByChecklist.set(i.checklistId, []);
+      itemsByChecklist.get(i.checklistId)!.push(i);
+    }
+    return {
+      checklists: cl.map((c) => ({ ...c, items: itemsByChecklist.get(c.id) ?? [] })),
+    };
   });
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -22,9 +22,8 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { createCardAction, moveCardAction, reorderCardsAction } from "@/lib/actions/cards";
+import { moveCardAction, reorderCardsAction } from "@/lib/actions/cards";
 import type { List } from "@/lib/db/schema/lists";
-import type { Label } from "@/lib/db/schema/labels";
 import { ListColumn } from "@/components/lists/list-column";
 import { AddListForm } from "@/components/lists/add-list-form";
 import { CardList } from "@/components/cards/card-list";
@@ -37,31 +36,42 @@ import {
   reorderListsAction,
 } from "@/lib/actions/lists";
 import { cn } from "@/lib/utils";
+import { useBoardCardStore } from "@/lib/realtime/board-store";
+import { useBoardSocket } from "@/lib/realtime/use-board-socket";
 
 interface BoardCardsProps {
   boardId: string;
   initialLists: List[];
   initialCardsByList: Record<string, CardSummary[]>;
-  boardLabels: Label[];
+  boardLabels?: unknown;
 }
 
-export function BoardCards({
-  boardId,
-  initialLists,
-  initialCardsByList,
-  boardLabels,
-}: BoardCardsProps) {
+export function BoardCards({ boardId, initialLists, initialCardsByList }: BoardCardsProps) {
   const router = useRouter();
-  const [optimisticLists, setOptimisticLists] = useState(initialLists);
-  const [optimisticCardsByList, setOptimisticCardsByList] = useState(initialCardsByList);
+  useBoardSocket(boardId);
+
+  const setInitial = useBoardCardStore((s) => s.setInitial);
+  const storeCardsByList = useBoardCardStore((s) => s.cardsByList);
+  const storeLists = useBoardCardStore((s) => s.lists);
+
+  const lastBoardIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (lastBoardIdRef.current === boardId) return;
+    lastBoardIdRef.current = boardId;
+    const flatCards: CardSummary[] = [];
+    for (const listId of Object.keys(initialCardsByList)) {
+      for (const c of initialCardsByList[listId]) flatCards.push(c);
+    }
+    setInitial(
+      boardId,
+      initialLists.map((l) => ({ id: l.id, title: l.title, position: l.position })),
+      flatCards,
+    );
+  }, [boardId, initialLists, initialCardsByList, setInitial]);
+
   const [activeCard, setActiveCard] = useState<CardSummary | null>(null);
   const [activeListId, setActiveListId] = useState<string | null>(null);
-  const [lastSynced, setLastSynced] = useState({ lists: initialLists, cards: initialCardsByList });
-  if (lastSynced.lists !== initialLists || lastSynced.cards !== initialCardsByList) {
-    setLastSynced({ lists: initialLists, cards: initialCardsByList });
-    setOptimisticLists(initialLists);
-    setOptimisticCardsByList(initialCardsByList);
-  }
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -70,12 +80,12 @@ export function BoardCards({
 
   const handleDragStart = (event: DragStartEvent) => {
     const id = String(event.active.id);
-    if (optimisticLists.some((l) => l.id === id)) {
+    if (storeLists.some((l) => l.id === id)) {
       setActiveListId(id);
       return;
     }
-    for (const listId of Object.keys(optimisticCardsByList)) {
-      const found = optimisticCardsByList[listId].find((c) => c.id === id);
+    for (const listId of Object.keys(storeCardsByList)) {
+      const found = storeCardsByList[listId].find((c) => c.id === id);
       if (found) {
         setActiveCard(found);
         return;
@@ -92,32 +102,28 @@ export function BoardCards({
     const activeId = String(active.id);
     const overId = String(over.id);
 
-    // List-level drag
-    if (optimisticLists.some((l) => l.id === activeId)) {
+    if (storeLists.some((l) => l.id === activeId)) {
       if (activeId === overId) return;
-      const oldIndex = optimisticLists.findIndex((l) => l.id === activeId);
-      const newIndex = optimisticLists.findIndex((l) => l.id === overId);
+      const oldIndex = storeLists.findIndex((l) => l.id === activeId);
+      const newIndex = storeLists.findIndex((l) => l.id === overId);
       if (oldIndex < 0 || newIndex < 0) return;
-      const next = arrayMove(optimisticLists, oldIndex, newIndex);
-      setOptimisticLists(next);
+      const next = arrayMove(storeLists, oldIndex, newIndex);
       reorderListsAction({ boardId, orderedListIds: next.map((l) => l.id) })
         .then((result) => {
           if ("errors" in result) {
             toast.error(result.errors.map((e) => e.message).join(", "));
-            setOptimisticLists(initialLists);
           } else {
             router.refresh();
           }
         })
-        .catch(() => setOptimisticLists(initialLists));
+        .catch(() => toast.error("Failed to reorder lists"));
       return;
     }
 
-    // Card-level drag
     let sourceListId: string | null = null;
     let activeCardObj: CardSummary | null = null;
-    for (const listId of Object.keys(optimisticCardsByList)) {
-      const found = optimisticCardsByList[listId].find((c) => c.id === activeId);
+    for (const listId of Object.keys(storeCardsByList)) {
+      const found = storeCardsByList[listId].find((c) => c.id === activeId);
       if (found) {
         sourceListId = listId;
         activeCardObj = found;
@@ -131,10 +137,10 @@ export function BoardCards({
 
     if (overId.startsWith("list-drop-")) {
       targetListId = overId.replace("list-drop-", "");
-      targetIndex = optimisticCardsByList[targetListId]?.length ?? 0;
+      targetIndex = storeCardsByList[targetListId]?.length ?? 0;
     } else {
-      for (const listId of Object.keys(optimisticCardsByList)) {
-        const idx = optimisticCardsByList[listId].findIndex((c) => c.id === overId);
+      for (const listId of Object.keys(storeCardsByList)) {
+        const idx = storeCardsByList[listId].findIndex((c) => c.id === overId);
         if (idx >= 0) {
           targetListId = listId;
           targetIndex = idx;
@@ -146,30 +152,21 @@ export function BoardCards({
 
     if (sourceListId === targetListId && activeCardObj.position === targetIndex) return;
 
-    const next = { ...optimisticCardsByList };
-    const sourceArr = [...(next[sourceListId] ?? [])];
-    sourceArr.splice(
-      sourceArr.findIndex((c) => c.id === activeId),
-      1,
-    );
-    const targetArr = sourceListId === targetListId ? sourceArr : [...(next[targetListId] ?? [])];
-    targetArr.splice(targetIndex, 0, { ...activeCardObj, listId: targetListId });
-    next[sourceListId] = sourceArr;
-    next[targetListId] = targetArr;
-    setOptimisticCardsByList(next);
+    useBoardCardStore.getState().moveCard(activeId, targetListId, targetIndex);
 
     if (sourceListId === targetListId) {
-      const orderedIds = targetArr.map((c) => c.id);
+      const orderedIds = (storeCardsByList[targetListId] ?? []).map((c) => c.id);
       reorderCardsAction({ listId: targetListId, orderedCardIds: orderedIds })
         .then((result) => {
           if ("errors" in result) {
             toast.error(result.errors.map((e) => e.message).join(", "));
-            setOptimisticCardsByList(initialCardsByList);
-          } else {
             router.refresh();
           }
         })
-        .catch(() => setOptimisticCardsByList(initialCardsByList));
+        .catch(() => {
+          toast.error("Failed to reorder cards");
+          router.refresh();
+        });
     } else {
       moveCardAction({
         cardId: activeId,
@@ -179,12 +176,13 @@ export function BoardCards({
         .then((result) => {
           if ("errors" in result) {
             toast.error(result.errors.map((e) => e.message).join(", "));
-            setOptimisticCardsByList(initialCardsByList);
-          } else {
             router.refresh();
           }
         })
-        .catch(() => setOptimisticCardsByList(initialCardsByList));
+        .catch(() => {
+          toast.error("Failed to move card");
+          router.refresh();
+        });
     }
   };
 
@@ -201,7 +199,6 @@ export function BoardCards({
     const result = await renameListAction({ listId, title });
     if ("errors" in result) {
       toast.error(result.errors.map((e) => e.message).join(", "));
-      setOptimisticLists(initialLists);
       return;
     }
     router.refresh();
@@ -223,10 +220,7 @@ export function BoardCards({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <SortableContext
-        items={optimisticLists.map((l) => l.id)}
-        strategy={horizontalListSortingStrategy}
-      >
+      <SortableContext items={storeLists.map((l) => l.id)} strategy={horizontalListSortingStrategy}>
         <div
           data-testid="board-cards"
           className={cn(
@@ -234,18 +228,21 @@ export function BoardCards({
             "[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
           )}
         >
-          {optimisticLists.map((list) => (
+          {storeLists.map((list) => (
             <SortableListColumn
               key={list.id}
-              list={list}
+              list={{
+                id: list.id,
+                boardId,
+                title: list.title,
+                position: list.position,
+                createdAt: new Date(0),
+                updatedAt: new Date(0),
+              }}
               onRename={(title) => handleRenameList(list.id, title)}
               onDelete={() => handleDeleteList(list.id)}
             >
-              <CardList
-                listId={list.id}
-                cards={optimisticCardsByList[list.id] ?? []}
-                isDropTarget={activeCard !== null}
-              />
+              <CardList listId={list.id} isDropTarget={activeCard !== null} />
             </SortableListColumn>
           ))}
           <div className="shrink-0">
@@ -255,19 +252,23 @@ export function BoardCards({
       </SortableContext>
       <DragOverlay>
         {activeCard ? (
-          <CardItem card={activeCard} hideDragHandle />
+          <CardItem card={activeCard} />
         ) : activeListId ? (
           <ListColumn
-            list={optimisticLists.find((l) => l.id === activeListId)!}
+            list={{
+              id: activeListId,
+              boardId,
+              title: storeLists.find((l) => l.id === activeListId)?.title ?? "",
+              position: 0,
+              createdAt: new Date(0),
+              updatedAt: new Date(0),
+            }}
             onRename={() => {}}
             onDelete={() => {}}
           />
         ) : null}
       </DragOverlay>
-      <CardDetail
-        boardId={boardId}
-        lists={optimisticLists.map((l) => ({ id: l.id, title: l.title }))}
-      />
+      <CardDetail boardId={boardId} lists={storeLists.map((l) => ({ id: l.id, title: l.title }))} />
     </DndContext>
   );
 }

@@ -79,7 +79,7 @@ vi.mock("@/lib/db/schema/boards", () => ({
   boards: { _table: "boards" },
 }));
 
-import { createCard, updateCard, deleteCard, moveCard, reorderCards } from "..";
+import { createCard, deleteCard, reorderCards } from "..";
 
 beforeEach(() => {
   db = setupDbMock();

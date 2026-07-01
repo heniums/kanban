@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CardDetail } from "@/components/cards/card-detail";
 import type { CardDetailData } from "@/components/cards/card-detail";
@@ -17,10 +17,30 @@ const { mockUpdateCardAction, mockDeleteCardAction, mockCreateLabelAction } = vi
 vi.mock("@/lib/actions/cards", () => ({
   updateCardAction: mockUpdateCardAction,
   deleteCardAction: mockDeleteCardAction,
+  moveCardAction: vi.fn().mockResolvedValue({ data: {} }),
+  copyCardAction: vi.fn().mockResolvedValue({ data: {} }),
 }));
 
 vi.mock("@/lib/actions/labels", () => ({
   createLabelAction: mockCreateLabelAction,
+}));
+
+vi.mock("@/lib/actions/checklists", () => ({
+  createChecklistAction: vi.fn().mockResolvedValue({ data: { id: "cl1", cardId: "c1" } }),
+  deleteChecklistAction: vi.fn().mockResolvedValue({ data: { cardId: "c1" } }),
+  createChecklistItemAction: vi.fn().mockResolvedValue({ data: { id: "i1", checklistId: "cl1" } }),
+  updateChecklistItemAction: vi.fn().mockResolvedValue({ data: { id: "i1" } }),
+  deleteChecklistItemAction: vi.fn().mockResolvedValue({ data: { id: "i1" } }),
+}));
+
+vi.mock("@/lib/actions/comments", () => ({
+  createCommentAction: vi.fn().mockResolvedValue({ data: { id: "cm1" } }),
+  updateCommentAction: vi.fn().mockResolvedValue({ data: { id: "cm1" } }),
+  deleteCommentAction: vi.fn().mockResolvedValue({ data: { cardId: "c1" } }),
+}));
+
+vi.mock("@/lib/realtime/use-board-socket", () => ({
+  useBoardSocket: () => ({ current: null }),
 }));
 
 const baseCardDetail: CardDetailData = {
@@ -41,6 +61,13 @@ const baseCardDetail: CardDetailData = {
     { id: "lbl1", boardId: "b1", name: "Bug", color: "#ff0000" },
     { id: "lbl2", boardId: "b1", name: "Feature", color: "#00ff00" },
     { id: "lbl3", boardId: "b1", name: "Chore", color: "#3b82f6" },
+  ],
+  assignees: [],
+  checklists: [],
+  comments: [],
+  boardMembers: [
+    { id: "u1", name: "Alice", email: "alice@example.com" },
+    { id: "u2", name: "Bob", email: "bob@example.com" },
   ],
 };
 

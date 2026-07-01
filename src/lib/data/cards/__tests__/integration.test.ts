@@ -5,11 +5,11 @@ import { createDbClient } from "@/lib/db/client";
 import { users } from "@/lib/db/schema/users";
 import { boards } from "@/lib/db/schema/boards";
 import { lists } from "@/lib/db/schema/lists";
-import { cards, type Card } from "@/lib/db/schema/cards";
+import { cards } from "@/lib/db/schema/cards";
 import { cardLabels } from "@/lib/db/schema/card-labels";
 import { cardAssignees } from "@/lib/db/schema/card-assignees";
 import { labels } from "@/lib/db/schema/labels";
-import { createList, getListsByBoardId } from "@/lib/data/lists";
+import { getListsByBoardId } from "@/lib/data/lists";
 import { createCard, getCardsByListId, moveCard, reorderCards, updateCard, deleteCard } from "..";
 
 const db = createDbClient();
@@ -154,6 +154,8 @@ describe("deleteCard (integration) — position recompaction", () => {
     const c0 = await createCard({ listId: l0.id, title: "C0" }, { ownerId });
     const c1 = await createCard({ listId: l0.id, title: "C1" }, { ownerId });
     const c2 = await createCard({ listId: l0.id, title: "C2" }, { ownerId });
+    void c0;
+    void c2;
 
     await deleteCard(c1.id, { ownerId });
 
@@ -173,6 +175,7 @@ describe("moveCard (integration)", () => {
     const c0 = await createCard({ listId: l0.id, title: "C0" }, { ownerId });
     const c1 = await createCard({ listId: l0.id, title: "C1" }, { ownerId });
     await createCard({ listId: l1.id, title: "D0" }, { ownerId });
+    void c0;
 
     const moved = await moveCard(c1.id, l1.id, 0, { ownerId });
     expect(moved?.listId).toBe(l1.id);

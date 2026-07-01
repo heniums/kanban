@@ -8,6 +8,7 @@ import {
   deleteCard,
   moveCard,
   reorderCards,
+  copyCard,
   getCardById,
 } from "@/lib/data/cards";
 import {
@@ -16,8 +17,10 @@ import {
   deleteCardSchema,
   moveCardSchema,
   reorderCardsSchema,
+  copyCardSchema,
 } from "@/lib/schemas/card";
 import type { Card } from "@/lib/db/schema/cards";
+import { emitToBoard, REALTIME_EVENTS } from "@/lib/realtime/events";
 
 type Result<T> = { data: T } | { errors: Array<{ field: string; message: string }> };
 
@@ -34,6 +37,7 @@ export async function createCardAction(input: unknown): Promise<Result<Card>> {
   try {
     const card = await createCard(parsed.data, { ownerId: userId });
     revalidatePath(`/boards/${card.boardId}`);
+    emitToBoard(card.boardId, REALTIME_EVENTS.CARD_CREATED, { card });
     return { data: card };
   } catch (err) {
     return { errors: [{ field: "", message: err instanceof Error ? err.message : "Failed" }] };
@@ -53,6 +57,7 @@ export async function updateCardAction(input: unknown): Promise<Result<Card>> {
       return { errors: [{ field: "", message: "Card not found" }] };
     }
     revalidatePath(`/boards/${card.boardId}`);
+    emitToBoard(card.boardId, REALTIME_EVENTS.CARD_UPDATED, { card });
     return { data: card };
   } catch (err) {
     return { errors: [{ field: "", message: err instanceof Error ? err.message : "Failed" }] };
@@ -71,6 +76,11 @@ export async function deleteCardAction(input: unknown): Promise<Result<{ boardId
       return { errors: [{ field: "", message: "Card not found" }] };
     }
     revalidatePath(`/boards/${deleted.boardId}`);
+    emitToBoard(deleted.boardId, REALTIME_EVENTS.CARD_DELETED, {
+      cardId: deleted.id,
+      listId: deleted.listId,
+      boardId: deleted.boardId,
+    });
     return { data: { boardId: deleted.boardId } };
   } catch (err) {
     return { errors: [{ field: "", message: err instanceof Error ? err.message : "Failed" }] };
@@ -94,6 +104,13 @@ export async function moveCardAction(input: unknown): Promise<Result<Card>> {
       return { errors: [{ field: "", message: "Card not found" }] };
     }
     revalidatePath(`/boards/${card.boardId}`);
+    emitToBoard(card.boardId, REALTIME_EVENTS.CARD_MOVED, {
+      cardId: card.id,
+      sourceListId: card.listId,
+      targetListId: card.listId,
+      targetPosition: card.position,
+      boardId: card.boardId,
+    });
     return { data: card };
   } catch (err) {
     return { errors: [{ field: "", message: err instanceof Error ? err.message : "Failed" }] };
@@ -113,6 +130,25 @@ export async function reorderCardsAction(input: unknown): Promise<Result<Card[]>
     const sample = await getCardById(parsed.data.orderedCardIds[0], { ownerId: userId });
     if (sample) revalidatePath(`/boards/${sample.boardId}`);
     return { data: cards };
+  } catch (err) {
+    return { errors: [{ field: "", message: err instanceof Error ? err.message : "Failed" }] };
+  }
+}
+
+export async function copyCardAction(input: unknown): Promise<Result<Card>> {
+  const { userId } = await verifySession();
+  const parsed = copyCardSchema.safeParse(input);
+  if (!parsed.success) {
+    return { errors: formatZodErrors(parsed.error) };
+  }
+  try {
+    const card = await copyCard(parsed.data.cardId, { ownerId: userId });
+    if (!card) {
+      return { errors: [{ field: "", message: "Card not found" }] };
+    }
+    revalidatePath(`/boards/${card.boardId}`);
+    emitToBoard(card.boardId, REALTIME_EVENTS.CARD_CREATED, { card });
+    return { data: card };
   } catch (err) {
     return { errors: [{ field: "", message: err instanceof Error ? err.message : "Failed" }] };
   }

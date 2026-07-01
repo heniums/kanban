@@ -6,8 +6,14 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { BoardCards } from "@/components/cards/board-cards";
 import { getBoardById } from "@/lib/data/boards";
 import { getListsByBoardId } from "@/lib/data/lists";
-import { getCardsByBoardId, getCardLabelsByBoardId } from "@/lib/data/cards";
+import {
+  getCardsByBoardId,
+  getCardLabelsByBoardId,
+  getCardAssigneesByBoardId,
+} from "@/lib/data/cards";
 import { getLabelsByBoardId } from "@/lib/data/labels";
+import { getChecklistProgressByBoardId } from "@/lib/data/checklists";
+import { getCommentCountsByBoardId } from "@/lib/data/comments";
 import { verifySession } from "@/lib/dal";
 import type { CardSummary } from "@/components/cards/card-item";
 
@@ -26,9 +32,19 @@ export default async function BoardPage({ params }: BoardPageProps) {
   }
 
   const lists = await getListsByBoardId(boardId, { ownerId: userId });
-  const [allCards, cardLabelsMap, boardLabels] = await Promise.all([
+  const [
+    allCards,
+    cardLabelsMap,
+    cardAssigneesMap,
+    checklistProgressMap,
+    commentCountsMap,
+    boardLabels,
+  ] = await Promise.all([
     getCardsByBoardId(boardId, { ownerId: userId }),
     getCardLabelsByBoardId(boardId, { ownerId: userId }),
+    getCardAssigneesByBoardId(boardId, { ownerId: userId }),
+    getChecklistProgressByBoardId(boardId, { ownerId: userId }),
+    getCommentCountsByBoardId(boardId, { userId }),
     getLabelsByBoardId(boardId, { ownerId: userId }),
   ]);
 
@@ -41,9 +57,9 @@ export default async function BoardPage({ params }: BoardPageProps) {
     cardsByList[card.listId].push({
       ...card,
       labels: cardLabelsMap[card.id] ?? [],
-      assignees: [],
-      checklistProgress: null,
-      commentCount: 0,
+      assignees: cardAssigneesMap[card.id] ?? [],
+      checklistProgress: checklistProgressMap[card.id] ?? null,
+      commentCount: commentCountsMap[card.id] ?? 0,
     });
   }
 

@@ -29,6 +29,10 @@ export const deleteCardSchema = z.object({
   cardId: uuid,
 });
 
+export const copyCardSchema = z.object({
+  cardId: uuid,
+});
+
 export const moveCardSchema = z.object({
   cardId: uuid,
   targetListId: uuid,

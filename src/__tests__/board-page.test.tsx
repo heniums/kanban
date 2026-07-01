@@ -9,14 +9,20 @@ const {
   mockGetListsByBoardId,
   mockGetCardsByBoardId,
   mockGetCardLabelsByBoardId,
+  mockGetCardAssigneesByBoardId,
   mockGetLabelsByBoardId,
+  mockGetChecklistProgressByBoardId,
+  mockGetCommentCountsByBoardId,
 } = vi.hoisted(() => ({
   mockVerifySession: vi.fn(),
   mockGetBoardById: vi.fn(),
   mockGetListsByBoardId: vi.fn(),
   mockGetCardsByBoardId: vi.fn(),
   mockGetCardLabelsByBoardId: vi.fn(),
+  mockGetCardAssigneesByBoardId: vi.fn(),
   mockGetLabelsByBoardId: vi.fn(),
+  mockGetChecklistProgressByBoardId: vi.fn(),
+  mockGetCommentCountsByBoardId: vi.fn(),
 }));
 
 vi.mock("@/lib/dal", () => ({
@@ -43,10 +49,19 @@ vi.mock("@/lib/data/lists", () => ({
 vi.mock("@/lib/data/cards", () => ({
   getCardsByBoardId: mockGetCardsByBoardId,
   getCardLabelsByBoardId: mockGetCardLabelsByBoardId,
+  getCardAssigneesByBoardId: mockGetCardAssigneesByBoardId,
 }));
 
 vi.mock("@/lib/data/labels", () => ({
   getLabelsByBoardId: mockGetLabelsByBoardId,
+}));
+
+vi.mock("@/lib/data/checklists", () => ({
+  getChecklistProgressByBoardId: mockGetChecklistProgressByBoardId,
+}));
+
+vi.mock("@/lib/data/comments", () => ({
+  getCommentCountsByBoardId: mockGetCommentCountsByBoardId,
 }));
 
 vi.mock("@/lib/actions/boards", () => ({
@@ -89,6 +104,9 @@ describe("BoardPage text color", () => {
     mockGetListsByBoardId.mockResolvedValue(baseLists);
     mockGetCardsByBoardId.mockResolvedValue([]);
     mockGetCardLabelsByBoardId.mockResolvedValue({});
+    mockGetCardAssigneesByBoardId.mockResolvedValue({});
+    mockGetChecklistProgressByBoardId.mockResolvedValue({});
+    mockGetCommentCountsByBoardId.mockResolvedValue({});
     mockGetLabelsByBoardId.mockResolvedValue([]);
   });
 
@@ -141,6 +159,9 @@ describe("BoardPage hero section", () => {
     mockGetListsByBoardId.mockResolvedValue(baseLists);
     mockGetCardsByBoardId.mockResolvedValue([]);
     mockGetCardLabelsByBoardId.mockResolvedValue({});
+    mockGetCardAssigneesByBoardId.mockResolvedValue({});
+    mockGetChecklistProgressByBoardId.mockResolvedValue({});
+    mockGetCommentCountsByBoardId.mockResolvedValue({});
     mockGetLabelsByBoardId.mockResolvedValue([]);
   });
 
