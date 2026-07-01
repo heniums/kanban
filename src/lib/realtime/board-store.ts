@@ -14,6 +14,7 @@ interface BoardCardState {
   updateCard: (card: RealtimeCard) => void;
   deleteCard: (cardId: string, listId: string) => void;
   moveCard: (cardId: string, targetListId: string, targetPosition: number) => void;
+  reorderLists: (orderedListIds: string[]) => void;
 }
 
 export const useBoardCardStore = create<BoardCardState>((set) => ({
@@ -85,5 +86,13 @@ export const useBoardCardStore = create<BoardCardState>((set) => ({
         list[listId].forEach((c, i) => (c.position = i));
       }
       return { cardsByList: list };
+    }),
+  reorderLists: (orderedListIds) =>
+    set((s) => {
+      const listMap = new Map(s.lists.map((l) => [l.id, l]));
+      const next = orderedListIds
+        .filter((id) => listMap.has(id))
+        .map((id, index) => ({ ...listMap.get(id)!, position: index }));
+      return { lists: next };
     }),
 }));
