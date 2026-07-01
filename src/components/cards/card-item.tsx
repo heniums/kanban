@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, type CSSProperties, type HTMLAttributes } from "react";
 import { useRouter } from "next/navigation";
 import { Calendar, MessageSquare, Pencil } from "lucide-react";
 import type { Card } from "@/lib/db/schema/cards";
@@ -15,10 +15,19 @@ export type CardSummary = Card & {
   commentCount?: number;
 };
 
+export interface CardItemSortable {
+  attributes: Record<string, unknown>;
+  listeners: Record<string, unknown> | undefined;
+  setNodeRef: (node: HTMLElement | null) => void;
+  transform: { x: number; y: number; scaleX: number; scaleY: number } | null;
+  transition: string | undefined;
+  isDragging: boolean;
+}
+
 interface CardItemProps {
   card: CardSummary;
   onOpen?: (card: CardSummary) => void;
-  dragHandleProps?: React.HTMLAttributes<HTMLButtonElement>;
+  sortable?: CardItemSortable;
   isDragging?: boolean;
   hideDragHandle?: boolean;
 }
@@ -50,8 +59,8 @@ function dueDateColor(dueDate: Date | null | undefined): { className: string; to
 export function CardItem({
   card,
   onOpen,
-  dragHandleProps,
-  isDragging,
+  sortable,
+  isDragging: externalIsDragging,
   hideDragHandle,
 }: CardItemProps) {
   const router = useRouter();
@@ -102,15 +111,35 @@ export function CardItem({
     onOpen?.(card);
   };
 
+  const style: CSSProperties = {};
+  if (sortable) {
+    if (sortable.transform) {
+      style.transform = `translate3d(${sortable.transform.x}px, ${sortable.transform.y}px, 0) scaleX(${sortable.transform.scaleX}) scaleY(${sortable.transform.scaleY})`;
+    }
+    if (sortable.transition) {
+      style.transition = sortable.transition;
+    }
+  }
+  const isDragging = sortable?.isDragging ?? externalIsDragging ?? false;
+
+  const ref = sortable?.setNodeRef;
+  const attributes = sortable?.attributes as HTMLAttributes<HTMLElement> | undefined;
+  const listeners = sortable?.listeners as HTMLAttributes<HTMLElement> | undefined;
+
   return (
     <article
+      ref={ref}
       data-card-id={card.id}
       data-testid="card-item"
       onClick={handleClick}
+      style={style}
       className={cn(
-        "bg-card text-card-foreground group/card relative flex w-full cursor-pointer flex-col gap-2 rounded-md border p-2 text-sm shadow-sm",
+        "bg-card text-card-foreground group/card relative flex w-full cursor-pointer touch-none flex-col gap-2 rounded-md border p-2 text-sm shadow-sm",
         isDragging && "opacity-60",
+        sortable && "cursor-grab active:cursor-grabbing",
       )}
+      {...attributes}
+      {...listeners}
     >
       <button
         type="button"
@@ -163,6 +192,7 @@ export function CardItem({
               cancelRename(e);
             }
           }}
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => e.stopPropagation()}
           disabled={isPending}
           aria-label="Rename card"
@@ -172,6 +202,7 @@ export function CardItem({
         />
       ) : (
         <h4
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
             beginRename(e);
@@ -251,14 +282,6 @@ export function CardItem({
           </div>
         )}
       </div>
-      {!hideDragHandle && (
-        <button
-          type="button"
-          aria-label="Move card"
-          className="text-muted-foreground/0 hover:text-muted-foreground sr-only focus-visible:not-sr-only focus-visible:absolute focus-visible:size-6"
-          {...dragHandleProps}
-        />
-      )}
     </article>
   );
 }
