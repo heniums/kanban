@@ -1,8 +1,8 @@
 {
   "track_id": "lists_20260630",
   "type": "feature",
-  "status": "new",
+  "status": "completed",
   "created_at": "2026-06-30T00:00:00Z",
-  "updated_at": "2026-06-30T00:00:00Z",
+  "updated_at": "2026-07-01T00:00:00Z",
   "description": "Implement board lists (create, rename, delete, reorder)"
 }
