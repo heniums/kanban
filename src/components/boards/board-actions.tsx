@@ -35,8 +35,10 @@ interface BoardActionsProps {
 
 const UNDO_DURATION_MS = 5000;
 
-const OVERLAY_BUTTON_CLASS =
+const SETTINGS_OVERLAY_CLASS =
   "border border-white/30 bg-black/20 text-white backdrop-blur-sm hover:bg-black/30";
+const DELETE_OVERLAY_CLASS =
+  "border border-red-300/40 bg-red-500/30 text-white backdrop-blur-sm hover:bg-red-500/40";
 
 export function BoardActions({ board, variant = "default" }: BoardActionsProps) {
   const router = useRouter();
@@ -46,8 +48,8 @@ export function BoardActions({ board, variant = "default" }: BoardActionsProps) 
   const [inFlight, setInFlight] = useState(false);
 
   const isOverlay = variant === "overlay";
-  const settingsClass = isOverlay ? OVERLAY_BUTTON_CLASS : undefined;
-  const deleteClass = isOverlay ? OVERLAY_BUTTON_CLASS : undefined;
+  const settingsClass = isOverlay ? SETTINGS_OVERLAY_CLASS : undefined;
+  const deleteClass = isOverlay ? DELETE_OVERLAY_CLASS : undefined;
 
   const handleDelete = () => {
     if (inFlight) return;

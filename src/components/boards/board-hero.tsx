@@ -14,8 +14,8 @@ interface BoardHeroProps {
 }
 
 const VARIANT_CLASSES: Record<BoardHeroVariant, string> = {
-  full: "min-h-[200px] py-8",
-  compact: "h-24",
+  full: "min-h-[160px] py-6 sm:min-h-[200px] sm:py-8",
+  compact: "h-20 sm:h-24",
 };
 
 export function BoardHero({ board, variant, className, children, breadcrumb }: BoardHeroProps) {
