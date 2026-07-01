@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { BoardActions } from "@/components/boards/board-actions";
+import { BoardHero } from "@/components/boards/board-hero";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { BoardLists } from "@/components/lists/board-lists";
 import { getBoardById } from "@/lib/data/boards";
 import { getListsByBoardId } from "@/lib/data/lists";
-import { getTextColor } from "@/lib/text-color";
 import { verifySession } from "@/lib/dal";
 
 interface BoardPageProps {
@@ -23,32 +23,22 @@ export default async function BoardPage({ params }: BoardPageProps) {
   }
 
   const lists = await getListsByBoardId(boardId, { ownerId: userId });
-  const textColor = getTextColor(board.background);
 
   return (
-    <div className="min-h-[calc(100vh-4rem)]" style={{ background: board.background }}>
-      <PageContainer>
-        <div className="mb-8 flex items-start justify-between gap-4">
-          <div>
-            <Link
-              href="/boards"
-              className="mb-2 inline-block text-sm opacity-70 hover:opacity-100"
-              style={{ color: textColor }}
-            >
-              &larr; All boards
-            </Link>
-            <h1 className="text-3xl font-bold" style={{ color: textColor }}>
-              {board.title}
-            </h1>
-            {board.description && (
-              <p className="mt-1 opacity-80" style={{ color: textColor }}>
-                {board.description}
-              </p>
-            )}
-          </div>
-          <BoardActions board={board} />
-        </div>
+    <div className="bg-background min-h-[calc(100vh-4rem)]">
+      <BoardHero
+        board={board}
+        variant="full"
+        breadcrumb={
+          <Link href="/boards" className="text-sm underline-offset-4 hover:underline">
+            &larr; All boards
+          </Link>
+        }
+      >
+        <BoardActions board={board} variant="overlay" />
+      </BoardHero>
 
+      <PageContainer>
         <BoardLists boardId={board.id} initialLists={lists} />
       </PageContainer>
     </div>

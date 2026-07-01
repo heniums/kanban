@@ -111,3 +111,118 @@ describe("BoardPage text color", () => {
     });
   });
 });
+
+describe("BoardPage hero section", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockGetListsByBoardId.mockResolvedValue(baseLists);
+  });
+
+  it("renders a hero region with an aria-label derived from the board title", async () => {
+    mockGetBoardById.mockResolvedValue(baseBoard);
+    const jsx = await BoardPage({
+      params: Promise.resolve({ boardId: "test-id" }),
+    });
+    render(jsx);
+    const hero = screen.getByRole("region", { name: /my test board board header/i });
+    expect(hero).toBeDefined();
+  });
+
+  it("applies the board background to the hero (not the page wrapper)", async () => {
+    mockGetBoardById.mockResolvedValue({ ...baseBoard, background: "#1a1a2e" });
+    const jsx = await BoardPage({
+      params: Promise.resolve({ boardId: "test-id" }),
+    });
+    const { container } = render(jsx);
+    const hero = screen.getByRole("region", { name: /my test board board header/i });
+    const heroStyle = hero.getAttribute("style") ?? "";
+    // The hero should carry the board background
+    expect(heroStyle.includes("1a1a2e") || heroStyle.includes("26, 26, 46")).toBe(true);
+    // No ancestor element outside the hero should also carry the board background
+    const allWithBg = container.querySelectorAll('[style*="background"]');
+    const nonHeroWithBoardBg = Array.from(allWithBg).filter((el) => {
+      if (el === hero || hero.contains(el)) return false;
+      const s = el.getAttribute("style") ?? "";
+      return s.includes("1a1a2e") || s.includes("26, 26, 46");
+    });
+    expect(nonHeroWithBoardBg).toHaveLength(0);
+  });
+
+  it("renders the h1 title inside the hero (not outside)", async () => {
+    mockGetBoardById.mockResolvedValue(baseBoard);
+    const jsx = await BoardPage({
+      params: Promise.resolve({ boardId: "test-id" }),
+    });
+    render(jsx);
+    const hero = screen.getByRole("region", { name: /my test board board header/i });
+    const h1 = screen.getByRole("heading", { level: 1, name: "My Test Board" });
+    expect(hero.contains(h1)).toBe(true);
+  });
+
+  it("renders the description inside the hero when present", async () => {
+    mockGetBoardById.mockResolvedValue(baseBoard);
+    const jsx = await BoardPage({
+      params: Promise.resolve({ boardId: "test-id" }),
+    });
+    render(jsx);
+    const hero = screen.getByRole("region", { name: /my test board board header/i });
+    const desc = screen.getByText("A description");
+    expect(hero.contains(desc)).toBe(true);
+  });
+
+  it("renders board actions (Settings, Delete) inside the hero", async () => {
+    mockGetBoardById.mockResolvedValue(baseBoard);
+    const jsx = await BoardPage({
+      params: Promise.resolve({ boardId: "test-id" }),
+    });
+    render(jsx);
+    const hero = screen.getByRole("region", { name: /my test board board header/i });
+    const settings = screen.getByRole("button", { name: /^settings$/i });
+    const del = screen.getByRole("button", { name: /^delete$/i });
+    expect(hero.contains(settings)).toBe(true);
+    expect(hero.contains(del)).toBe(true);
+  });
+
+  it("renders the board lists below the hero (not inside it)", async () => {
+    mockGetBoardById.mockResolvedValue(baseBoard);
+    const jsx = await BoardPage({
+      params: Promise.resolve({ boardId: "test-id" }),
+    });
+    render(jsx);
+    const hero = screen.getByRole("region", { name: /my test board board header/i });
+    const lists = screen.getByTestId("board-lists");
+    expect(lists).toBeDefined();
+    expect(hero.contains(lists)).toBe(false);
+  });
+
+  it("renders the 'All boards' breadcrumb inside the hero, above the title", async () => {
+    mockGetBoardById.mockResolvedValue(baseBoard);
+    const jsx = await BoardPage({
+      params: Promise.resolve({ boardId: "test-id" }),
+    });
+    render(jsx);
+    const hero = screen.getByRole("region", { name: /my test board board header/i });
+    const breadcrumb = screen.getByRole("link", { name: /all boards/i });
+    // The breadcrumb lives inside the hero
+    expect(hero.contains(breadcrumb)).toBe(true);
+    // The breadcrumb is positioned above the h1 in the DOM
+    const title = screen.getByRole("heading", { level: 1 });
+    expect(
+      breadcrumb.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("renders action buttons with an overlay (glass) style that contrasts any background", async () => {
+    mockGetBoardById.mockResolvedValue(baseBoard);
+    const jsx = await BoardPage({
+      params: Promise.resolve({ boardId: "test-id" }),
+    });
+    render(jsx);
+    const settings = screen.getByRole("button", { name: /^settings$/i });
+    const del = screen.getByRole("button", { name: /^delete$/i });
+    // Both buttons should use a backdrop-blur + semi-transparent overlay class
+    expect(settings.className).toMatch(/backdrop-blur/);
+    expect(del.className).toMatch(/backdrop-blur/);
+  });
+});

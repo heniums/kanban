@@ -26,18 +26,30 @@ import {
 } from "@/components/ui/alert-dialog";
 import { BoardSettings } from "./board-settings";
 
+type BoardActionsVariant = "default" | "overlay";
+
 interface BoardActionsProps {
   board: Board;
+  variant?: BoardActionsVariant;
 }
 
 const UNDO_DURATION_MS = 5000;
 
-export function BoardActions({ board }: BoardActionsProps) {
+const SETTINGS_OVERLAY_CLASS =
+  "border border-white/30 bg-black/20 text-white backdrop-blur-sm hover:bg-black/30";
+const DELETE_OVERLAY_CLASS =
+  "border border-red-300/40 bg-red-500/30 text-white backdrop-blur-sm hover:bg-red-500/40";
+
+export function BoardActions({ board, variant = "default" }: BoardActionsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [inFlight, setInFlight] = useState(false);
+
+  const isOverlay = variant === "overlay";
+  const settingsClass = isOverlay ? SETTINGS_OVERLAY_CLASS : undefined;
+  const deleteClass = isOverlay ? DELETE_OVERLAY_CLASS : undefined;
 
   const handleDelete = () => {
     if (inFlight) return;
@@ -73,7 +85,11 @@ export function BoardActions({ board }: BoardActionsProps) {
 
   return (
     <div className="flex items-center gap-2">
-      <Button variant="outline" onClick={() => setSettingsOpen(true)}>
+      <Button
+        variant={isOverlay ? "ghost" : "outline"}
+        className={settingsClass}
+        onClick={() => setSettingsOpen(true)}
+      >
         Settings
       </Button>
 
@@ -91,7 +107,9 @@ export function BoardActions({ board }: BoardActionsProps) {
 
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogTrigger asChild>
-          <Button variant="destructive">Delete</Button>
+          <Button variant="ghost" className={deleteClass}>
+            Delete
+          </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
