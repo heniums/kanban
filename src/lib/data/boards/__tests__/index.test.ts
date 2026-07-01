@@ -22,6 +22,7 @@ const setupDbMock = () => {
     operation = "update";
     return mock;
   });
+  mock.transaction = vi.fn(async (fn: (tx: any) => Promise<unknown>) => fn(mock));
   mock.from = vi.fn(() => mock);
   mock.values = vi.fn(() => mock);
   mock.set = vi.fn(() => mock);

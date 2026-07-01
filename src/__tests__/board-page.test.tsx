@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import type { Board } from "@/lib/db/schema/boards";
+import type { List } from "@/lib/db/schema/lists";
 
-const { mockVerifySession, mockGetBoardById } = vi.hoisted(() => ({
+const { mockVerifySession, mockGetBoardById, mockGetListsByBoardId } = vi.hoisted(() => ({
   mockVerifySession: vi.fn(),
   mockGetBoardById: vi.fn(),
+  mockGetListsByBoardId: vi.fn(),
 }));
 
 vi.mock("@/lib/dal", () => ({
@@ -22,6 +24,10 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/lib/data/boards", () => ({
   getBoardById: mockGetBoardById,
+}));
+
+vi.mock("@/lib/data/lists", () => ({
+  getListsByBoardId: mockGetListsByBoardId,
 }));
 
 vi.mock("@/lib/actions/boards", () => ({
@@ -46,10 +52,22 @@ const baseBoard: Board = {
   deletedAt: null,
 };
 
+const baseLists: List[] = [
+  {
+    id: "list-1",
+    boardId: "test-id",
+    title: "To Do",
+    position: 0,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+];
+
 describe("BoardPage text color", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockGetListsByBoardId.mockResolvedValue(baseLists);
   });
 
   it("uses white text on dark backgrounds", async () => {
