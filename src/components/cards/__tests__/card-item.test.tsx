@@ -32,7 +32,7 @@ describe("CardItem", () => {
     expect(screen.getByRole("heading", { name: "Hello world" })).toBeDefined();
   });
 
-  it("renders label chips when labels are present", () => {
+  it("renders label names (not just color bars)", () => {
     render(
       <CardItem
         card={{
@@ -44,29 +44,51 @@ describe("CardItem", () => {
         }}
       />,
     );
+    expect(screen.getByText("Bug")).toBeDefined();
+    expect(screen.getByText("Feature")).toBeDefined();
     expect(screen.getAllByTestId("card-label")).toHaveLength(2);
+  });
+
+  it("shows a +N indicator when there are more than 4 labels", () => {
+    render(
+      <CardItem
+        card={{
+          ...baseCard,
+          labels: [
+            { id: "l1", name: "A", color: "#000" },
+            { id: "l2", name: "B", color: "#000" },
+            { id: "l3", name: "C", color: "#000" },
+            { id: "l4", name: "D", color: "#000" },
+            { id: "l5", name: "E", color: "#000" },
+          ],
+        }}
+      />,
+    );
+    expect(screen.getByText("+1")).toBeDefined();
   });
 
   it("renders due date badge when dueDate is set", () => {
     const future = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
     render(<CardItem card={{ ...baseCard, dueDate: future }} />);
-    expect(screen.getByLabelText(/due/i)).toBeDefined();
+    const badge = screen.getByText(new RegExp(future.getFullYear().toString()));
+    expect(badge.title).toMatch(/^Due\b/);
   });
 
   it("renders overdue style for past due dates", () => {
     const past = new Date(Date.now() - 24 * 60 * 60 * 1000);
     render(<CardItem card={{ ...baseCard, dueDate: past }} />);
-    expect(screen.getByLabelText(/overdue/i)).toBeDefined();
+    const badge = screen.getByText(new RegExp(past.getFullYear().toString()));
+    expect(badge.title).toMatch(/Overdue/);
   });
 
   it("renders checklist progress when present", () => {
     render(<CardItem card={{ ...baseCard, checklistProgress: { total: 5, completed: 3 } }} />);
-    expect(screen.getByLabelText(/3 of 5/i)).toBeDefined();
+    expect(screen.getByText("3/5")).toBeDefined();
   });
 
   it("renders comment count when present", () => {
     render(<CardItem card={{ ...baseCard, commentCount: 7 }} />);
-    expect(screen.getByLabelText(/7 comments/i)).toBeDefined();
+    expect(screen.getByText("7")).toBeDefined();
   });
 
   it("renders assignee initials when assignees are present", () => {
@@ -81,8 +103,8 @@ describe("CardItem", () => {
         }}
       />,
     );
-    expect(screen.getByLabelText("Alice")).toBeDefined();
-    expect(screen.getByLabelText("Bob")).toBeDefined();
+    expect(screen.getByText("A")).toBeDefined();
+    expect(screen.getByText("B")).toBeDefined();
   });
 
   it("calls onOpen when the card body is clicked", () => {
@@ -90,5 +112,24 @@ describe("CardItem", () => {
     render(<CardItem card={baseCard} onOpen={onOpen} />);
     fireEvent.click(screen.getByTestId("card-item"));
     expect(onOpen).toHaveBeenCalled();
+  });
+
+  it("renders an edit (pencil) button that opens the modal", () => {
+    const onOpen = vi.fn();
+    render(<CardItem card={baseCard} onOpen={onOpen} />);
+    const editButton = screen.getByRole("button", { name: /edit card/i });
+    fireEvent.click(editButton);
+    expect(onOpen).toHaveBeenCalled();
+  });
+
+  it("renders a description preview when description is present", () => {
+    render(<CardItem card={{ ...baseCard, description: "Detailed notes here" }} />);
+    expect(screen.getByTestId("card-description-preview")).toBeDefined();
+    expect(screen.getByText("Detailed notes here")).toBeDefined();
+  });
+
+  it("does not render a description preview when description is empty", () => {
+    render(<CardItem card={baseCard} />);
+    expect(screen.queryByTestId("card-description-preview")).toBeNull();
   });
 });

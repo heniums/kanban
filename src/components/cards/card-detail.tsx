@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, Trash2, X } from "lucide-react";
+import { Calendar, Trash2, Tag } from "lucide-react";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -32,21 +32,29 @@ export interface CardDetailData {
 
 interface CardDetailProps {
   boardId: string;
-  boardLabels: Label[];
   lists: { id: string; title: string }[];
+}
+
+interface DraftState {
+  title: string;
+  description: string;
+  dueDate: Date | null;
+  labelIds: string[];
 }
 
 export function CardDetail({ boardId, lists }: CardDetailProps) {
   const [open, setOpen] = useState(false);
   const [data, setData] = useState<CardDetailData | null>(null);
+  const [draft, setDraft] = useState<DraftState | null>(null);
   const [isPending, startTransition] = useTransition();
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [newLabelIds, setNewLabelIds] = useState<string[]>([]);
   const router = useRouter();
+  const lastSyncedCardId = useRef<string | null>(null);
 
   useEffect(() => {
     function onOpen(e: Event) {
       const detail = (e as CustomEvent<{ cardId: string }>).detail;
-      // Fetch card details via a small action (reuse getCardById via direct call)
       void loadCard(detail.cardId);
     }
     async function loadCard(cardId: string) {
@@ -58,6 +66,14 @@ export function CardDetail({ boardId, lists }: CardDetailProps) {
         }
         const body = (await res.json()) as CardDetailData;
         setData(body);
+        setDraft({
+          title: body.card.title,
+          description: body.card.description ?? "",
+          dueDate: body.card.dueDate ? new Date(body.card.dueDate) : null,
+          labelIds: body.labels.map((l) => l.id),
+        });
+        setNewLabelIds([]);
+        lastSyncedCardId.current = body.card.id;
         setOpen(true);
       } catch {
         toast.error("Failed to load card");
@@ -70,6 +86,8 @@ export function CardDetail({ boardId, lists }: CardDetailProps) {
   const close = () => {
     setOpen(false);
     setData(null);
+    setDraft(null);
+    setNewLabelIds([]);
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
       url.searchParams.delete("card");
@@ -77,18 +95,35 @@ export function CardDetail({ boardId, lists }: CardDetailProps) {
     }
   };
 
-  const patch = (fields: Record<string, unknown>) => {
-    if (!data) return;
+  const isDirty = (() => {
+    if (!data || !draft) return false;
+    return (
+      draft.title !== data.card.title ||
+      draft.description !== (data.card.description ?? "") ||
+      String(draft.dueDate?.getTime() ?? "") !==
+        String(data.card.dueDate ? new Date(data.card.dueDate).getTime() : "") ||
+      draft.labelIds.length !== data.labels.length ||
+      draft.labelIds.some((id, i) => id !== data.labels[i]?.id)
+    );
+  })();
+
+  const handleSave = () => {
+    if (!data || !draft) return;
     startTransition(async () => {
-      const result = await updateCardAction({ cardId: data.card.id, ...fields });
+      const result = await updateCardAction({
+        cardId: data.card.id,
+        title: draft.title.trim() || data.card.title,
+        description: draft.description,
+        dueDate: draft.dueDate,
+        labelIds: draft.labelIds,
+      });
       if ("errors" in result) {
         toast.error(result.errors.map((e) => e.message).join(", "));
         return;
       }
-      if ("data" in result) {
-        setData({ ...data, card: { ...data.card, ...result.data } });
-        router.refresh();
-      }
+      toast.success("Card saved");
+      router.refresh();
+      close();
     });
   };
 
@@ -97,6 +132,15 @@ export function CardDetail({ boardId, lists }: CardDetailProps) {
     if ("errors" in result) {
       toast.error(result.errors.map((e) => e.message).join(", "));
       return null;
+    }
+    if (result.data) {
+      setData((prev) =>
+        prev ? { ...prev, boardLabels: [...prev.boardLabels, result.data as Label] } : prev,
+      );
+      setNewLabelIds((prev) => [...prev, result.data!.id]);
+      setDraft((prev) =>
+        prev ? { ...prev, labelIds: [...prev.labelIds, result.data!.id] } : prev,
+      );
     }
     return result.data;
   };
@@ -110,8 +154,7 @@ export function CardDetail({ boardId, lists }: CardDetailProps) {
         return;
       }
       setDeleteOpen(false);
-      setOpen(false);
-      setData(null);
+      close();
       router.refresh();
       toast.success("Card deleted");
     });
@@ -119,58 +162,85 @@ export function CardDetail({ boardId, lists }: CardDetailProps) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => (o ? setOpen(true) : close())}>
-      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
-        {data && (
-          <>
-            <DialogHeader>
-              <div className="flex items-center justify-between gap-2">
-                <DialogTitle className="sr-only">Card detail</DialogTitle>
-                <Button variant="ghost" size="icon-sm" onClick={close} aria-label="Close card">
-                  <X className="size-4" />
-                </Button>
-              </div>
-            </DialogHeader>
-
-            <CardTitleEditor
-              title={data.card.title}
-              isPending={isPending}
-              onSave={(title) => patch({ title })}
+      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto p-0 sm:rounded-xl">
+        {data && draft && (
+          <div className="flex flex-col gap-5 p-6">
+            <TitleEditor
+              value={draft.title}
+              onChange={(title) => setDraft({ ...draft, title })}
+              disabled={isPending}
             />
 
-            <div className="text-muted-foreground text-xs">
+            <div className="text-muted-foreground -mt-3 text-xs">
               in list{" "}
               <span className="font-medium">
                 {lists.find((l) => l.id === data.card.listId)?.title ?? "—"}
               </span>
             </div>
 
-            <FieldRow label="Due date" icon={<Calendar className="size-4" />}>
-              <DueDateEditor
-                value={data.card.dueDate}
-                onChange={(dueDate) => patch({ dueDate })}
-                disabled={isPending}
-              />
-            </FieldRow>
+            <div className="flex flex-wrap items-start gap-x-8 gap-y-4">
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="card-due-date"
+                  className="text-muted-foreground flex items-center gap-1.5 text-xs"
+                  title="Due date"
+                >
+                  <Calendar className="size-3.5" />
+                </label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="card-due-date"
+                    type="date"
+                    value={toDateInput(draft.dueDate)}
+                    onChange={(e) =>
+                      setDraft({
+                        ...draft,
+                        dueDate: e.target.value ? new Date(e.target.value) : null,
+                      })
+                    }
+                    disabled={isPending}
+                    className="w-40"
+                    aria-label="Due date"
+                  />
+                  {draft.dueDate && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setDraft({ ...draft, dueDate: null })}
+                      disabled={isPending}
+                    >
+                      Clear
+                    </Button>
+                  )}
+                </div>
+              </div>
 
-            <FieldRow label="Labels" icon={<span aria-hidden>🏷</span>}>
-              <LabelEditor
-                boardLabels={data.boardLabels}
-                cardLabels={data.labels}
-                onChange={(labelIds) => patch({ labelIds })}
-                onCreateLabel={handleCreateLabel}
-                disabled={isPending}
-              />
-            </FieldRow>
+              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                <span
+                  className="text-muted-foreground flex items-center gap-1.5 text-xs"
+                  title="Labels (board-level, reusable across cards)"
+                >
+                  <Tag className="size-3.5" />
+                </span>
+                <LabelEditor
+                  boardLabels={data.boardLabels}
+                  selectedIds={draft.labelIds}
+                  onChange={(labelIds) => setDraft({ ...draft, labelIds })}
+                  onCreateLabel={handleCreateLabel}
+                  newlyCreatedIds={newLabelIds}
+                  disabled={isPending}
+                />
+              </div>
+            </div>
 
-            <FieldRow label="Description" icon={<span aria-hidden>≡</span>}>
-              <DescriptionEditor
-                value={data.card.description ?? ""}
-                onSave={(description) => patch({ description })}
-                disabled={isPending}
-              />
-            </FieldRow>
+            <DescriptionEditor
+              value={draft.description}
+              onChange={(description) => setDraft({ ...draft, description })}
+              disabled={isPending}
+            />
 
-            <div className="border-t pt-4">
+            <div className="flex items-center justify-between border-t pt-4">
               <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" size="sm">
@@ -197,270 +267,185 @@ export function CardDetail({ boardId, lists }: CardDetailProps) {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+
+              <div className="flex items-center gap-2">
+                <Button type="button" variant="ghost" onClick={close} disabled={isPending}>
+                  Cancel
+                </Button>
+                <Button type="button" onClick={handleSave} disabled={isPending || !isDirty}>
+                  {isPending ? "Saving..." : "Save"}
+                </Button>
+              </div>
             </div>
-          </>
+          </div>
         )}
       </DialogContent>
     </Dialog>
   );
 }
 
-function FieldRow({
-  label,
-  icon,
-  children,
-}: {
-  label: string;
-  icon: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="text-muted-foreground flex items-center gap-2 text-xs font-semibold tracking-wide uppercase">
-        {icon}
-        {label}
-      </div>
-      <div>{children}</div>
-    </div>
-  );
+function toDateInput(d: Date | null): string {
+  if (!d) return "";
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
 }
 
-function CardTitleEditor({
-  title,
-  isPending,
-  onSave,
+function TitleEditor({
+  value,
+  onChange,
+  disabled,
 }: {
-  title: string;
-  isPending: boolean;
-  onSave: (title: string) => void;
+  value: string;
+  onChange: (v: string) => void;
+  disabled: boolean;
 }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(title);
-
-  if (editing) {
-    return (
-      <Input
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={() => {
-          if (draft.trim() && draft.trim() !== title) onSave(draft.trim());
-          setEditing(false);
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            if (draft.trim() && draft.trim() !== title) onSave(draft.trim());
-            setEditing(false);
-          } else if (e.key === "Escape") {
-            setDraft(title);
-            setEditing(false);
-          }
-        }}
-        autoFocus
-        maxLength={200}
-        disabled={isPending}
-        aria-label="Card title"
-        className="text-lg font-semibold"
-      />
-    );
-  }
-
   return (
-    <button
-      type="button"
-      onClick={() => {
-        setDraft(title);
-        setEditing(true);
-      }}
-      className="hover:bg-muted/40 -mx-1 rounded px-1 text-left text-lg font-semibold"
-    >
-      {title}
-    </button>
+    <Input
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      disabled={disabled}
+      maxLength={200}
+      aria-label="Card title"
+      className="text-xl font-semibold"
+      placeholder="Card title"
+    />
   );
 }
 
 function DescriptionEditor({
   value,
-  onSave,
-  disabled,
-}: {
-  value: string;
-  onSave: (description: string) => void;
-  disabled: boolean;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(value);
-
-  if (editing) {
-    return (
-      <textarea
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={() => {
-          if (draft !== value) onSave(draft);
-          setEditing(false);
-        }}
-        autoFocus
-        disabled={disabled}
-        maxLength={5000}
-        aria-label="Card description"
-        rows={4}
-        className="border-input bg-background placeholder:text-muted-foreground w-full rounded-md border px-3 py-2 text-sm"
-      />
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={() => {
-        setDraft(value);
-        setEditing(true);
-      }}
-      className="border-input hover:bg-muted/40 min-h-[60px] w-full rounded-md border border-dashed px-3 py-2 text-left text-sm"
-    >
-      {value ? value : "Add a description..."}
-    </button>
-  );
-}
-
-function DueDateEditor({
-  value,
   onChange,
   disabled,
 }: {
-  value: Date | null;
-  onChange: (date: Date | null) => void;
+  value: string;
+  onChange: (v: string) => void;
   disabled: boolean;
 }) {
-  const toDateInput = (d: Date | null) => {
-    if (!d) return "";
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  };
   return (
-    <div className="flex items-center gap-2">
-      <Input
-        type="date"
-        value={toDateInput(value)}
-        onChange={(e) => onChange(e.target.value ? new Date(e.target.value) : null)}
+    <div className="flex flex-col gap-2">
+      <label
+        htmlFor="card-description"
+        className="text-muted-foreground text-xs"
+        title="Description"
+      >
+        Description
+      </label>
+      <textarea
+        id="card-description"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        aria-label="Due date"
-        className="w-44"
+        maxLength={5000}
+        rows={5}
+        aria-label="Card description"
+        placeholder="Add a description..."
+        className="border-input bg-background placeholder:text-muted-foreground w-full rounded-md border px-3 py-2 text-sm"
       />
-      {value && (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => onChange(null)}
-          disabled={disabled}
-        >
-          Clear
-        </Button>
-      )}
     </div>
   );
 }
 
 function LabelEditor({
   boardLabels,
-  cardLabels,
+  selectedIds,
   onChange,
   onCreateLabel,
+  newlyCreatedIds,
   disabled,
 }: {
   boardLabels: Label[];
-  cardLabels: { id: string; name: string; color: string }[];
+  selectedIds: string[];
   onChange: (labelIds: string[]) => void;
   onCreateLabel: (name: string, color: string) => Promise<Label | null>;
+  newlyCreatedIds: string[];
   disabled: boolean;
 }) {
-  const cardLabelIds = new Set(cardLabels.map((l) => l.id));
+  const selected = new Set(selectedIds);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [newColor, setNewColor] = useState("#3b82f6");
 
   const toggle = (id: string) => {
     if (disabled) return;
-    const next = new Set(cardLabelIds);
+    const next = new Set(selected);
     if (next.has(id)) next.delete(id);
     else next.add(id);
     onChange(Array.from(next));
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-wrap gap-2">
-        {boardLabels.length === 0 && (
-          <span className="text-muted-foreground text-xs">No labels yet.</span>
-        )}
-        {boardLabels.map((l) => {
-          const active = cardLabelIds.has(l.id);
-          return (
-            <button
-              type="button"
-              key={l.id}
-              onClick={() => toggle(l.id)}
-              disabled={disabled}
-              className={`rounded-full border px-2 py-0.5 text-xs hover:opacity-90 ${active ? "ring-2 ring-offset-1" : "opacity-60"}`}
-              style={{ backgroundColor: l.color, color: "white" }}
-              aria-pressed={active}
-            >
-              {l.name}
-            </button>
-          );
-        })}
-        {creating ? (
-          <div className="flex items-center gap-1">
-            <input
-              type="color"
-              value={newColor}
-              onChange={(e) => setNewColor(e.target.value)}
-              className="h-7 w-7 cursor-pointer rounded border"
-              aria-label="Label color"
-            />
-            <Input
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder="Label name"
-              maxLength={50}
-              className="h-7 w-32 text-xs"
-            />
-            <Button
-              type="button"
-              size="sm"
-              onClick={async () => {
-                const name = newName.trim();
-                if (!name) return;
-                const created = await onCreateLabel(name, newColor);
-                if (created) {
-                  setNewName("");
-                  setNewColor("#3b82f6");
-                  setCreating(false);
-                }
-              }}
-            >
-              Add
-            </Button>
-            <Button type="button" size="sm" variant="ghost" onClick={() => setCreating(false)}>
-              Cancel
-            </Button>
-          </div>
-        ) : (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {boardLabels.length === 0 && !creating && (
+        <span className="text-muted-foreground text-xs">No labels yet.</span>
+      )}
+      {boardLabels.map((l) => {
+        const active = selected.has(l.id);
+        const isNew = newlyCreatedIds.includes(l.id);
+        return (
+          <button
+            type="button"
+            key={l.id}
+            onClick={() => toggle(l.id)}
+            disabled={disabled}
+            className={`rounded-full border px-2 py-0.5 text-xs transition-opacity hover:opacity-90 ${active ? "ring-2 ring-offset-1" : "opacity-50"} ${isNew ? "ring-1 ring-emerald-400" : ""}`}
+            style={{ backgroundColor: l.color, color: "white" }}
+            aria-pressed={active}
+            title={l.name}
+          >
+            {l.name}
+          </button>
+        );
+      })}
+      {creating ? (
+        <div className="flex items-center gap-1">
+          <input
+            type="color"
+            value={newColor}
+            onChange={(e) => setNewColor(e.target.value)}
+            className="h-7 w-7 cursor-pointer rounded border"
+            aria-label="Label color"
+          />
+          <Input
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="Label name"
+            maxLength={50}
+            className="h-7 w-32 text-xs"
+            autoFocus
+          />
           <Button
             type="button"
             size="sm"
-            variant="outline"
-            onClick={() => setCreating(true)}
-            disabled={disabled}
+            onClick={async () => {
+              const name = newName.trim();
+              if (!name) return;
+              const created = await onCreateLabel(name, newColor);
+              if (created) {
+                setNewName("");
+                setNewColor("#3b82f6");
+                setCreating(false);
+              }
+            }}
           >
-            + New label
+            Add
           </Button>
-        )}
-      </div>
+          <Button type="button" size="sm" variant="ghost" onClick={() => setCreating(false)}>
+            Cancel
+          </Button>
+        </div>
+      ) : (
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => setCreating(true)}
+          disabled={disabled}
+        >
+          + New label
+        </Button>
+      )}
     </div>
   );
 }

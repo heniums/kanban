@@ -6,7 +6,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { BoardCards } from "@/components/cards/board-cards";
 import { getBoardById } from "@/lib/data/boards";
 import { getListsByBoardId } from "@/lib/data/lists";
-import { getCardsByBoardId } from "@/lib/data/cards";
+import { getCardsByBoardId, getCardLabelsByBoardId } from "@/lib/data/cards";
 import { getLabelsByBoardId } from "@/lib/data/labels";
 import { verifySession } from "@/lib/dal";
 import type { CardSummary } from "@/components/cards/card-item";
@@ -26,8 +26,11 @@ export default async function BoardPage({ params }: BoardPageProps) {
   }
 
   const lists = await getListsByBoardId(boardId, { ownerId: userId });
-  const allCards = await getCardsByBoardId(boardId, { ownerId: userId });
-  const boardLabels = await getLabelsByBoardId(boardId, { ownerId: userId });
+  const [allCards, cardLabelsMap, boardLabels] = await Promise.all([
+    getCardsByBoardId(boardId, { ownerId: userId }),
+    getCardLabelsByBoardId(boardId, { ownerId: userId }),
+    getLabelsByBoardId(boardId, { ownerId: userId }),
+  ]);
 
   const cardsByList: Record<string, CardSummary[]> = {};
   for (const list of lists) {
@@ -37,7 +40,7 @@ export default async function BoardPage({ params }: BoardPageProps) {
     if (!cardsByList[card.listId]) cardsByList[card.listId] = [];
     cardsByList[card.listId].push({
       ...card,
-      labels: [],
+      labels: cardLabelsMap[card.id] ?? [],
       assignees: [],
       checklistProgress: null,
       commentCount: 0,

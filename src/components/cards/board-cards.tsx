@@ -266,7 +266,6 @@ export function BoardCards({
       </DragOverlay>
       <CardDetail
         boardId={boardId}
-        boardLabels={boardLabels}
         lists={optimisticLists.map((l) => ({ id: l.id, title: l.title }))}
       />
     </DndContext>

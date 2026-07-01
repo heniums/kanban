@@ -8,12 +8,14 @@ const {
   mockGetBoardById,
   mockGetListsByBoardId,
   mockGetCardsByBoardId,
+  mockGetCardLabelsByBoardId,
   mockGetLabelsByBoardId,
 } = vi.hoisted(() => ({
   mockVerifySession: vi.fn(),
   mockGetBoardById: vi.fn(),
   mockGetListsByBoardId: vi.fn(),
   mockGetCardsByBoardId: vi.fn(),
+  mockGetCardLabelsByBoardId: vi.fn(),
   mockGetLabelsByBoardId: vi.fn(),
 }));
 
@@ -40,6 +42,7 @@ vi.mock("@/lib/data/lists", () => ({
 
 vi.mock("@/lib/data/cards", () => ({
   getCardsByBoardId: mockGetCardsByBoardId,
+  getCardLabelsByBoardId: mockGetCardLabelsByBoardId,
 }));
 
 vi.mock("@/lib/data/labels", () => ({
@@ -85,6 +88,7 @@ describe("BoardPage text color", () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
     mockGetListsByBoardId.mockResolvedValue(baseLists);
     mockGetCardsByBoardId.mockResolvedValue([]);
+    mockGetCardLabelsByBoardId.mockResolvedValue({});
     mockGetLabelsByBoardId.mockResolvedValue([]);
   });
 
@@ -136,6 +140,7 @@ describe("BoardPage hero section", () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
     mockGetListsByBoardId.mockResolvedValue(baseLists);
     mockGetCardsByBoardId.mockResolvedValue([]);
+    mockGetCardLabelsByBoardId.mockResolvedValue({});
     mockGetLabelsByBoardId.mockResolvedValue([]);
   });
 

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, MessageSquare } from "lucide-react";
+import { Calendar, MessageSquare, Pencil } from "lucide-react";
 import type { Card } from "@/lib/db/schema/cards";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -23,8 +23,8 @@ interface CardItemProps {
   hideDragHandle?: boolean;
 }
 
-function dueDateColor(dueDate: Date | null | undefined): { className: string; label: string } {
-  if (!dueDate) return { className: "hidden", label: "" };
+function dueDateColor(dueDate: Date | null | undefined): { className: string; tooltip: string } {
+  if (!dueDate) return { className: "hidden", tooltip: "" };
   const now = new Date();
   const due = new Date(dueDate);
   const diffMs = due.getTime() - now.getTime();
@@ -32,18 +32,18 @@ function dueDateColor(dueDate: Date | null | undefined): { className: string; la
   if (diffDays < 0) {
     return {
       className: "bg-red-500/15 text-red-700 dark:text-red-300",
-      label: `Overdue · ${due.toLocaleDateString()}`,
+      tooltip: `Overdue · ${due.toLocaleDateString()}`,
     };
   }
   if (diffDays <= 2) {
     return {
       className: "bg-yellow-500/15 text-yellow-800 dark:text-yellow-300",
-      label: `Due soon · ${due.toLocaleDateString()}`,
+      tooltip: `Due soon · ${due.toLocaleDateString()}`,
     };
   }
   return {
     className: "bg-muted text-muted-foreground",
-    label: `Due · ${due.toLocaleDateString()}`,
+    tooltip: `Due · ${due.toLocaleDateString()}`,
   };
 }
 
@@ -63,6 +63,7 @@ export function CardItem({
   const assignees = card.assignees ?? [];
   const progress = card.checklistProgress;
   const commentCount = card.commentCount ?? 0;
+  const hasDescription = !!(card.description && card.description.trim().length > 0);
 
   const beginRename = (e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -91,8 +92,13 @@ export function CardItem({
     setIsRenaming(false);
   };
 
+  const openModal = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onOpen?.(card);
+  };
+
   const handleClick = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest("button, input")) return;
+    if ((e.target as HTMLElement).closest("button, input, textarea")) return;
     onOpen?.(card);
   };
 
@@ -102,22 +108,44 @@ export function CardItem({
       data-testid="card-item"
       onClick={handleClick}
       className={cn(
-        "bg-card text-card-foreground group/card flex w-full cursor-pointer flex-col gap-2 rounded-md border p-2 text-sm shadow-sm",
+        "bg-card text-card-foreground group/card relative flex w-full cursor-pointer flex-col gap-2 rounded-md border p-2 text-sm shadow-sm",
         isDragging && "opacity-60",
       )}
     >
+      <button
+        type="button"
+        onClick={openModal}
+        aria-label="Edit card"
+        title="Edit card"
+        className="text-muted-foreground hover:text-foreground hover:bg-muted absolute top-1.5 right-1.5 inline-flex size-6 items-center justify-center rounded opacity-0 transition-opacity group-hover/card:opacity-100 focus-visible:opacity-100"
+      >
+        <Pencil className="size-3.5" />
+      </button>
+
       {labels.length > 0 && (
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1 pr-6">
           {labels.slice(0, 4).map((l) => (
             <span
               key={l.id}
               data-testid="card-label"
-              className="h-2 w-8 rounded-sm"
+              className="rounded-sm px-1.5 py-0.5 text-[10px] font-medium text-white"
               style={{ backgroundColor: l.color }}
-              aria-label={l.name}
               title={l.name}
-            />
+            >
+              {l.name}
+            </span>
           ))}
+          {labels.length > 4 && (
+            <span
+              className="text-muted-foreground text-[10px]"
+              title={labels
+                .slice(4)
+                .map((l) => l.name)
+                .join(", ")}
+            >
+              +{labels.length - 4}
+            </span>
+          )}
         </div>
       )}
 
@@ -148,12 +176,21 @@ export function CardItem({
             e.stopPropagation();
             beginRename(e);
           }}
-          className="cursor-text leading-snug font-medium"
+          className="cursor-text pr-6 leading-snug font-medium"
           role="heading"
           aria-level={4}
         >
           {card.title}
         </h4>
+      )}
+
+      {hasDescription && (
+        <p
+          className="text-muted-foreground line-clamp-3 text-xs"
+          data-testid="card-description-preview"
+        >
+          {card.description}
+        </p>
       )}
 
       <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
@@ -163,7 +200,7 @@ export function CardItem({
               "inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px]",
               due.className,
             )}
-            aria-label={due.label}
+            title={due.tooltip}
           >
             <Calendar className="size-3" /> {new Date(card.dueDate).toLocaleDateString()}
           </span>
@@ -171,7 +208,7 @@ export function CardItem({
         {progress && progress.total > 0 && (
           <span
             className="inline-flex items-center gap-1"
-            aria-label={`${progress.completed} of ${progress.total} checklist items completed`}
+            title={`${progress.completed} of ${progress.total} checklist items completed`}
           >
             <span aria-hidden>☑</span>
             <span>
@@ -191,7 +228,7 @@ export function CardItem({
           </span>
         )}
         {commentCount > 0 && (
-          <span className="inline-flex items-center gap-1" aria-label={`${commentCount} comments`}>
+          <span className="inline-flex items-center gap-1" title={`${commentCount} comments`}>
             <MessageSquare className="size-3" /> {commentCount}
           </span>
         )}
@@ -201,7 +238,6 @@ export function CardItem({
               <span
                 key={a.id}
                 className="bg-muted text-foreground inline-flex size-5 items-center justify-center rounded-full border text-[10px] font-semibold"
-                aria-label={a.name}
                 title={a.name}
               >
                 {a.name.charAt(0).toUpperCase()}

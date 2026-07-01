@@ -1,7 +1,8 @@
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { createDbClient } from "@/lib/db/client";
 import { cards, type Card } from "@/lib/db/schema/cards";
 import { cardLabels } from "@/lib/db/schema/card-labels";
+import { labels, type Label } from "@/lib/db/schema/labels";
 import { cardAssignees } from "@/lib/db/schema/card-assignees";
 import { lists } from "@/lib/db/schema/lists";
 import { boards } from "@/lib/db/schema/boards";
@@ -305,4 +306,31 @@ export async function getCardsByBoardId(
     )
     .orderBy(sql`${cards.listId} ASC, ${cards.position} ASC`);
   return rows.map((r) => r.card);
+}
+
+export async function getCardLabelsByBoardId(
+  boardId: string,
+  options: { ownerId: string },
+): Promise<Record<string, Label[]>> {
+  const db = createDbClient();
+  const rows = await db
+    .select({
+      cardId: cardLabels.cardId,
+      labelId: labels.id,
+      labelName: labels.name,
+      labelColor: labels.color,
+    })
+    .from(cardLabels)
+    .innerJoin(cards, eq(cards.id, cardLabels.cardId))
+    .innerJoin(labels, eq(labels.id, cardLabels.labelId))
+    .innerJoin(boards, sql`${boards.id} = ${cards.boardId}`)
+    .where(
+      sql`${cards.boardId} = ${boardId} AND ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL`,
+    );
+  const out: Record<string, Label[]> = {};
+  for (const r of rows) {
+    if (!out[r.cardId]) out[r.cardId] = [];
+    out[r.cardId].push({ id: r.labelId, name: r.labelName, color: r.labelColor } as Label);
+  }
+  return out;
 }
