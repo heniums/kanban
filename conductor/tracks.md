@@ -10,8 +10,3 @@ All tracks are complete. See `conductor/archive/` for historical track folders.
 
 - [x] **Track: Implement card CRUD and frontend**
       _Link: [./tracks/cards_20260701/](./tracks/cards_20260701/)_
-
----
-
-- [x] **Track: fix bug: cannot reorder lists**
-      _Link: [./tracks/list_reorder_fix_20260701/](./tracks/list_reorder_fix_20260701/)_
