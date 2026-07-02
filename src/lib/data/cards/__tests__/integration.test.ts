@@ -1,41 +1,34 @@
-import { describe, expect, it, afterAll } from "vitest";
+import { describe, expect, it } from "vitest";
 import { asc, eq } from "drizzle-orm";
 // @vitest-environment node
 import { createDbClient } from "@/lib/db/client";
-import { users } from "@/lib/db/schema/users";
-import { boards } from "@/lib/db/schema/boards";
 import { lists } from "@/lib/db/schema/lists";
 import { cards } from "@/lib/db/schema/cards";
 import { cardLabels } from "@/lib/db/schema/card-labels";
 import { cardAssignees } from "@/lib/db/schema/card-assignees";
 import { labels } from "@/lib/db/schema/labels";
+import type { User } from "@/lib/db/schema/users";
+import { TestDataFactory } from "@/__tests__/test-factory";
 import { getListsByBoardId } from "@/lib/data/lists";
 import { createCard, moveCard, reorderCards, updateCard, deleteCard } from "..";
 
 const db = createDbClient();
+const factory = new TestDataFactory();
+factory.registerCleanup();
 
-const TEST_EMAILS: string[] = [];
 let testBoardId: string | null = null;
+let testOwnerId: string | null = null;
+let testOwner: User | null = null;
 
 async function ensureTestBoard() {
-  if (testBoardId) return testBoardId;
-  const email = `test-cards-data-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@kanban.local`;
-  TEST_EMAILS.push(email);
-  const [user] = await db
-    .insert(users)
-    .values({ email, passwordHash: "x", name: "Test User" })
-    .returning();
-  const [board] = await db
-    .insert(boards)
-    .values({ title: "Cards Test Board", background: "#000", ownerId: user.id })
-    .returning();
+  if (testBoardId && testOwnerId && testOwner)
+    return { boardId: testBoardId, ownerId: testOwnerId, owner: testOwner };
+  const user = await factory.createUser();
+  const board = await factory.createBoard({ ownerId: user.id, title: "Cards Test Board" });
   testBoardId = board.id;
-  return board.id;
-}
-
-async function getOwnerOf(boardId: string): Promise<string | null> {
-  const [b] = await db.select().from(boards).where(eq(boards.id, boardId));
-  return b?.ownerId ?? null;
+  testOwnerId = user.id;
+  testOwner = user;
+  return { boardId: board.id, ownerId: user.id, owner: user };
 }
 
 async function getCardsByListIdDirect(listId: string) {
@@ -53,23 +46,11 @@ async function resetList(boardId: string, ownerId: string) {
   return { l0: l0[0], l1: l1[0] };
 }
 
-afterAll(async () => {
-  for (const email of TEST_EMAILS) {
-    const [testUser] = await db.select().from(users).where(eq(users.email, email));
-    if (testUser) {
-      await db.delete(boards).where(eq(boards.ownerId, testUser.id));
-      await db.delete(users).where(eq(users.id, testUser.id));
-    }
-  }
-});
-
 describe("createCard (integration)", () => {
   it("auto-assigns the next position and links label/assignee ids", async () => {
-    const boardId = await ensureTestBoard();
-    const ownerId = (await getOwnerOf(boardId))!;
+    const { boardId, ownerId, owner } = await ensureTestBoard();
     const { l0 } = await resetList(boardId, ownerId);
 
-    const [owner] = await db.select().from(users).where(eq(users.email, TEST_EMAILS[0]));
     const [lbl] = await db
       .insert(labels)
       .values({ boardId, name: "Bug", color: "#ff0000" })
@@ -103,8 +84,7 @@ describe("createCard (integration)", () => {
 
 describe("getCardsByListId (integration)", () => {
   it("returns cards in position order", async () => {
-    const boardId = await ensureTestBoard();
-    const ownerId = (await getOwnerOf(boardId))!;
+    const { boardId, ownerId } = await ensureTestBoard();
     const { l0 } = await resetList(boardId, ownerId);
 
     await createCard({ listId: l0.id, title: "A" }, { ownerId });
@@ -119,8 +99,7 @@ describe("getCardsByListId (integration)", () => {
 
 describe("updateCard (integration)", () => {
   it("updates title and replaces label links", async () => {
-    const boardId = await ensureTestBoard();
-    const ownerId = (await getOwnerOf(boardId))!;
+    const { boardId, ownerId } = await ensureTestBoard();
     const { l0 } = await resetList(boardId, ownerId);
 
     const [lbl1] = await db
@@ -151,8 +130,7 @@ describe("updateCard (integration)", () => {
 
 describe("deleteCard (integration) — position recompaction", () => {
   it("recompacts positions within the same list", async () => {
-    const boardId = await ensureTestBoard();
-    const ownerId = (await getOwnerOf(boardId))!;
+    const { boardId, ownerId } = await ensureTestBoard();
     const { l0 } = await resetList(boardId, ownerId);
 
     const c0 = await createCard({ listId: l0.id, title: "C0" }, { ownerId });
@@ -172,8 +150,7 @@ describe("deleteCard (integration) — position recompaction", () => {
 
 describe("moveCard (integration)", () => {
   it("moves a card across lists and recompacts both", async () => {
-    const boardId = await ensureTestBoard();
-    const ownerId = (await getOwnerOf(boardId))!;
+    const { boardId, ownerId } = await ensureTestBoard();
     const { l0, l1 } = await resetList(boardId, ownerId);
 
     const c0 = await createCard({ listId: l0.id, title: "C0" }, { ownerId });
@@ -197,8 +174,7 @@ describe("moveCard (integration)", () => {
 
 describe("reorderCards (integration)", () => {
   it("reorders cards to match the new positions", async () => {
-    const boardId = await ensureTestBoard();
-    const ownerId = (await getOwnerOf(boardId))!;
+    const { boardId, ownerId } = await ensureTestBoard();
     const { l0 } = await resetList(boardId, ownerId);
 
     const a = await createCard({ listId: l0.id, title: "A" }, { ownerId });
