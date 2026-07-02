@@ -1,10 +1,9 @@
-import { describe, expect, it, afterAll } from "vitest";
+import { describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
 // @vitest-environment node
 import { createDbClient } from "@/lib/db/client";
-import { users } from "@/lib/db/schema/users";
-import { boards } from "@/lib/db/schema/boards";
 import { lists } from "@/lib/db/schema/lists";
+import { TestDataFactory } from "@/__tests__/test-factory";
 import {
   createList,
   getListsByBoardId,
@@ -14,45 +13,24 @@ import {
 } from "@/lib/data/lists";
 
 const db = createDbClient();
+const factory = new TestDataFactory();
+factory.registerCleanup();
 
-const TEST_EMAILS: string[] = [];
 let testBoardId: string | null = null;
+let testOwnerId: string | null = null;
 
 async function ensureTestBoard() {
-  if (testBoardId) return testBoardId;
-  const email = `test-lists-data-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@kanban.local`;
-  TEST_EMAILS.push(email);
-  const [user] = await db
-    .insert(users)
-    .values({ email, passwordHash: "x", name: "Test User" })
-    .returning();
-  const [board] = await db
-    .insert(boards)
-    .values({ title: "Test Board", background: "#000", ownerId: user.id })
-    .returning();
+  if (testBoardId && testOwnerId) return { boardId: testBoardId, ownerId: testOwnerId };
+  const user = await factory.createUser();
+  const board = await factory.createBoard({ ownerId: user.id });
   testBoardId = board.id;
-  return board.id;
-}
-
-afterAll(async () => {
-  for (const email of TEST_EMAILS) {
-    const [testUser] = await db.select().from(users).where(eq(users.email, email));
-    if (testUser) {
-      await db.delete(boards).where(eq(boards.ownerId, testUser.id));
-      await db.delete(users).where(eq(users.id, testUser.id));
-    }
-  }
-});
-
-async function getOwnerOf(boardId: string): Promise<string | null> {
-  const [b] = await db.select().from(boards).where(eq(boards.id, boardId));
-  return b?.ownerId ?? null;
+  testOwnerId = user.id;
+  return { boardId: board.id, ownerId: user.id };
 }
 
 describe("getListsByBoardId (integration)", () => {
   it("returns lists in position order for the owner", async () => {
-    const boardId = await ensureTestBoard();
-    const ownerId = (await getOwnerOf(boardId))!;
+    const { boardId, ownerId } = await ensureTestBoard();
     await createList({ boardId, title: "A" }, { ownerId });
     await createList({ boardId, title: "B" }, { ownerId });
     await createList({ boardId, title: "C" }, { ownerId });
@@ -68,8 +46,7 @@ describe("getListsByBoardId (integration)", () => {
 
 describe("createList (integration)", () => {
   it("auto-assigns the next position based on existing lists", async () => {
-    const boardId = await ensureTestBoard();
-    const ownerId = (await getOwnerOf(boardId))!;
+    const { boardId, ownerId } = await ensureTestBoard();
     const l0 = await createList({ boardId, title: "Zero" }, { ownerId });
     const l1 = await createList({ boardId, title: "One" }, { ownerId });
     expect(l0.position).toBe(0);
@@ -81,8 +58,7 @@ describe("createList (integration)", () => {
 
 describe("renameList (integration)", () => {
   it("updates the list title", async () => {
-    const boardId = await ensureTestBoard();
-    const ownerId = (await getOwnerOf(boardId))!;
+    const { boardId, ownerId } = await ensureTestBoard();
     const list = await createList({ boardId, title: "Original" }, { ownerId });
 
     const updated = await renameList(list.id, { title: "Renamed" }, { ownerId });
@@ -95,8 +71,7 @@ describe("renameList (integration)", () => {
 
 describe("deleteList (integration) — position recompaction", () => {
   it("recompacts positions after deletion", async () => {
-    const boardId = await ensureTestBoard();
-    const ownerId = (await getOwnerOf(boardId))!;
+    const { boardId, ownerId } = await ensureTestBoard();
     const l0 = await createList({ boardId, title: "L0" }, { ownerId });
     const l1 = await createList({ boardId, title: "L1" }, { ownerId });
     const l2 = await createList({ boardId, title: "L2" }, { ownerId });
@@ -124,8 +99,7 @@ describe("deleteList (integration) — position recompaction", () => {
 
 describe("reorderLists (integration)", () => {
   it("reorders lists to match the new positions", async () => {
-    const boardId = await ensureTestBoard();
-    const ownerId = (await getOwnerOf(boardId))!;
+    const { boardId, ownerId } = await ensureTestBoard();
     const a = await createList({ boardId, title: "A" }, { ownerId });
     const b = await createList({ boardId, title: "B" }, { ownerId });
     const c = await createList({ boardId, title: "C" }, { ownerId });
