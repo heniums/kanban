@@ -1,5 +1,9 @@
 import { type Page } from "@playwright/test";
+import dotenv from "dotenv";
+import path from "path";
 import pg from "pg";
+
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
 export interface TestUser {
   email: string;
