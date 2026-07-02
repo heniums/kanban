@@ -13,5 +13,5 @@ All tracks are complete. See `conductor/archive/` for historical track folders.
 
 ---
 
-- [ ] **Track: Update all integration tests to cleanup test data inserted**
+- [x] **Track: Update all integration tests to cleanup test data inserted**
       _Link: [./tracks/test_cleanup_20260701/](./tracks/test_cleanup_20260701/)_
