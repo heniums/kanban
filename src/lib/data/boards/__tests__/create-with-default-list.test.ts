@@ -1,41 +1,23 @@
-import { describe, expect, it, afterAll } from "vitest";
+import { describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
 // @vitest-environment node
 import { createDbClient } from "@/lib/db/client";
-import { users } from "@/lib/db/schema/users";
-import { boards } from "@/lib/db/schema/boards";
 import { lists } from "@/lib/db/schema/lists";
+import { TestDataFactory } from "@/__tests__/test-factory";
 import { createBoard } from "@/lib/data/boards/create";
 
 const db = createDbClient();
-
-const TEST_EMAILS: string[] = [];
+const factory = new TestDataFactory();
+factory.registerCleanup();
 
 async function createTestUser(label: string) {
-  const email = `test-list-side-effect-${label}-${Date.now()}-${Math.random()
-    .toString(36)
-    .slice(2, 8)}@kanban.local`;
-  TEST_EMAILS.push(email);
-  const [user] = await db
-    .insert(users)
-    .values({
-      email,
-      passwordHash: "x",
-      name: `Test User ${label}`,
-    })
-    .returning();
-  return user;
+  return factory.createUser({
+    email: `test-list-side-effect-${label}-${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2, 8)}@kanban.local`,
+    name: `Test User ${label}`,
+  });
 }
-
-afterAll(async () => {
-  for (const email of TEST_EMAILS) {
-    const [testUser] = await db.select().from(users).where(eq(users.email, email));
-    if (testUser) {
-      await db.delete(boards).where(eq(boards.ownerId, testUser.id));
-      await db.delete(users).where(eq(users.id, testUser.id));
-    }
-  }
-});
 
 describe("createBoard default list side effect", () => {
   it("creates a default 'To Do' list with position 0 atomically", async () => {
