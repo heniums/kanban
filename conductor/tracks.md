@@ -10,3 +10,8 @@ All tracks are complete. See `conductor/archive/` for historical track folders.
 
 - [x] **Track: Implement card CRUD and frontend**
       _Link: [./tracks/cards_20260701/](./tracks/cards_20260701/)_
+
+---
+
+- [ ] **Track: Split large files into focused modules (Refactor)**
+      _Link: [./tracks/file_split_20260702/](./tracks/file_split_20260702/)_
