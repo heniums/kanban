@@ -13,5 +13,5 @@ All tracks are complete. See `conductor/archive/` for historical track folders.
 
 ---
 
-- [ ] **Track: Split large files into focused modules (Refactor)**
-      _Link: [./tracks/file_split_20260702/](./tracks/file_split_20260702/)_
+- [~] **Track: Split large files into focused modules (Refactor)**
+  _Link: [./tracks/file_split_20260702/](./tracks/file_split_20260702/)_
