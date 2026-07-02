@@ -1,30 +1,19 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
+import { registerUser, createBoard, cleanupE2EUser, type TestUser } from "./utils";
 
-const TEST_USER = {
+const TEST_USER: TestUser = {
   email: `e2e-lists-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@kanban.local`,
   password: "test-password-123",
   name: "E2E Lists User",
 };
 
-async function registerUser(page: Page) {
-  await page.goto("/register");
-  await page.getByLabel(/name/i).fill(TEST_USER.name);
-  await page.getByLabel(/email/i).fill(TEST_USER.email);
-  await page.getByLabel(/password/i).fill(TEST_USER.password);
-  await page.getByRole("button", { name: /create account/i }).click();
-  await page.waitForURL("/", { timeout: 30_000 });
-}
-
-async function createBoard(page: Page, title: string) {
-  await page.goto("/boards/new");
-  await page.getByLabel(/title/i).fill(title);
-  await page.getByRole("button", { name: /create board/i }).click();
-  await page.waitForURL(/\/boards\/[a-f0-9-]+$/, { timeout: 30_000 });
-}
-
 test.describe("List management", () => {
   test.beforeEach(async ({ page }) => {
-    await registerUser(page);
+    await registerUser(page, TEST_USER);
+  });
+
+  test.afterAll(async () => {
+    await cleanupE2EUser(TEST_USER.email);
   });
 
   test("creating a board shows the default 'To Do' list", async ({ page }) => {
