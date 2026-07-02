@@ -95,6 +95,14 @@ export class TestDataFactory {
     return this._userIds;
   }
 
+  trackUser(userId: string): void {
+    this._userIds.push(userId);
+  }
+
+  trackBoard(boardId: string): void {
+    this._boardIds.push(boardId);
+  }
+
   async cleanup(): Promise<void> {
     for (const id of [...this._cardIds].reverse()) {
       await this.db
