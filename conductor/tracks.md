@@ -25,3 +25,8 @@ All tracks are complete. See `conductor/archive/` for historical track folders.
 
 - [x] **Track: Refactor the fetch before write pattern in the data layer**
       _Link: [./tracks/fetch_write_refactor_20260703/](./tracks/fetch_write_refactor_20260703/)_
+
+---
+
+- [ ] **Track: Card UI Polish (cursor, drag animation, due date)**
+      _Link: [./tracks/card_ui_polish_20260703/](./tracks/card_ui_polish_20260703/)_
