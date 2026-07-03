@@ -1,0 +1,47 @@
+import type { Card } from "@/lib/db/schema/cards";
+
+export type CardCreatedPayload = { card: Card };
+export type CardUpdatedPayload = { card: Card };
+export type CardDeletedPayload = { cardId: string; listId: string; boardId: string };
+export type CardMovedPayload = {
+  cardId: string;
+  sourceListId: string;
+  targetListId: string;
+  targetPosition: number;
+  boardId: string;
+};
+export type ChecklistUpdatedPayload = {
+  cardId: string;
+  boardId: string;
+};
+export type CommentCreatedPayload = {
+  cardId: string;
+  boardId: string;
+};
+export type CommentUpdatedPayload = {
+  cardId: string;
+  boardId: string;
+};
+export type CommentDeletedPayload = {
+  cardId: string;
+  boardId: string;
+};
+export type ListsReorderedPayload = {
+  boardId: string;
+  orderedListIds: string[];
+};
+
+export const REALTIME_EVENTS = {
+  CARD_CREATED: "card:created",
+  CARD_UPDATED: "card:updated",
+  CARD_DELETED: "card:deleted",
+  CARD_MOVED: "card:moved",
+  CHECKLIST_UPDATED: "checklist:updated",
+  COMMENT_CREATED: "comment:created",
+  COMMENT_UPDATED: "comment:updated",
+  COMMENT_DELETED: "comment:deleted",
+  LIST_REORDERED: "list:reordered",
+} as const;
+
+export const REALTIME_JOIN_BOARD = "board:join" as const;
+export const REALTIME_LEAVE_BOARD = "board:leave" as const;

@@ -4,16 +4,23 @@ import { eq } from "drizzle-orm";
 import { createDbClient } from "@/lib/db/client";
 import { users } from "@/lib/db/schema/users";
 import { boards } from "@/lib/db/schema/boards";
+import { TestDataFactory } from "@/__tests__/test-factory";
 import { seed } from "../seed";
 
 const db = createDbClient();
+const factory = new TestDataFactory();
 
 afterAll(async () => {
   const [demoUser] = await db.select().from(users).where(eq(users.email, "demo@kanban.local"));
   if (demoUser) {
-    await db.delete(boards).where(eq(boards.ownerId, demoUser.id));
+    const demoBoards = await db
+      .select({ id: boards.id })
+      .from(boards)
+      .where(eq(boards.ownerId, demoUser.id));
+    for (const b of demoBoards) factory.trackBoard(b.id);
+    factory.trackUser(demoUser.id);
   }
-  await db.delete(users).where(eq(users.email, "demo@kanban.local"));
+  await factory.cleanup();
 });
 
 describe("Seed script", () => {

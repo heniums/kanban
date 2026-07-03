@@ -22,9 +22,16 @@ interface ListColumnProps {
   onRename: (title: string) => Promise<void> | void;
   onDelete: () => Promise<void> | void;
   dragHandleProps?: React.HTMLAttributes<HTMLButtonElement>;
+  children?: React.ReactNode;
 }
 
-export function ListColumn({ list, onRename, onDelete, dragHandleProps }: ListColumnProps) {
+export function ListColumn({
+  list,
+  onRename,
+  onDelete,
+  dragHandleProps,
+  children,
+}: ListColumnProps) {
   const [isRenaming, setIsRenaming] = useState(false);
   const [draftTitle, setDraftTitle] = useState(list.title);
   const [isPending, startTransition] = useTransition();
@@ -146,8 +153,12 @@ export function ListColumn({ list, onRename, onDelete, dragHandleProps }: ListCo
           </AlertDialogContent>
         </AlertDialog>
       </header>
-      <div className="text-muted-foreground rounded-md border border-dashed border-current/20 p-3 text-center text-xs">
-        Cards will appear here.
+      <div className="flex flex-col gap-2">
+        {children ?? (
+          <div className="text-muted-foreground rounded-md border border-dashed border-current/20 p-3 text-center text-xs">
+            Cards will appear here.
+          </div>
+        )}
       </div>
     </section>
   );

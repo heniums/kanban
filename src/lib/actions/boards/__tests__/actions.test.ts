@@ -3,7 +3,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const {
   mockVerifySession,
   mockGetBoardById,
-  mockGetBoardByIdIncludingDeleted,
   mockListBoardsByOwner,
   mockCreateBoard,
   mockUpdateBoard,
@@ -12,7 +11,6 @@ const {
 } = vi.hoisted(() => ({
   mockVerifySession: vi.fn(),
   mockGetBoardById: vi.fn(),
-  mockGetBoardByIdIncludingDeleted: vi.fn(),
   mockListBoardsByOwner: vi.fn(),
   mockCreateBoard: vi.fn(),
   mockUpdateBoard: vi.fn(),
@@ -26,7 +24,6 @@ vi.mock("@/lib/dal", () => ({
 
 vi.mock("@/lib/data/boards", () => ({
   getBoardById: mockGetBoardById,
-  getBoardByIdIncludingDeleted: mockGetBoardByIdIncludingDeleted,
   listBoardsByOwner: mockListBoardsByOwner,
   createBoard: mockCreateBoard,
   updateBoard: mockUpdateBoard,
@@ -47,7 +44,6 @@ vi.mock("next/navigation", () => ({
 }));
 
 import { createBoardAction } from "../create";
-import { getBoardAction } from "../get";
 import { listBoardsAction } from "../list";
 import { updateBoardAction } from "../update";
 import { deleteBoardAction } from "../delete";
@@ -116,30 +112,6 @@ describe("createBoardAction", () => {
 
     await expect(createBoardAction(formData)).rejects.toThrow("NEXT_REDIRECT");
     expect(mockCreateBoard).not.toHaveBeenCalled();
-  });
-});
-
-describe("getBoardAction", () => {
-  it("returns the board when caller is owner", async () => {
-    mockVerifySession.mockResolvedValue({ userId: "user-1" });
-    mockGetBoardById.mockResolvedValue(SAMPLE_BOARD);
-
-    const result = await getBoardAction("board-1");
-    expect(result).toEqual(SAMPLE_BOARD);
-    expect(mockGetBoardById).toHaveBeenCalledWith("board-1", { ownerId: "user-1" });
-  });
-
-  it("returns null when board not found or not owned", async () => {
-    mockVerifySession.mockResolvedValue({ userId: "user-1" });
-    mockGetBoardById.mockResolvedValue(null);
-
-    const result = await getBoardAction("missing");
-    expect(result).toBeNull();
-  });
-
-  it("redirects to /login when not signed in", async () => {
-    mockVerifySession.mockRejectedValue(new Error("NEXT_REDIRECT"));
-    await expect(getBoardAction("board-1")).rejects.toThrow("NEXT_REDIRECT");
   });
 });
 

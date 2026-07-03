@@ -54,7 +54,6 @@ vi.mock("@/lib/db/schema/boards", () => ({
 
 import {
   getBoardById,
-  getBoardByIdIncludingDeleted,
   listBoardsByOwner,
   createBoard,
   updateBoard,
@@ -87,20 +86,6 @@ describe("getBoardById", () => {
     selectResult = [];
     const board = await getBoardById("missing", { ownerId: "user-1" });
     expect(board).toBeNull();
-  });
-});
-
-describe("getBoardByIdIncludingDeleted", () => {
-  it("returns the row even if soft-deleted, scoped to the owner", async () => {
-    selectResult = [{ id: "board-1", title: "Deleted", deletedAt: new Date() }];
-    const board = await getBoardByIdIncludingDeleted("board-1", {
-      ownerId: "user-1",
-    });
-    expect(board).not.toBeNull();
-    expect(board?.title).toBe("Deleted");
-    const whereArg = db.where.mock.calls[0][0] as { queryChunks: unknown[] };
-    const serialized = JSON.stringify(whereArg);
-    expect(serialized).toContain("user-1");
   });
 });
 

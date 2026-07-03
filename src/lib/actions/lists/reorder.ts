@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { verifySession } from "@/lib/dal";
 import { reorderLists } from "@/lib/data/lists";
 import { reorderListsSchema } from "@/lib/schemas/list";
+import { emitToBoard, REALTIME_EVENTS } from "@/lib/realtime/events";
 
 type ReorderListsResult =
   | { lists: Awaited<ReturnType<typeof reorderLists>> }
@@ -30,6 +31,10 @@ export async function reorderListsAction(input: {
       ownerId: userId,
     });
     revalidatePath(`/boards/${parsed.data.boardId}`);
+    emitToBoard(parsed.data.boardId, REALTIME_EVENTS.LIST_REORDERED, {
+      boardId: parsed.data.boardId,
+      orderedListIds: parsed.data.orderedListIds,
+    });
     return { lists };
   } catch (error) {
     return {
