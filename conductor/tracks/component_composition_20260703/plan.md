@@ -36,17 +36,17 @@
   - [x] Each sub-component receives only its required props (2-5 each)
 - [x] Task: Update `card-detail.test.tsx` to match new component structure
 - [x] Task: Verify typecheck, lint, tests pass
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Decompose CardDetailHeader into Focused Sub-Components' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Decompose CardDetailHeader into Focused Sub-Components' (Protocol in workflow.md)
 
 ## Phase 3: BoardCards List Actions Extraction
 
-- [ ] Task: Create `useListActions` hook
-  - [ ] Extract handleAddList, handleRenameList, handleDeleteList from BoardCards
-  - [ ] Accept boardId, return stable action functions
-- [ ] Task: Write tests for `useListActions`
-- [ ] Task: Refactor `BoardCards` to use `useListActions`
-- [ ] Task: Update board-cards DnD tests if needed
-- [ ] Task: Verify typecheck, lint, tests pass
+- [x] Task: Create `useListActions` hook
+  - [x] Extract handleAddList, handleRenameList, handleDeleteList from BoardCards
+  - [x] Accept boardId, return stable action functions
+- [x] Task: Write tests for `useListActions`
+- [x] Task: Refactor `BoardCards` to use `useListActions`
+- [x] Task: Update board-cards DnD tests if needed
+- [x] Task: Verify typecheck, lint, tests pass
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: BoardCards List Actions Extraction' (Protocol in workflow.md)
 
 ## Phase 4: Final Integration & Cleanup

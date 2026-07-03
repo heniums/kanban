@@ -18,7 +18,9 @@ describe("useCardCopy", () => {
   const mockData = {
     card: { id: "c1", listId: "l1", boardId: "b1", title: "Test" },
   } as any;
-  const startTransition = vi.fn((fn: () => Promise<void>) => fn());
+  const startTransition = vi.fn((fn: () => void) => {
+    fn();
+  });
   const router = { refresh: vi.fn(), push: vi.fn() };
 
   it("returns handleCopy", () => {

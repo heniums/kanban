@@ -22,7 +22,9 @@ describe("useCardMove", () => {
     { id: "l1", title: "To Do" },
     { id: "l2", title: "Done" },
   ];
-  const startTransition = vi.fn((fn: () => Promise<void>) => fn());
+  const startTransition = vi.fn((fn: () => void) => {
+    fn();
+  });
   const router = { refresh: vi.fn(), push: vi.fn() };
   const close = vi.fn();
 
