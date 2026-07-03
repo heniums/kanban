@@ -11,6 +11,7 @@ import {
   updateCardAction,
 } from "@/lib/actions/cards";
 import { createLabelAction, updateLabelAction, deleteLabelAction } from "@/lib/actions/labels";
+import { useBoardCardStore } from "@/lib/realtime/board-store";
 import type { CardDetailData } from "./types";
 
 export interface DraftState {
@@ -203,6 +204,13 @@ export function useCardDetail({
         toast.error(result.errors.map((e) => e.message).join(", "));
         return;
       }
+      useBoardCardStore.getState().updateCard({
+        ...data.card,
+        title: draft.title.trim() || data.card.title,
+        description: draft.description,
+        dueDate: draft.dueDate,
+        updatedAt: new Date(),
+      });
       toast.success("Card saved");
       router.refresh();
       close();
