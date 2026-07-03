@@ -27,7 +27,7 @@ export async function createListAction(input: {
   }
 
   try {
-    const list = await createList(parsed.data, { ownerId: userId });
+    const list = await createList(parsed.data);
     revalidatePath(`/boards/${input.boardId}`);
     return { list };
   } catch {

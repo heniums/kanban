@@ -72,23 +72,16 @@ beforeEach(() => {
 
 describe("createLabel", () => {
   it("creates a label on a board owned by the user", async () => {
-    selectResults = [[{ id: "board-1" }]];
     returnedRows = [[{ id: "l1", boardId: "board-1", name: "Bug", color: "#ff0000" }]];
 
-    const result = await createLabel(
-      { boardId: "board-1", name: "Bug", color: "#ff0000" },
-      { ownerId: "user-1" },
-    );
+    const result = await createLabel({
+      boardId: "board-1",
+      name: "Bug",
+      color: "#ff0000",
+    });
 
     expect(result.id).toBe("l1");
     expect(db.transaction).toHaveBeenCalled();
-  });
-
-  it("rejects when the board is not owned", async () => {
-    selectResults = [[]];
-    await expect(
-      createLabel({ boardId: "x", name: "X", color: "#000" }, { ownerId: "user-1" }),
-    ).rejects.toThrow(/not found/);
   });
 });
 

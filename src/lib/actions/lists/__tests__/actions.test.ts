@@ -62,10 +62,10 @@ describe("createListAction", () => {
       title: "Doing",
     });
 
-    expect(mockCreateList).toHaveBeenCalledWith(
-      { boardId: "11111111-1111-1111-1111-111111111111", title: "Doing" },
-      { ownerId: "user-1" },
-    );
+    expect(mockCreateList).toHaveBeenCalledWith({
+      boardId: "11111111-1111-1111-1111-111111111111",
+      title: "Doing",
+    });
     expect(result).toHaveProperty("list");
   });
 

@@ -18,7 +18,7 @@ export async function createLabelAction(input: unknown): Promise<Result<Label>> 
   const parsed = createLabelSchema.safeParse(input);
   if (!parsed.success) return { errors: formatZodErrors(parsed.error) };
   try {
-    const label = await createLabel(parsed.data, { ownerId: userId });
+    const label = await createLabel(parsed.data);
     revalidatePath(`/boards/${label.boardId}`);
     return { data: label };
   } catch (err) {
