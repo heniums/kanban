@@ -2,55 +2,51 @@
 
 ## Overview
 
-Refactor the `CardDetail` / `CardDetailHeader` god-component pattern and the `BoardCards` orchestrator into a composable component architecture. Each sub-component will be self-contained, managing its own slice of state and behavior, and composed together at the top level. The `useCardDetail` monolithic hook will be decomposed accordingly. Debug `console.log` statements will be removed.
+Refactor the `CardDetail` / `CardDetailHeader` god-component and the monolithic `useCardDetail` hook into smaller, single-responsibility components and hooks. Data flows via props — no React Context. The goal is modularity: each component/hook does one thing well.
 
 ## Scope
 
 ### In Scope
 
 1. **`src/components/cards/card-detail.tsx` + `card-detail-header.tsx`**
-   - Decompose `CardDetailHeader` (16+ props) into smaller composable sub-components (e.g., `TitleBar`, `MovePopover`, `DeleteCardButton`, `DueDateField`, `LabelsField`, `AssigneesField`).
-   - Decompose `useCardDetail` hook (20+ returns) into focused sub-hooks or distribute logic into the composable components themselves.
-   - Eliminate the prop-drilling pattern where `CardDetail` passes 10+ inline handler closures to `CardDetailHeader`.
-   - The public API of `CardDetail` may change if it leads to a better architecture.
+   - Decompose `CardDetailHeader` (16+ props) into smaller focused sub-components, each receiving only the props it needs (e.g., `TitleBar`, `MovePopover`, `DueDateField`).
+   - Decompose `useCardDetail` (20+ returns) into focused sub-hooks (e.g., `useCardLabels`, `useCardMove`, `useCardDelete`, `useCardCopy`).
+   - Compose these smaller pieces together in `CardDetail`.
+   - No React Context — data flows via props.
 
 2. **`src/components/cards/board-cards.tsx`**
-   - Reduce handler-passing complexity (handleAddList, handleRenameList, handleDeleteList closures passed to children).
-   - Extract list mutation logic into a dedicated hook or composable pattern.
+   - Extract list CRUD handlers into a dedicated `useListActions` hook.
+   - `BoardCards` becomes a thin composition layer.
 
 3. **Debug log cleanup**
-   - Remove all `console.log` debug statements in `use-card-detail.ts` (lines 210-214, 230, 232).
+   - Remove all `console.log` debug statements in `use-card-detail.ts`.
 
 ### Out of Scope
 
-- `list-column.tsx` (already well-structured with local state management)
-- Changes to server actions or API routes
-- Changes to the real-time Socket.io layer
-- Changes to the Zustand board store
+- `list-column.tsx` (already well-structured)
+- Changes to server actions, API routes, Socket.io layer, or Zustand store
 - New feature additions
 
 ## Functional Requirements
 
-1. **Composable Architecture**: Each sub-component (title, labels, assignees, due date, move, delete) should be independently renderable and testable.
-2. **State Distribution**: Shared state (card data, draft, pending status) should be distributed via React Context or a similar composable pattern, eliminating prop drilling.
-3. **Behavior Encapsulation**: Each composable component should encapsulate its own behavior (e.g., `LabelsField` handles label toggle, create, update, delete internally).
-4. **BoardCards Simplification**: List CRUD handlers should be extracted into a custom hook (e.g., `useListActions`) to reduce `BoardCards` complexity.
-5. **No Debug Logs**: All `console.log` debug statements must be removed.
-6. **Existing Tests Pass**: All existing tests in `card-detail.test.tsx`, `card-item.test.tsx`, `board-cards-dnd.test.tsx` must continue to pass or be updated to match the new API.
+1. **Single Responsibility**: Each component handles one concern (title editing, label management, move popover, etc.).
+2. **Focused Hooks**: Each hook encapsulates one domain (labels CRUD, move logic, delete logic, copy logic).
+3. **Props-Based Data Flow**: Data and handlers are passed as props. No context providers.
+4. **Composable Assembly**: `CardDetail` becomes a thin composition layer that wires together focused components and hooks.
+5. **No Debug Logs**: All `console.log` statements removed.
+6. **Existing Tests Pass**: Updated to match new component/hook boundaries.
 
 ## Non-Functional Requirements
 
-1. **Type Safety**: Full TypeScript type safety maintained. No `any` types introduced.
-2. **No Regressions**: All existing card detail functionality (edit title, labels, assignees, due date, move, copy, delete, checklists, comments) must work identically from the user's perspective.
-3. **Performance**: No unnecessary re-renders introduced by the context pattern. Use `useMemo` / `useCallback` where appropriate.
+1. **Type Safety**: Full TypeScript type safety. No `any` types.
+2. **No Regressions**: All card detail functionality works identically from the user's perspective.
+3. **Performance**: No unnecessary re-renders. Use `useCallback` for stable handler references.
 
 ## Acceptance Criteria
 
-1. `CardDetailHeader` no longer accepts 16+ props. Its sub-components are composed declaratively.
-2. `useCardDetail` no longer returns 20+ values. Logic is distributed into composable components or focused sub-hooks.
-3. `BoardCards` no longer defines inline CRUD handler closures for lists.
-4. Zero `console.log` debug statements remain in `use-card-detail.ts`.
-5. `npm run typecheck` passes.
-6. `npm run lint` passes.
-7. `npm test` passes (existing tests updated as needed).
-8. Manual verification: card detail dialog opens, edits save, labels/assignees/due date work, move/copy/delete work.
+1. `CardDetailHeader` no longer accepts 16+ props — replaced by composed sub-components each taking 2-5 props.
+2. `useCardDetail` no longer returns 20+ values — logic split into focused sub-hooks.
+3. `BoardCards` delegates list CRUD to `useListActions`.
+4. Zero `console.log` debug statements remain.
+5. `npm run typecheck`, `npm run lint`, `npm test` all pass.
+6. Manual verification: full card detail workflow works.
