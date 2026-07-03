@@ -48,45 +48,35 @@ export async function updateLabel(
   options: { ownerId: string },
 ): Promise<Label> {
   const db = createDbClient();
-  return db.transaction(async (tx) => {
-    const [row] = await tx
-      .select({ id: labels.id })
-      .from(labels)
-      .innerJoin(boards, sql`${boards.id} = ${labels.boardId}`)
-      .where(
-        sql`${labels.id} = ${labelId} AND ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL`,
-      );
-    if (!row) {
-      throw new Error("Label not found or board not owned");
-    }
-    const [updated] = await tx
-      .update(labels)
-      .set(data)
-      .where(sql`${labels.id} = ${labelId}`)
-      .returning();
-    return updated;
-  });
+  const [updated] = await db
+    .update(labels)
+    .set(data)
+    .where(
+      sql`${labels.id} = ${labelId} AND ${labels.boardId} IN (
+        SELECT ${boards.id} FROM ${boards} WHERE ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL
+      )`,
+    )
+    .returning();
+  if (!updated) {
+    throw new Error("Label not found or board not owned");
+  }
+  return updated;
 }
 
 export async function deleteLabel(labelId: string, options: { ownerId: string }): Promise<Label> {
   const db = createDbClient();
-  return db.transaction(async (tx) => {
-    const [row] = await tx
-      .select({ id: labels.id })
-      .from(labels)
-      .innerJoin(boards, sql`${boards.id} = ${labels.boardId}`)
-      .where(
-        sql`${labels.id} = ${labelId} AND ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL`,
-      );
-    if (!row) {
-      throw new Error("Label not found or board not owned");
-    }
-    const [deleted] = await tx
-      .delete(labels)
-      .where(sql`${labels.id} = ${labelId}`)
-      .returning();
-    return deleted;
-  });
+  const [deleted] = await db
+    .delete(labels)
+    .where(
+      sql`${labels.id} = ${labelId} AND ${labels.boardId} IN (
+        SELECT ${boards.id} FROM ${boards} WHERE ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL
+      )`,
+    )
+    .returning();
+  if (!deleted) {
+    throw new Error("Label not found or board not owned");
+  }
+  return deleted;
 }
 
 export async function getLabelById(labelId: string, options: { ownerId: string }): Promise<Label> {

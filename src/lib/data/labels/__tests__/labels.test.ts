@@ -107,7 +107,6 @@ describe("getLabelsByBoardId", () => {
 
 describe("updateLabel", () => {
   it("modifies name and color for an owned label", async () => {
-    selectResults = [[{ id: "l1" }]];
     returnedRows = [[{ id: "l1", boardId: "b1", name: "Updated", color: "#00ff00" }]];
 
     const result = await updateLabel(
@@ -119,37 +118,26 @@ describe("updateLabel", () => {
     expect(result.id).toBe("l1");
     expect(result.name).toBe("Updated");
     expect(result.color).toBe("#00ff00");
-    expect(db.transaction).toHaveBeenCalled();
   });
 
   it("rejects when the label does not exist or board is not owned", async () => {
-    selectResults = [[]];
-
     await expect(updateLabel("l1", { name: "X" }, { ownerId: "user-1" })).rejects.toThrow(
       /not found/,
     );
-
-    expect(db.transaction).toHaveBeenCalled();
   });
 });
 
 describe("deleteLabel", () => {
   it("removes a label for an owned board", async () => {
-    selectResults = [[{ id: "l1" }]];
     returnedRows = [[{ id: "l1", boardId: "b1", name: "Bug", color: "#ff0000" }]];
 
     const result = await deleteLabel("l1", { ownerId: "user-1" });
 
     expect(result.id).toBe("l1");
-    expect(db.transaction).toHaveBeenCalled();
   });
 
   it("rejects when the label does not exist or board is not owned", async () => {
-    selectResults = [[]];
-
     await expect(deleteLabel("l1", { ownerId: "user-1" })).rejects.toThrow(/not found/);
-
-    expect(db.transaction).toHaveBeenCalled();
   });
 });
 
