@@ -2,6 +2,7 @@
 
 import { useState, useTransition, type CSSProperties, type HTMLAttributes } from "react";
 import { useRouter } from "next/navigation";
+import { CSS } from "@dnd-kit/utilities";
 import { Calendar, MessageSquare, Pencil } from "lucide-react";
 import type { Card } from "@/lib/db/schema/cards";
 import { Input } from "@/components/ui/input";
@@ -111,9 +112,7 @@ export function CardItem({
 
   const style: CSSProperties = {};
   if (sortable) {
-    if (sortable.transform) {
-      style.transform = `translate3d(${sortable.transform.x}px, ${sortable.transform.y}px, 0) scaleX(${sortable.transform.scaleX}) scaleY(${sortable.transform.scaleY})`;
-    }
+    style.transform = CSS.Transform.toString(sortable.transform);
     if (sortable.transition) {
       style.transition = sortable.transition;
     }

@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { DndContext, closestCenter, DragOverlay } from "@dnd-kit/core";
+import { DndContext, closestCorners, DragOverlay, MeasuringStrategy } from "@dnd-kit/core";
 import { SortableContext, horizontalListSortingStrategy } from "@dnd-kit/sortable";
 import { createListAction, deleteListAction, renameListAction } from "@/lib/actions/lists";
 import type { List } from "@/lib/db/schema/lists";
@@ -78,7 +78,8 @@ export function BoardCards({ boardId, initialLists, initialCardsByList }: BoardC
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={closestCorners}
+      measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >

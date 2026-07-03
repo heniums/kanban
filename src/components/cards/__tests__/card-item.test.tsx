@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { CardItem, type CardSummary } from "@/components/cards/card-item";
+import { CardItem, type CardItemSortable, type CardSummary } from "@/components/cards/card-item";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
@@ -147,7 +147,7 @@ describe("CardItem", () => {
   });
 
   it("applies cursor-grab when sortable is provided", () => {
-    const sortable = {
+    const sortable: CardItemSortable = {
       attributes: {},
       listeners: {},
       setNodeRef: () => {},
@@ -158,5 +158,37 @@ describe("CardItem", () => {
     render(<CardItem card={baseCard} sortable={sortable} />);
     const card = screen.getByTestId("card-item");
     expect(card.className).toMatch(/cursor-grab/);
+  });
+
+  it("applies transform and transition via style prop when sortable provides transform", () => {
+    const sortable: CardItemSortable = {
+      attributes: {},
+      listeners: {},
+      setNodeRef: () => {},
+      transform: { x: 10, y: 20, scaleX: 1, scaleY: 1 },
+      transition: "transform 200ms ease",
+      isDragging: false,
+    };
+    render(<CardItem card={baseCard} sortable={sortable} />);
+    const card = screen.getByTestId("card-item");
+    expect(card.style.transform).toContain("translate3d");
+    expect(card.style.transform).toContain("10px");
+    expect(card.style.transform).toContain("20px");
+    expect(card.style.transform).toContain("scaleX(1)");
+    expect(card.style.transition).toBe("transform 200ms ease");
+  });
+
+  it("does not freeze card layout transform to translate3d(0,0,0) when idle", () => {
+    const sortable: CardItemSortable = {
+      attributes: {},
+      listeners: {},
+      setNodeRef: () => {},
+      transform: null,
+      transition: undefined,
+      isDragging: false,
+    };
+    render(<CardItem card={baseCard} sortable={sortable} />);
+    const card = screen.getByTestId("card-item");
+    expect(card.style.transform).toBe("");
   });
 });
