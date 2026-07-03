@@ -8,3 +8,13 @@ export const createLabelSchema = z.object({
   name: z.string().min(1).max(50),
   color: hexColor,
 });
+
+export const updateLabelSchema = z.object({
+  labelId: uuid,
+  name: z.string().min(1).max(50).optional(),
+  color: hexColor.optional(),
+});
+
+export const deleteLabelSchema = z.object({
+  labelId: uuid,
+});
