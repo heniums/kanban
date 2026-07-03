@@ -2,23 +2,23 @@
 
 ## Phase 1: Decompose useCardDetail into Focused Hooks
 
-- [ ] Task: Create `useCardLabels` hook
-  - [ ] Extract handleCreateLabel, handleUpdateLabel, handleDeleteLabel, newlyCreatedLabelIds state
-  - [ ] Accept boardId, return handlers + state
-- [ ] Task: Create `useCardMove` hook
-  - [ ] Extract moveOpen state, handleMove logic
-  - [ ] Accept data, lists, return moveOpen, setMoveOpen, handleMove
-- [ ] Task: Create `useCardDelete` hook
-  - [ ] Extract deleteOpen state, handleDelete logic
-  - [ ] Accept data, return deleteOpen, setDeleteOpen, handleDelete
-- [ ] Task: Create `useCardCopy` hook
-  - [ ] Extract handleCopy logic
-  - [ ] Accept data, return handleCopy
-- [ ] Task: Refactor `useCardDetail` to compose the new sub-hooks
-  - [ ] Replace inlined logic with calls to sub-hooks
-  - [ ] Remove debug console.log statements
-- [ ] Task: Write tests for new sub-hooks
-- [ ] Task: Verify typecheck, lint, tests pass
+- [x] Task: Create `useCardLabels` hook
+  - [x] Extract handleCreateLabel, handleUpdateLabel, handleDeleteLabel, newlyCreatedLabelIds state
+  - [x] Accept boardId, return handlers + state
+- [x] Task: Create `useCardMove` hook
+  - [x] Extract moveOpen state, handleMove logic
+  - [x] Accept data, lists, return moveOpen, setMoveOpen, handleMove
+- [x] Task: Create `useCardDelete` hook
+  - [x] Extract deleteOpen state, handleDelete logic
+  - [x] Accept data, return deleteOpen, setDeleteOpen, handleDelete
+- [x] Task: Create `useCardCopy` hook
+  - [x] Extract handleCopy logic
+  - [x] Accept data, return handleCopy
+- [x] Task: Refactor `useCardDetail` to compose the new sub-hooks
+  - [x] Replace inlined logic with calls to sub-hooks
+  - [x] Remove debug console.log statements
+- [x] Task: Write tests for new sub-hooks
+- [x] Task: Verify typecheck, lint, tests pass
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Decompose useCardDetail into Focused Hooks' (Protocol in workflow.md)
 
 ## Phase 2: Decompose CardDetailHeader into Focused Sub-Components

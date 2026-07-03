@@ -3,16 +3,13 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import type { Label } from "@/lib/db/schema/labels";
-import {
-  copyCardAction,
-  deleteCardAction,
-  moveCardAction,
-  updateCardAction,
-} from "@/lib/actions/cards";
-import { createLabelAction, updateLabelAction, deleteLabelAction } from "@/lib/actions/labels";
+import { updateCardAction } from "@/lib/actions/cards";
 import { useBoardCardStore } from "@/lib/realtime/board-store";
 import type { CardDetailData } from "./types";
+import { useCardLabels } from "./use-card-labels";
+import { useCardMove } from "./use-card-move";
+import { useCardDelete } from "./use-card-delete";
+import { useCardCopy } from "./use-card-copy";
 
 export interface DraftState {
   title: string;
@@ -33,10 +30,44 @@ export function useCardDetail({
   const [data, setData] = useState<CardDetailData | null>(null);
   const [draft, setDraft] = useState<DraftState | null>(null);
   const [isPending, startTransition] = useTransition();
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [newlyCreatedLabelIds, setNewlyCreatedLabelIds] = useState<string[]>([]);
-  const [moveOpen, setMoveOpen] = useState(false);
   const router = useRouter();
+
+  const {
+    newlyCreatedLabelIds,
+    setNewlyCreatedLabelIds,
+    handleCreateLabel,
+    handleUpdateLabel,
+    handleDeleteLabel,
+  } = useCardLabels({ boardId, setData, setDraft });
+
+  const close = () => {
+    setOpen(false);
+    setData(null);
+    setDraft(null);
+    setNewlyCreatedLabelIds([]);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("card");
+      window.history.pushState({}, "", url);
+    }
+  };
+
+  const { moveOpen, setMoveOpen, handleMove } = useCardMove({
+    data,
+    lists,
+    startTransition,
+    router,
+    close,
+  });
+
+  const { deleteOpen, setDeleteOpen, handleDelete } = useCardDelete({
+    data,
+    startTransition,
+    router,
+    close,
+  });
+
+  const { handleCopy } = useCardCopy({ data, startTransition, router });
 
   useEffect(() => {
     function onOpen(e: Event) {
@@ -67,7 +98,7 @@ export function useCardDetail({
     }
     window.addEventListener("card:open", onOpen as EventListener);
     return () => window.removeEventListener("card:open", onOpen as EventListener);
-  }, []);
+  }, [setNewlyCreatedLabelIds]);
 
   const dataRef = useRef<CardDetailData | null>(null);
   useEffect(() => {
@@ -158,18 +189,6 @@ export function useCardDetail({
     };
   }, []);
 
-  const close = () => {
-    setOpen(false);
-    setData(null);
-    setDraft(null);
-    setNewlyCreatedLabelIds([]);
-    if (typeof window !== "undefined") {
-      const url = new URL(window.location.href);
-      url.searchParams.delete("card");
-      window.history.pushState({}, "", url);
-    }
-  };
-
   const isDirty = useMemo(() => {
     if (!data || !draft) return false;
     const titleDirty = draft.title !== data.card.title;
@@ -207,11 +226,6 @@ export function useCardDetail({
       const existingCard = useBoardCardStore
         .getState()
         .cardsByList[data.card.listId]?.find((c) => c.id === data.card.id);
-      console.log("[DEBUG] existingCard:", existingCard);
-      console.log("[DEBUG] draft.labelIds:", draft.labelIds);
-      console.log("[DEBUG] draft.assigneeIds:", draft.assigneeIds);
-      console.log("[DEBUG] data.boardLabels:", data.boardLabels);
-      console.log("[DEBUG] data.boardMembers:", data.boardMembers);
       const updatedCard = {
         ...data.card,
         title: draft.title.trim() || data.card.title,
@@ -227,119 +241,10 @@ export function useCardDetail({
         checklistProgress: (existingCard as { checklistProgress?: unknown })?.checklistProgress,
         commentCount: (existingCard as { commentCount?: number })?.commentCount,
       };
-      console.log("[DEBUG] updatedCard:", updatedCard);
       useBoardCardStore.getState().updateCard(updatedCard);
-      console.log("[DEBUG] store after update:", useBoardCardStore.getState().cardsByList);
       toast.success("Card saved");
       router.refresh();
       close();
-    });
-  };
-
-  const handleCreateLabel = async (name: string, color: string) => {
-    const result = await createLabelAction({ boardId, name, color });
-    if ("errors" in result) {
-      toast.error(result.errors.map((e) => e.message).join(", "));
-      return null;
-    }
-    if (result.data) {
-      const newLabel = result.data as Label;
-      setData((prev) => (prev ? { ...prev, boardLabels: [...prev.boardLabels, newLabel] } : prev));
-      setNewlyCreatedLabelIds((prev) => [...prev, newLabel.id]);
-      setDraft((prev) => (prev ? { ...prev, labelIds: [...prev.labelIds, newLabel.id] } : prev));
-    }
-    return result.data;
-  };
-
-  const handleUpdateLabel = async (labelId: string, name: string, color: string) => {
-    const result = await updateLabelAction({ labelId, name, color });
-    if ("errors" in result) {
-      toast.error(result.errors.map((e) => e.message).join(", "));
-      return false;
-    }
-    if (result.data) {
-      const updated = result.data as Label;
-      setData((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          boardLabels: prev.boardLabels.map((l) => (l.id === updated.id ? updated : l)),
-          labels: prev.labels.map((l) => (l.id === updated.id ? updated : l)),
-        };
-      });
-    }
-    return true;
-  };
-
-  const handleDeleteLabel = async (labelId: string) => {
-    const result = await deleteLabelAction({ labelId });
-    if ("errors" in result) {
-      toast.error(result.errors.map((e) => e.message).join(", "));
-      return false;
-    }
-    setData((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        boardLabels: prev.boardLabels.filter((l) => l.id !== labelId),
-        labels: prev.labels.filter((l) => l.id !== labelId),
-      };
-    });
-    setDraft((prev) =>
-      prev ? { ...prev, labelIds: prev.labelIds.filter((id) => id !== labelId) } : prev,
-    );
-    return true;
-  };
-
-  const handleDelete = () => {
-    if (!data) return;
-    startTransition(async () => {
-      const result = await deleteCardAction({ cardId: data.card.id });
-      if ("errors" in result) {
-        toast.error(result.errors.map((e) => e.message).join(", "));
-        return;
-      }
-      setDeleteOpen(false);
-      close();
-      router.refresh();
-      toast.success("Card deleted");
-    });
-  };
-
-  const handleMove = (targetListId: string) => {
-    if (!data) return;
-    if (targetListId === data.card.listId) {
-      setMoveOpen(false);
-      return;
-    }
-    startTransition(async () => {
-      const targetList = lists.find((l) => l.id === targetListId);
-      const result = await moveCardAction({
-        cardId: data.card.id,
-        targetListId,
-        targetPosition: 0,
-      });
-      if ("errors" in result) {
-        toast.error(result.errors.map((e) => e.message).join(", "));
-        return;
-      }
-      toast.success(`Moved to "${targetList?.title ?? "list"}"`);
-      setMoveOpen(false);
-      router.refresh();
-      close();
-    });
-  };
-
-  const handleCopy = () => {
-    if (!data) return;
-    startTransition(async () => {
-      const result = await copyCardAction({ cardId: data.card.id });
-      if ("errors" in result) {
-        toast.error(result.errors.map((e) => e.message).join(", "));
-        return;
-      }
-      toast.success("Card copied");
-      router.refresh();
     });
   };
 
