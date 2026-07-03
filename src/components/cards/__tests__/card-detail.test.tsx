@@ -209,9 +209,9 @@ describe("CardDetail modal", () => {
 
     // Open the popover and find both the list AND the create form in the same content
     await user.click(trigger);
-    const popover = await screen.findByText("Available labels");
-    const popoverRoot = popover.closest('[data-slot="popover-content"]') as HTMLElement;
-    expect(popoverRoot.textContent).toContain("Available labels");
+    const searchInput = await screen.findByRole("textbox", { name: /search labels/i });
+    const popoverRoot = searchInput.closest('[data-slot="popover-content"]') as HTMLElement;
+    expect(popoverRoot.textContent).toContain("Labels");
     expect(popoverRoot.textContent).toContain("Create new label");
   });
 
@@ -220,8 +220,8 @@ describe("CardDetail modal", () => {
     render(<CardDetail boardId="b1" lists={[{ id: "l1", title: "To Do" }]} />);
     await openModal();
     await user.click(screen.getByRole("button", { name: /add or create label/i }));
-    const popover = await screen.findByText("Available labels");
-    const popoverRoot = popover.closest('[data-slot="popover-content"]') as HTMLElement;
+    const searchInput = await screen.findByRole("textbox", { name: /search labels/i });
+    const popoverRoot = searchInput.closest('[data-slot="popover-content"]') as HTMLElement;
     expect(popoverRoot.textContent).toContain("Feature");
     expect(popoverRoot.textContent).toContain("Chore");
     expect(popoverRoot.textContent).not.toContain("Bug");

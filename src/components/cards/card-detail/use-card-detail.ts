@@ -10,7 +10,7 @@ import {
   moveCardAction,
   updateCardAction,
 } from "@/lib/actions/cards";
-import { createLabelAction } from "@/lib/actions/labels";
+import { createLabelAction, updateLabelAction, deleteLabelAction } from "@/lib/actions/labels";
 import type { CardDetailData } from "./types";
 
 export interface DraftState {
@@ -114,6 +114,49 @@ export function useCardDetail({
     };
   }, []);
 
+  useEffect(() => {
+    function onLabelUpdated(e: Event) {
+      const detail = (e as CustomEvent<{ label: { id: string; name: string; color: string } }>)
+        .detail;
+      setData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          boardLabels: prev.boardLabels.map((l) =>
+            l.id === detail.label.id
+              ? { ...l, name: detail.label.name, color: detail.label.color }
+              : l,
+          ),
+          labels: prev.labels.map((l) =>
+            l.id === detail.label.id
+              ? { ...l, name: detail.label.name, color: detail.label.color }
+              : l,
+          ),
+        };
+      });
+    }
+    function onLabelDeleted(e: Event) {
+      const detail = (e as CustomEvent<{ labelId: string }>).detail;
+      setData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          boardLabels: prev.boardLabels.filter((l) => l.id !== detail.labelId),
+          labels: prev.labels.filter((l) => l.id !== detail.labelId),
+        };
+      });
+      setDraft((prev) =>
+        prev ? { ...prev, labelIds: prev.labelIds.filter((id) => id !== detail.labelId) } : prev,
+      );
+    }
+    window.addEventListener("board:label-updated", onLabelUpdated);
+    window.addEventListener("board:label-deleted", onLabelDeleted);
+    return () => {
+      window.removeEventListener("board:label-updated", onLabelUpdated);
+      window.removeEventListener("board:label-deleted", onLabelDeleted);
+    };
+  }, []);
+
   const close = () => {
     setOpen(false);
     setData(null);
@@ -179,6 +222,46 @@ export function useCardDetail({
       setDraft((prev) => (prev ? { ...prev, labelIds: [...prev.labelIds, newLabel.id] } : prev));
     }
     return result.data;
+  };
+
+  const handleUpdateLabel = async (labelId: string, name: string, color: string) => {
+    const result = await updateLabelAction({ labelId, name, color });
+    if ("errors" in result) {
+      toast.error(result.errors.map((e) => e.message).join(", "));
+      return false;
+    }
+    if (result.data) {
+      const updated = result.data as Label;
+      setData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          boardLabels: prev.boardLabels.map((l) => (l.id === updated.id ? updated : l)),
+          labels: prev.labels.map((l) => (l.id === updated.id ? updated : l)),
+        };
+      });
+    }
+    return true;
+  };
+
+  const handleDeleteLabel = async (labelId: string) => {
+    const result = await deleteLabelAction({ labelId });
+    if ("errors" in result) {
+      toast.error(result.errors.map((e) => e.message).join(", "));
+      return false;
+    }
+    setData((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        boardLabels: prev.boardLabels.filter((l) => l.id !== labelId),
+        labels: prev.labels.filter((l) => l.id !== labelId),
+      };
+    });
+    setDraft((prev) =>
+      prev ? { ...prev, labelIds: prev.labelIds.filter((id) => id !== labelId) } : prev,
+    );
+    return true;
   };
 
   const handleDelete = () => {
@@ -250,6 +333,8 @@ export function useCardDetail({
     close,
     handleSave,
     handleCreateLabel,
+    handleUpdateLabel,
+    handleDeleteLabel,
     handleDelete,
     handleMove,
     handleCopy,

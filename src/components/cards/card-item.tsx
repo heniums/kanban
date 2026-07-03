@@ -155,7 +155,7 @@ export function CardItem({
             <span
               key={l.id}
               data-testid="card-label"
-              className="rounded-sm px-1.5 py-0.5 text-[10px] font-medium text-white"
+              className="rounded-full px-2 py-1 text-[10px] font-medium text-white"
               style={{ backgroundColor: l.color }}
               title={l.name}
             >
