@@ -60,3 +60,53 @@ describe("useBoardCardStore.reorderLists", () => {
     expect(lists[1].position).toBe(1);
   });
 });
+
+describe("useBoardCardStore.setInitial", () => {
+  function makeCard(id: string, listId: string, position: number, dueDate?: Date | null) {
+    return {
+      id,
+      listId,
+      boardId: "b1",
+      title: "Card " + id,
+      description: null,
+      dueDate: dueDate ?? null,
+      position,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+  }
+
+  it("updates card data when cards change even with same lists", () => {
+    const store = useBoardCardStore.getState();
+    store.setInitial("b1", [makeList("l1", "A", 0)], [makeCard("c1", "l1", 0, null)]);
+    const firstCard = useBoardCardStore.getState().cardsByList["l1"][0];
+    expect(firstCard.dueDate).toBeNull();
+
+    store.setInitial(
+      "b1",
+      [makeList("l1", "A", 0)],
+      [makeCard("c1", "l1", 0, new Date("2026-12-25"))],
+    );
+    const updatedCard = useBoardCardStore.getState().cardsByList["l1"][0];
+    expect(updatedCard.dueDate).toEqual(new Date("2026-12-25"));
+  });
+
+  it("rebuilds cardsByList even when lists are unchanged", () => {
+    const store = useBoardCardStore.getState();
+    store.setInitial(
+      "b1",
+      [makeList("l1", "A", 0)],
+      [makeCard("c1", "l1", 0), makeCard("c2", "l1", 1)],
+    );
+    expect(useBoardCardStore.getState().cardsByList["l1"]).toHaveLength(2);
+
+    store.setInitial(
+      "b1",
+      [makeList("l1", "A", 0)],
+      [makeCard("c2", "l1", 0), makeCard("c1", "l1", 1)],
+    );
+    expect(useBoardCardStore.getState().cardsByList["l1"]).toHaveLength(2);
+    expect(useBoardCardStore.getState().cardsByList["l1"][0].id).toBe("c2");
+    expect(useBoardCardStore.getState().cardsByList["l1"][1].id).toBe("c1");
+  });
+});

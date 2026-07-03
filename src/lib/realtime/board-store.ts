@@ -22,12 +22,7 @@ export const useBoardCardStore = create<BoardCardState>((set) => ({
   cardsByList: {},
   lists: [],
   setInitial: (boardId, lists, cards) =>
-    set((s) => {
-      const sameOrder =
-        s.boardId === boardId &&
-        s.lists.length === lists.length &&
-        s.lists.every((l, i) => l.id === lists[i].id && l.title === lists[i].title);
-      if (sameOrder) return s;
+    set(() => {
       const cardsByList: Record<string, RealtimeCard[]> = {};
       for (const l of lists) cardsByList[l.id] = [];
       for (const c of cards) {
