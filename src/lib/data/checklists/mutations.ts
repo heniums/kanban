@@ -48,21 +48,12 @@ export async function deleteChecklist(
   });
 }
 
-export async function createChecklistItem(
-  data: { checklistId: string; content: string },
-  options: { ownerId: string },
-): Promise<ChecklistItem> {
+export async function createChecklistItem(data: {
+  checklistId: string;
+  content: string;
+}): Promise<ChecklistItem> {
   const db = createDbClient();
   return db.transaction(async (tx) => {
-    const [parent] = await tx
-      .select({ cardId: checklists.cardId })
-      .from(checklists)
-      .innerJoin(cards, sql`${cards.id} = ${checklists.cardId}`)
-      .innerJoin(boards, sql`${boards.id} = ${cards.boardId}`)
-      .where(
-        sql`${checklists.id} = ${data.checklistId} AND ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL`,
-      );
-    if (!parent) throw new Error("Checklist not found");
     const [maxRow] = await tx
       .select({ value: sql<number>`COALESCE(MAX(${checklistItems.position}), -1)` })
       .from(checklistItems)

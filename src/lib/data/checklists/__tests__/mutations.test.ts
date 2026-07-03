@@ -48,7 +48,7 @@ vi.mock("@/lib/db/schema/boards", () => ({
   boards: { _table: "boards" },
 }));
 
-import { createChecklist } from "../mutations";
+import { createChecklist, createChecklistItem } from "../mutations";
 
 beforeEach(() => {
   db = setupDbMock();
@@ -64,6 +64,24 @@ describe("createChecklist", () => {
 
     expect(result.id).toBe("cl-1");
     expect(result.title).toBe("Test");
+    expect(db.transaction).toHaveBeenCalled();
+  });
+});
+
+describe("createChecklistItem", () => {
+  it("creates a checklist item with auto-incremented position", async () => {
+    returnedRows = [
+      [{ value: 0 }],
+      [{ id: "ci-1", checklistId: "cl-1", content: "Buy milk", isCompleted: false, position: 1 }],
+    ];
+
+    const result = await createChecklistItem({
+      checklistId: "cl-1",
+      content: "Buy milk",
+    });
+
+    expect(result.id).toBe("ci-1");
+    expect(result.content).toBe("Buy milk");
     expect(db.transaction).toHaveBeenCalled();
   });
 });

@@ -77,7 +77,7 @@ export async function createChecklistItemAction(
   const parsed = createChecklistItemSchema.safeParse(input);
   if (!parsed.success) return { errors: formatZodErrors(parsed.error) };
   try {
-    const item = await createChecklistItem(parsed.data, { ownerId: userId });
+    const item = await createChecklistItem(parsed.data);
     const db = createDbClient();
     const [row] = await db
       .select({ boardId: cards.boardId })
