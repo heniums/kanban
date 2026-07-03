@@ -1,0 +1,8 @@
+{
+  "track_id": "fetch_write_refactor_20260703",
+  "type": "refactor",
+  "status": "new",
+  "created_at": "2026-07-03T00:00:00Z",
+  "updated_at": "2026-07-03T00:00:00Z",
+  "description": "Refactor the fetch before write pattern in the data layer"
+}
