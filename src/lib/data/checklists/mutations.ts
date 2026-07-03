@@ -9,26 +9,9 @@ import {
 import { cards } from "@/lib/db/schema/cards";
 import { boards } from "@/lib/db/schema/boards";
 
-type Tx = Parameters<Parameters<ReturnType<typeof createDbClient>["transaction"]>[0]>[0];
-
-async function assertCardOwnedBy(tx: Tx, cardId: string, ownerId: string): Promise<void> {
-  const [row] = await tx
-    .select({ id: cards.id })
-    .from(cards)
-    .innerJoin(boards, sql`${boards.id} = ${cards.boardId}`)
-    .where(
-      sql`${cards.id} = ${cardId} AND ${boards.ownerId} = ${ownerId} AND ${boards.deletedAt} IS NULL`,
-    );
-  if (!row) throw new Error("Card not found or board not owned");
-}
-
-export async function createChecklist(
-  data: { cardId: string; title: string },
-  options: { ownerId: string },
-): Promise<Checklist> {
+export async function createChecklist(data: { cardId: string; title: string }): Promise<Checklist> {
   const db = createDbClient();
   return db.transaction(async (tx) => {
-    await assertCardOwnedBy(tx, data.cardId, options.ownerId);
     const [maxRow] = await tx
       .select({ value: sql<number>`COALESCE(MAX(${checklists.position}), -1)` })
       .from(checklists)

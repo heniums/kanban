@@ -44,7 +44,7 @@ export async function createChecklistAction(
   const parsed = createChecklistSchema.safeParse(input);
   if (!parsed.success) return { errors: formatZodErrors(parsed.error) };
   try {
-    const cl = await createChecklist(parsed.data, { ownerId: userId });
+    const cl = await createChecklist(parsed.data);
     const boardId = await revalidateForCard(cl.cardId);
     if (boardId)
       emitToBoard(boardId, REALTIME_EVENTS.CHECKLIST_UPDATED, { cardId: cl.cardId, boardId });
