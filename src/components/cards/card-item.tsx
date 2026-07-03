@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useTransition, type CSSProperties, type HTMLAttributes } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CSS } from "@dnd-kit/utilities";
 import { Calendar, MessageSquare, Pencil } from "lucide-react";
 import type { Card } from "@/lib/db/schema/cards";
 import { Input } from "@/components/ui/input";
@@ -16,19 +15,9 @@ export type CardSummary = Card & {
   commentCount?: number;
 };
 
-export interface CardItemSortable {
-  attributes: Record<string, unknown>;
-  listeners: Record<string, unknown> | undefined;
-  setNodeRef: (node: HTMLElement | null) => void;
-  transform: { x: number; y: number; scaleX: number; scaleY: number } | null;
-  transition: string | undefined;
-  isDragging: boolean;
-}
-
 interface CardItemProps {
   card: CardSummary;
   onOpen?: (card: CardSummary) => void;
-  sortable?: CardItemSortable;
   isDragging?: boolean;
 }
 
@@ -56,12 +45,7 @@ function dueDateColor(dueDate: Date | null | undefined): { className: string; to
   };
 }
 
-export function CardItem({
-  card,
-  onOpen,
-  sortable,
-  isDragging: externalIsDragging,
-}: CardItemProps) {
+export function CardItem({ card, onOpen, isDragging = false }: CardItemProps) {
   const router = useRouter();
   const [isRenaming, setIsRenaming] = useState(false);
   const [draftTitle, setDraftTitle] = useState(card.title);
@@ -110,33 +94,15 @@ export function CardItem({
     onOpen?.(card);
   };
 
-  const style: CSSProperties = {};
-  if (sortable) {
-    style.transform = CSS.Transform.toString(sortable.transform);
-    if (sortable.transition) {
-      style.transition = sortable.transition;
-    }
-  }
-  const isDragging = sortable?.isDragging ?? externalIsDragging ?? false;
-
-  const ref = sortable?.setNodeRef;
-  const attributes = sortable?.attributes as HTMLAttributes<HTMLElement> | undefined;
-  const listeners = sortable?.listeners as HTMLAttributes<HTMLElement> | undefined;
-
   return (
     <article
-      ref={ref}
       data-card-id={card.id}
       data-testid="card-item"
       onClick={handleClick}
-      style={style}
       className={cn(
         "bg-card text-card-foreground group/card relative flex w-full cursor-pointer flex-col gap-2 rounded-md border p-2 text-sm shadow-sm",
         isDragging && "opacity-60",
-        sortable && "cursor-grab touch-none active:cursor-grabbing",
       )}
-      {...attributes}
-      {...listeners}
     >
       <button
         type="button"

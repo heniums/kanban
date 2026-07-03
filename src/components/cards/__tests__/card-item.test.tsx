@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { CardItem, type CardItemSortable, type CardSummary } from "@/components/cards/card-item";
+import { CardItem, type CardSummary } from "@/components/cards/card-item";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
@@ -133,62 +133,30 @@ describe("CardItem", () => {
     expect(screen.queryByTestId("card-description-preview")).toBeNull();
   });
 
-  it("has visible cursor styles (not touch-none conflicting with cursor)", () => {
+  it("has visible cursor-pointer on the card article", () => {
     render(<CardItem card={baseCard} />);
     const card = screen.getByTestId("card-item");
     expect(card.className).toMatch(/cursor-pointer/);
     expect(card.className).not.toMatch(/\bcursor-none\b/);
   });
 
-  it("does not have touch-none applied as a base style", () => {
+  it("does not have touch-none or cursor-grab on the article (moved to sortable wrapper)", () => {
     render(<CardItem card={baseCard} />);
     const card = screen.getByTestId("card-item");
     expect(card.className).not.toMatch(/\btouch-none\b/);
+    expect(card.className).not.toMatch(/\bcursor-grab\b/);
   });
 
-  it("applies cursor-grab when sortable is provided", () => {
-    const sortable: CardItemSortable = {
-      attributes: {},
-      listeners: {},
-      setNodeRef: () => {},
-      transform: null,
-      transition: undefined,
-      isDragging: false,
-    };
-    render(<CardItem card={baseCard} sortable={sortable} />);
+  it("applies opacity-60 when isDragging is true", () => {
+    render(<CardItem card={baseCard} isDragging />);
     const card = screen.getByTestId("card-item");
-    expect(card.className).toMatch(/cursor-grab/);
+    expect(card.className).toMatch(/opacity-60/);
   });
 
-  it("applies transform and transition via style prop when sortable provides transform", () => {
-    const sortable: CardItemSortable = {
-      attributes: {},
-      listeners: {},
-      setNodeRef: () => {},
-      transform: { x: 10, y: 20, scaleX: 1, scaleY: 1 },
-      transition: "transform 200ms ease",
-      isDragging: false,
-    };
-    render(<CardItem card={baseCard} sortable={sortable} />);
-    const card = screen.getByTestId("card-item");
-    expect(card.style.transform).toContain("translate3d");
-    expect(card.style.transform).toContain("10px");
-    expect(card.style.transform).toContain("20px");
-    expect(card.style.transform).toContain("scaleX(1)");
-    expect(card.style.transition).toBe("transform 200ms ease");
-  });
-
-  it("does not freeze card layout transform to translate3d(0,0,0) when idle", () => {
-    const sortable: CardItemSortable = {
-      attributes: {},
-      listeners: {},
-      setNodeRef: () => {},
-      transform: null,
-      transition: undefined,
-      isDragging: false,
-    };
-    render(<CardItem card={baseCard} sortable={sortable} />);
+  it("does not have inline style transform affecting cursor rendering", () => {
+    render(<CardItem card={baseCard} />);
     const card = screen.getByTestId("card-item");
     expect(card.style.transform).toBe("");
+    expect(card.style.transition).toBe("");
   });
 });
