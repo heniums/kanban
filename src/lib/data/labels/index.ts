@@ -41,3 +41,66 @@ export async function getLabelsByBoardId(
     .orderBy(sql`${labels.name} ASC`);
   return rows.map((r) => r.label);
 }
+
+export async function updateLabel(
+  labelId: string,
+  data: { name?: string; color?: string },
+  options: { ownerId: string },
+): Promise<Label> {
+  const db = createDbClient();
+  return db.transaction(async (tx) => {
+    const [row] = await tx
+      .select({ id: labels.id })
+      .from(labels)
+      .innerJoin(boards, sql`${boards.id} = ${labels.boardId}`)
+      .where(
+        sql`${labels.id} = ${labelId} AND ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL`,
+      );
+    if (!row) {
+      throw new Error("Label not found or board not owned");
+    }
+    const [updated] = await tx
+      .update(labels)
+      .set(data)
+      .where(sql`${labels.id} = ${labelId}`)
+      .returning();
+    return updated;
+  });
+}
+
+export async function deleteLabel(labelId: string, options: { ownerId: string }): Promise<Label> {
+  const db = createDbClient();
+  return db.transaction(async (tx) => {
+    const [row] = await tx
+      .select({ id: labels.id })
+      .from(labels)
+      .innerJoin(boards, sql`${boards.id} = ${labels.boardId}`)
+      .where(
+        sql`${labels.id} = ${labelId} AND ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL`,
+      );
+    if (!row) {
+      throw new Error("Label not found or board not owned");
+    }
+    const [deleted] = await tx
+      .delete(labels)
+      .where(sql`${labels.id} = ${labelId}`)
+      .returning();
+    return deleted;
+  });
+}
+
+export async function getLabelById(labelId: string, options: { ownerId: string }): Promise<Label> {
+  const db = createDbClient();
+  const rows = await db
+    .select({ label: labels })
+    .from(labels)
+    .innerJoin(boards, sql`${boards.id} = ${labels.boardId}`)
+    .where(
+      sql`${labels.id} = ${labelId} AND ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL`,
+    );
+  const row = rows[0];
+  if (!row) {
+    throw new Error("Label not found or board not owned");
+  }
+  return row.label;
+}
