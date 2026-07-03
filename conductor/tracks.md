@@ -19,4 +19,4 @@ All tracks are complete. See `conductor/archive/` for historical track folders.
 ---
 
 - [x] **Track: Enhanced label management: edit, delete, UI improvements, and search**
-      _Link: [./tracks/label_mgmt_20260703/](./tracks/label_mgmt_20260703/)_
+      _Link: [../archive/label_mgmt_20260703/](../archive/label_mgmt_20260703/)_
