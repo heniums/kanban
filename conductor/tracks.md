@@ -15,3 +15,8 @@ All tracks are complete. See `conductor/archive/` for historical track folders.
 
 - [~] **Track: Split large files into focused modules (Refactor)**
   _Link: [./tracks/file_split_20260702/](./tracks/file_split_20260702/)_
+
+---
+
+- [ ] **Track: Enhanced label management: edit, delete, UI improvements, and search**
+      _Link: [./tracks/label_mgmt_20260703/](./tracks/label_mgmt_20260703/)_
