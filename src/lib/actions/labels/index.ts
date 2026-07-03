@@ -5,6 +5,7 @@ import { verifySession } from "@/lib/dal";
 import { createLabel, updateLabel, deleteLabel } from "@/lib/data/labels";
 import { createLabelSchema, updateLabelSchema, deleteLabelSchema } from "@/lib/schemas/label";
 import { emitToBoard, REALTIME_EVENTS } from "@/lib/realtime/events";
+import { assertBoardOwnedBy } from "@/lib/actions/guards";
 import type { Label } from "@/lib/db/schema/labels";
 
 type Result<T> = { data: T } | { errors: Array<{ field: string; message: string }> };
@@ -17,8 +18,14 @@ export async function createLabelAction(input: unknown): Promise<Result<Label>> 
   const { userId } = await verifySession();
   const parsed = createLabelSchema.safeParse(input);
   if (!parsed.success) return { errors: formatZodErrors(parsed.error) };
+
+  const owned = await assertBoardOwnedBy(parsed.data.boardId, userId);
+  if (!owned) {
+    return { errors: [{ field: "", message: "Board not found or not owned" }] };
+  }
+
   try {
-    const label = await createLabel(parsed.data, { ownerId: userId });
+    const label = await createLabel(parsed.data);
     revalidatePath(`/boards/${label.boardId}`);
     return { data: label };
   } catch (err) {

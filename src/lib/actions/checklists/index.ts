@@ -20,6 +20,7 @@ import {
 } from "@/lib/schemas/checklist";
 import { emitToBoard, REALTIME_EVENTS } from "@/lib/realtime/events";
 import { sql } from "drizzle-orm";
+import { assertCardOwnedBy, assertChecklistOwnedBy } from "@/lib/actions/guards";
 
 type Result<T> = { data: T } | { errors: Array<{ field: string; message: string }> };
 
@@ -43,8 +44,14 @@ export async function createChecklistAction(
   const { userId } = await verifySession();
   const parsed = createChecklistSchema.safeParse(input);
   if (!parsed.success) return { errors: formatZodErrors(parsed.error) };
+
+  const owned = await assertCardOwnedBy(parsed.data.cardId, userId);
+  if (!owned) {
+    return { errors: [{ field: "", message: "Card not found or board not owned" }] };
+  }
+
   try {
-    const cl = await createChecklist(parsed.data, { ownerId: userId });
+    const cl = await createChecklist(parsed.data);
     const boardId = await revalidateForCard(cl.cardId);
     if (boardId)
       emitToBoard(boardId, REALTIME_EVENTS.CHECKLIST_UPDATED, { cardId: cl.cardId, boardId });
@@ -76,8 +83,14 @@ export async function createChecklistItemAction(
   const { userId } = await verifySession();
   const parsed = createChecklistItemSchema.safeParse(input);
   if (!parsed.success) return { errors: formatZodErrors(parsed.error) };
+
+  const owned = await assertChecklistOwnedBy(parsed.data.checklistId, userId);
+  if (!owned) {
+    return { errors: [{ field: "", message: "Checklist not found" }] };
+  }
+
   try {
-    const item = await createChecklistItem(parsed.data, { ownerId: userId });
+    const item = await createChecklistItem(parsed.data);
     const db = createDbClient();
     const [row] = await db
       .select({ boardId: cards.boardId })

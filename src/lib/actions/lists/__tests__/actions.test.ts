@@ -1,13 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockVerifySession, mockCreateList, mockRenameList, mockDeleteList, mockReorderLists } =
-  vi.hoisted(() => ({
-    mockVerifySession: vi.fn(),
-    mockCreateList: vi.fn(),
-    mockRenameList: vi.fn(),
-    mockDeleteList: vi.fn(),
-    mockReorderLists: vi.fn(),
-  }));
+const {
+  mockVerifySession,
+  mockCreateList,
+  mockRenameList,
+  mockDeleteList,
+  mockReorderLists,
+  mockAssertBoardOwnedBy,
+} = vi.hoisted(() => ({
+  mockVerifySession: vi.fn(),
+  mockCreateList: vi.fn(),
+  mockRenameList: vi.fn(),
+  mockDeleteList: vi.fn(),
+  mockReorderLists: vi.fn(),
+  mockAssertBoardOwnedBy: vi.fn(),
+}));
 
 vi.mock("@/lib/dal", () => ({
   verifySession: mockVerifySession,
@@ -22,6 +29,10 @@ vi.mock("@/lib/data/lists", () => ({
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
+}));
+
+vi.mock("@/lib/actions/guards", () => ({
+  assertBoardOwnedBy: mockAssertBoardOwnedBy,
 }));
 
 const { mockEmitToBoard } = vi.hoisted(() => ({
@@ -48,6 +59,7 @@ beforeEach(() => {
 describe("createListAction", () => {
   it("creates a list with the session user as the owner scope", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockAssertBoardOwnedBy.mockResolvedValue(true);
     mockCreateList.mockResolvedValue({
       id: "list-1",
       title: "Doing",
@@ -62,10 +74,10 @@ describe("createListAction", () => {
       title: "Doing",
     });
 
-    expect(mockCreateList).toHaveBeenCalledWith(
-      { boardId: "11111111-1111-1111-1111-111111111111", title: "Doing" },
-      { ownerId: "user-1" },
-    );
+    expect(mockCreateList).toHaveBeenCalledWith({
+      boardId: "11111111-1111-1111-1111-111111111111",
+      title: "Doing",
+    });
     expect(result).toHaveProperty("list");
   });
 
@@ -78,12 +90,13 @@ describe("createListAction", () => {
 
   it("returns an error when the board is not owned", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
-    mockCreateList.mockRejectedValue(new Error("Board not found or not owned"));
+    mockAssertBoardOwnedBy.mockResolvedValue(false);
     const result = await createListAction({
       boardId: "11111111-1111-1111-1111-111111111111",
       title: "X",
     });
     expect(result).toHaveProperty("errors");
+    expect(mockCreateList).not.toHaveBeenCalled();
   });
 
   it("redirects to /login when not signed in", async () => {

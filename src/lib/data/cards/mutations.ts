@@ -81,15 +81,6 @@ export async function updateCard(
         .returning();
       updated = rows[0];
       if (!updated) return null;
-    } else {
-      const [existing] = await tx
-        .select()
-        .from(cards)
-        .where(
-          sql`${cards.id} = ${cardId} AND ${cards.boardId} IN (SELECT id FROM ${boards} WHERE ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL)`,
-        );
-      if (!existing) return null;
-      updated = existing;
     }
 
     if (data.labelIds !== undefined) {
@@ -103,6 +94,16 @@ export async function updateCard(
       for (const userId of data.assigneeIds) {
         await tx.insert(cardAssignees).values({ cardId, userId });
       }
+    }
+
+    if (!updated) {
+      const [card] = await tx
+        .select()
+        .from(cards)
+        .where(
+          sql`${cards.id} = ${cardId} AND ${cards.boardId} IN (SELECT id FROM ${boards} WHERE ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL)`,
+        );
+      return card ?? null;
     }
 
     return updated;

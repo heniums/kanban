@@ -20,3 +20,8 @@ All tracks are complete. See `conductor/archive/` for historical track folders.
 
 - [x] **Track: Enhanced label management: edit, delete, UI improvements, and search**
       _Link: [../archive/label_mgmt_20260703/](../archive/label_mgmt_20260703/)_
+
+---
+
+- [x] **Track: Refactor the fetch before write pattern in the data layer**
+      _Link: [./tracks/fetch_write_refactor_20260703/](./tracks/fetch_write_refactor_20260703/)_
