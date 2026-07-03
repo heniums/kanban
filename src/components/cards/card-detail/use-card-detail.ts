@@ -207,6 +207,11 @@ export function useCardDetail({
       const existingCard = useBoardCardStore
         .getState()
         .cardsByList[data.card.listId]?.find((c) => c.id === data.card.id);
+      console.log("[DEBUG] existingCard:", existingCard);
+      console.log("[DEBUG] draft.labelIds:", draft.labelIds);
+      console.log("[DEBUG] draft.assigneeIds:", draft.assigneeIds);
+      console.log("[DEBUG] data.boardLabels:", data.boardLabels);
+      console.log("[DEBUG] data.boardMembers:", data.boardMembers);
       const updatedCard = {
         ...data.card,
         title: draft.title.trim() || data.card.title,
@@ -222,7 +227,9 @@ export function useCardDetail({
         checklistProgress: (existingCard as { checklistProgress?: unknown })?.checklistProgress,
         commentCount: (existingCard as { commentCount?: number })?.commentCount,
       };
+      console.log("[DEBUG] updatedCard:", updatedCard);
       useBoardCardStore.getState().updateCard(updatedCard);
+      console.log("[DEBUG] store after update:", useBoardCardStore.getState().cardsByList);
       toast.success("Card saved");
       router.refresh();
       close();
