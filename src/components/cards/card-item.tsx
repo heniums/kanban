@@ -132,9 +132,9 @@ export function CardItem({
       onClick={handleClick}
       style={style}
       className={cn(
-        "bg-card text-card-foreground group/card relative flex w-full cursor-pointer touch-none flex-col gap-2 rounded-md border p-2 text-sm shadow-sm",
+        "bg-card text-card-foreground group/card relative flex w-full cursor-pointer flex-col gap-2 rounded-md border p-2 text-sm shadow-sm",
         isDragging && "opacity-60",
-        sortable && "cursor-grab active:cursor-grabbing",
+        sortable && "cursor-grab touch-none active:cursor-grabbing",
       )}
       {...attributes}
       {...listeners}

@@ -132,4 +132,31 @@ describe("CardItem", () => {
     render(<CardItem card={baseCard} />);
     expect(screen.queryByTestId("card-description-preview")).toBeNull();
   });
+
+  it("has visible cursor styles (not touch-none conflicting with cursor)", () => {
+    render(<CardItem card={baseCard} />);
+    const card = screen.getByTestId("card-item");
+    expect(card.className).toMatch(/cursor-pointer/);
+    expect(card.className).not.toMatch(/\bcursor-none\b/);
+  });
+
+  it("does not have touch-none applied as a base style", () => {
+    render(<CardItem card={baseCard} />);
+    const card = screen.getByTestId("card-item");
+    expect(card.className).not.toMatch(/\btouch-none\b/);
+  });
+
+  it("applies cursor-grab when sortable is provided", () => {
+    const sortable = {
+      attributes: {},
+      listeners: {},
+      setNodeRef: () => {},
+      transform: null,
+      transition: undefined,
+      isDragging: false,
+    };
+    render(<CardItem card={baseCard} sortable={sortable} />);
+    const card = screen.getByTestId("card-item");
+    expect(card.className).toMatch(/cursor-grab/);
+  });
 });
