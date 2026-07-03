@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, type useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
 import { moveCardAction } from "@/lib/actions/cards";
 import type { CardDetailData } from "./types";
@@ -15,8 +14,8 @@ export function useCardMove({
 }: {
   data: CardDetailData | null;
   lists: { id: string; title: string }[];
-  startTransition: ReturnType<typeof useTransition>[1];
-  router: ReturnType<typeof useRouter>;
+  startTransition: (fn: () => void) => void;
+  router: { refresh: () => void };
   close: () => void;
 }) {
   const [moveOpen, setMoveOpen] = useState(false);

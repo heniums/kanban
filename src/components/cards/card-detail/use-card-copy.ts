@@ -1,7 +1,5 @@
 "use client";
 
-import { type useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { copyCardAction } from "@/lib/actions/cards";
 import type { CardDetailData } from "./types";
@@ -12,8 +10,8 @@ export function useCardCopy({
   router,
 }: {
   data: CardDetailData | null;
-  startTransition: ReturnType<typeof useTransition>[1];
-  router: ReturnType<typeof useRouter>;
+  startTransition: (fn: () => void) => void;
+  router: { refresh: () => void };
 }) {
   const handleCopy = () => {
     if (!data) return;

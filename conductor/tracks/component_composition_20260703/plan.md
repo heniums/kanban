@@ -19,23 +19,23 @@
   - [x] Remove debug console.log statements
 - [x] Task: Write tests for new sub-hooks
 - [x] Task: Verify typecheck, lint, tests pass
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Decompose useCardDetail into Focused Hooks' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Decompose useCardDetail into Focused Hooks' (Protocol in workflow.md)
 
 ## Phase 2: Decompose CardDetailHeader into Focused Sub-Components
 
-- [ ] Task: Extract `TitleBar` component
-  - [ ] Title input + copy/move/delete action buttons
-  - [ ] Accept only: title, onTitleChange, onCopy, onMoveRequest, onDeleteRequest, isPending
-- [ ] Task: Extract `MovePopover` component
-  - [ ] Move card popover with list selection
-  - [ ] Accept only: open, onOpenChange, lists, currentListId, onMove, isPending
-- [ ] Task: Extract `DueDateField` component
-  - [ ] Date input + clear button (already partially extracted, promote to standalone)
-  - [ ] Accept only: value, onChange, isPending
-- [ ] Task: Rewrite `CardDetailHeader` as a thin composition of TitleBar, MovePopover, DueDateField, LabelsControl, AssigneesControl
-  - [ ] Each sub-component receives only its required props (2-5 each)
-- [ ] Task: Update `card-detail.test.tsx` to match new component structure
-- [ ] Task: Verify typecheck, lint, tests pass
+- [x] Task: Extract `TitleBar` component
+  - [x] Title input + copy/move/delete action buttons
+  - [x] Accept only: title, onTitleChange, onCopy, onMoveRequest, onDeleteRequest, isPending
+- [x] Task: Extract `MovePopover` component
+  - [x] Move card popover with list selection
+  - [x] Accept only: open, onOpenChange, lists, currentListId, onMove, isPending
+- [x] Task: Extract `DueDateField` component
+  - [x] Date input + clear button (already partially extracted, promote to standalone)
+  - [x] Accept only: value, onChange, isPending
+- [x] Task: Rewrite `CardDetailHeader` as a thin composition of TitleBar, MovePopover, DueDateField, LabelsControl, AssigneesControl
+  - [x] Each sub-component receives only its required props (2-5 each)
+- [x] Task: Update `card-detail.test.tsx` to match new component structure
+- [x] Task: Verify typecheck, lint, tests pass
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Decompose CardDetailHeader into Focused Sub-Components' (Protocol in workflow.md)
 
 ## Phase 3: BoardCards List Actions Extraction
