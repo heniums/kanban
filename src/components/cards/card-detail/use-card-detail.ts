@@ -204,13 +204,25 @@ export function useCardDetail({
         toast.error(result.errors.map((e) => e.message).join(", "));
         return;
       }
-      useBoardCardStore.getState().updateCard({
+      const existingCard = useBoardCardStore
+        .getState()
+        .cardsByList[data.card.listId]?.find((c) => c.id === data.card.id);
+      const updatedCard = {
         ...data.card,
         title: draft.title.trim() || data.card.title,
         description: draft.description,
         dueDate: draft.dueDate,
         updatedAt: new Date(),
-      });
+        labels: data.boardLabels
+          .filter((l) => draft.labelIds.includes(l.id))
+          .map((l) => ({ id: l.id, name: l.name, color: l.color })),
+        assignees: data.boardMembers
+          .filter((m) => draft.assigneeIds.includes(m.id))
+          .map((m) => ({ id: m.id, name: m.name })),
+        checklistProgress: (existingCard as { checklistProgress?: unknown })?.checklistProgress,
+        commentCount: (existingCard as { commentCount?: number })?.commentCount,
+      };
+      useBoardCardStore.getState().updateCard(updatedCard);
       toast.success("Card saved");
       router.refresh();
       close();
