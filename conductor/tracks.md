@@ -30,3 +30,8 @@ All tracks are complete. See `conductor/archive/` for historical track folders.
 
 - [x] **Track: Card UI Polish (cursor, drag animation, due date)**
       _Link: [./tracks/card_ui_polish_20260703/](./tracks/card_ui_polish_20260703/)_
+
+---
+
+- [ ] **Track: Refactor card-detail god component and board-cards into composable component architecture**
+      _Link: [./tracks/component_composition_20260703/](./tracks/component_composition_20260703/)_
