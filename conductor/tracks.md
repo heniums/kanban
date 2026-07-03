@@ -28,5 +28,5 @@ All tracks are complete. See `conductor/archive/` for historical track folders.
 
 ---
 
-- [ ] **Track: Card UI Polish (cursor, drag animation, due date)**
+- [x] **Track: Card UI Polish (cursor, drag animation, due date)**
       _Link: [./tracks/card_ui_polish_20260703/](./tracks/card_ui_polish_20260703/)_
