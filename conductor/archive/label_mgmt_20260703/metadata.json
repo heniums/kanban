@@ -1,0 +1,8 @@
+{
+  "track_id": "label_mgmt_20260703",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-07-03T06:46:11Z",
+  "updated_at": "2026-07-03T06:46:11Z",
+  "description": "current label management lack a lot of feature: edit a existing label, delete label, click on label to edit labels. label ui is too short in height, should be higher and rounder."
+}

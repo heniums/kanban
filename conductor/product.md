@@ -44,7 +44,7 @@ A real-time collaborative kanban board application designed for medium-sized org
 ### 3. Card & List Management
 
 - Drag-and-drop lists and cards
-- Card details: title, description, due dates, labels
+- Card details: title, description, due dates, labels (create, edit, delete, assign, search/filter)
 - Card assignments to team members
 - Card attachments and checklists
 - Card comments and activity history
@@ -96,7 +96,7 @@ The first MVP delivers the product's core value: a real-time collaborative kanba
 - **Boards:** Create, open, edit metadata, soft-delete with 5s undo; each board owned by its creator; dashboard with "My Boards" and "Shared with me" sections (completed in board_mgmt track)
 - **Dashboard (`/`) Landing:** Role-aware root route — unauthenticated visitors see a marketing landing with "Get started"/"Sign in" CTAs; authenticated users with zero boards see a first-run empty-state funneling to `/boards/new`; authenticated users with ≥1 board see a dashboard home with a "Recent boards" grid (up to 6, sorted by `updatedAt` desc), a "Shared with you" preview, a "Create board" primary button, and a persistent "Go to boards" secondary button linking to `/boards` (completed in dashboard_first_board_onboarding track)
 - **Lists:** Create, rename, delete, reorder within a board
-- **Cards:** Create, edit title and description, move across lists, reorder within a list, delete
+- **Cards:** Create, edit title/description/labels, move across lists, reorder within a list, delete; label management (create, edit, delete, color palette, search)
 - **Real-Time Collaboration:** Multiple users on the same board see changes live via Socket.io rooms
 - **Board Sharing:** Invite other registered users to a board (owner + member, no role tiers)
 - **UX:** Optimistic UI updates with server reconciliation; drag-and-drop with dnd-kit (keyboard accessible)
@@ -107,7 +107,7 @@ The first MVP delivers the product's core value: a real-time collaborative kanba
 - Role-based access control (Owner, Admin, Member, Viewer) — MVP uses owner + member only
 - Team assignment to boards; board archiving; public/private board visibility
 - Activity feed & audit history; email notifications for mentions and assignments
-- Card checklists, attachments, comments, labels, and due dates
+- Card checklists, attachments, comments, and due dates
 - Board favorites and recent boards list
 
 ## Out of Scope (for MVP)

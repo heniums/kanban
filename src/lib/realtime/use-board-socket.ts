@@ -16,6 +16,9 @@ import {
   type CommentUpdatedPayload,
   type CommentDeletedPayload,
   type ListsReorderedPayload,
+  type LabelUpdatedPayload,
+  type LabelDeletedPayload,
+  type CardLabelsUpdatedPayload,
 } from "@/lib/realtime/types";
 
 export function useBoardSocket(boardId: string | null) {
@@ -78,6 +81,21 @@ export function useBoardSocket(boardId: string | null) {
     socket.on(REALTIME_EVENTS.LIST_REORDERED, (payload: ListsReorderedPayload) => {
       if (payload?.boardId === boardId) {
         useBoardCardStore.getState().reorderLists(payload.orderedListIds);
+      }
+    });
+    socket.on(REALTIME_EVENTS.LABEL_UPDATED, (payload: LabelUpdatedPayload) => {
+      if (payload?.boardId === boardId) {
+        window.dispatchEvent(new CustomEvent("board:label-updated", { detail: payload }));
+      }
+    });
+    socket.on(REALTIME_EVENTS.LABEL_DELETED, (payload: LabelDeletedPayload) => {
+      if (payload?.boardId === boardId) {
+        window.dispatchEvent(new CustomEvent("board:label-deleted", { detail: payload }));
+      }
+    });
+    socket.on(REALTIME_EVENTS.CARD_LABELS_UPDATED, (payload: CardLabelsUpdatedPayload) => {
+      if (payload?.boardId === boardId) {
+        window.dispatchEvent(new CustomEvent("board:card-labels-updated", { detail: payload }));
       }
     });
 

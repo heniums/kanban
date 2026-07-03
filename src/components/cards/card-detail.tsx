@@ -43,6 +43,8 @@ export function CardDetail({ boardId, lists }: CardDetailProps) {
     close,
     handleSave,
     handleCreateLabel,
+    handleUpdateLabel,
+    handleDeleteLabel,
     handleDelete,
     handleMove,
     handleCopy,
@@ -78,6 +80,8 @@ export function CardDetail({ boardId, lists }: CardDetailProps) {
                 });
               }}
               onCreateLabel={handleCreateLabel}
+              onUpdateLabel={handleUpdateLabel}
+              onDeleteLabel={handleDeleteLabel}
               newlyCreatedLabelIds={newlyCreatedLabelIds}
               onAssigneeToggle={(userId) => {
                 const has = draft.assigneeIds.includes(userId);

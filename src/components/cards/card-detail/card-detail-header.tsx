@@ -27,6 +27,8 @@ export interface CardDetailHeaderProps {
   onDeleteRequest: () => void;
   onLabelToggle: (labelId: string) => void;
   onCreateLabel: (name: string, color: string) => Promise<Label | null | undefined>;
+  onUpdateLabel?: (labelId: string, name: string, color: string) => Promise<boolean>;
+  onDeleteLabel?: (labelId: string) => Promise<boolean>;
   newlyCreatedLabelIds: string[];
   onAssigneeToggle: (userId: string) => void;
   onDueDateChange: (date: Date | null) => void;
@@ -47,6 +49,8 @@ export function CardDetailHeader(props: CardDetailHeaderProps) {
     onDeleteRequest,
     onLabelToggle,
     onCreateLabel,
+    onUpdateLabel,
+    onDeleteLabel,
     newlyCreatedLabelIds,
     onAssigneeToggle,
     onDueDateChange,
@@ -125,6 +129,8 @@ export function CardDetailHeader(props: CardDetailHeaderProps) {
             selectedIds={draft.labelIds}
             onToggle={onLabelToggle}
             onCreateLabel={onCreateLabel}
+            onUpdateLabel={onUpdateLabel}
+            onDeleteLabel={onDeleteLabel}
             newlyCreatedIds={newlyCreatedLabelIds}
             disabled={isPending}
           />

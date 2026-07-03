@@ -9,9 +9,14 @@ All tracks are complete. See `conductor/archive/` for historical track folders.
 ---
 
 - [x] **Track: Implement card CRUD and frontend**
-      _Link: [./tracks/cards_20260701/](./tracks/cards_20260701/)_
+      _Link: [../archive/cards_20260701/](../archive/cards_20260701/)_
 
 ---
 
-- [~] **Track: Split large files into focused modules (Refactor)**
-  _Link: [./tracks/file_split_20260702/](./tracks/file_split_20260702/)_
+- [x] **Track: Split large files into focused modules (Refactor)**
+      _Link: [../archive/file_split_20260702/](../archive/file_split_20260702/)_
+
+---
+
+- [x] **Track: Enhanced label management: edit, delete, UI improvements, and search**
+      _Link: [../archive/label_mgmt_20260703/](../archive/label_mgmt_20260703/)_
