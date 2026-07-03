@@ -126,6 +126,43 @@ describe("updateCard (integration)", () => {
     expect(linked).toHaveLength(1);
     expect(linked[0].labelId).toBe(lbl2.id);
   });
+
+  it("replaces labels without changing scalar fields", async () => {
+    const { boardId, ownerId } = await ensureTestBoard();
+    const { l0 } = await resetList(boardId, ownerId);
+
+    const [lbl] = await db
+      .insert(labels)
+      .values({ boardId, name: "Tag A", color: "#0000ff" })
+      .returning();
+
+    const created = await createCard({ listId: l0.id, title: "Card" }, { ownerId });
+    const updated = await updateCard(created.id, { labelIds: [lbl.id] }, { ownerId });
+
+    expect(updated?.id).toBe(created.id);
+    expect(updated?.title).toBe("Card");
+
+    const linked = await db.select().from(cardLabels).where(eq(cardLabels.cardId, created.id));
+    expect(linked).toHaveLength(1);
+    expect(linked[0].labelId).toBe(lbl.id);
+  });
+
+  it("replaces assignees without changing scalar fields", async () => {
+    const { boardId, ownerId, owner } = await ensureTestBoard();
+    const { l0 } = await resetList(boardId, ownerId);
+
+    const created = await createCard({ listId: l0.id, title: "Card" }, { ownerId });
+    const updated = await updateCard(created.id, { assigneeIds: [owner.id] }, { ownerId });
+
+    expect(updated?.id).toBe(created.id);
+
+    const linked = await db
+      .select()
+      .from(cardAssignees)
+      .where(eq(cardAssignees.cardId, created.id));
+    expect(linked).toHaveLength(1);
+    expect(linked[0].userId).toBe(owner.id);
+  });
 });
 
 describe("deleteCard (integration) — position recompaction", () => {
