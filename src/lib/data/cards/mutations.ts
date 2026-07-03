@@ -100,7 +100,9 @@ export async function updateCard(
       const [card] = await tx
         .select()
         .from(cards)
-        .where(sql`${cards.id} = ${cardId}`);
+        .where(
+          sql`${cards.id} = ${cardId} AND ${cards.boardId} IN (SELECT id FROM ${boards} WHERE ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL)`,
+        );
       return card ?? null;
     }
 
