@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { verifySession } from "@/lib/dal";
 import { createLabel, updateLabel, deleteLabel } from "@/lib/data/labels";
 import { createLabelSchema, updateLabelSchema, deleteLabelSchema } from "@/lib/schemas/label";
+import { emitToBoard, REALTIME_EVENTS } from "@/lib/realtime/events";
 import type { Label } from "@/lib/db/schema/labels";
 
 type Result<T> = { data: T } | { errors: Array<{ field: string; message: string }> };
@@ -33,6 +34,10 @@ export async function updateLabelAction(input: unknown): Promise<Result<Label>> 
     const { labelId, ...data } = parsed.data;
     const label = await updateLabel(labelId, data, { ownerId: userId });
     revalidatePath(`/boards/${label.boardId}`);
+    emitToBoard(label.boardId, REALTIME_EVENTS.LABEL_UPDATED, {
+      boardId: label.boardId,
+      label: { id: label.id, name: label.name, color: label.color },
+    });
     return { data: label };
   } catch (err) {
     return { errors: [{ field: "", message: err instanceof Error ? err.message : "Failed" }] };
@@ -48,6 +53,10 @@ export async function deleteLabelAction(
   try {
     const label = await deleteLabel(parsed.data.labelId, { ownerId: userId });
     revalidatePath(`/boards/${label.boardId}`);
+    emitToBoard(label.boardId, REALTIME_EVENTS.LABEL_DELETED, {
+      boardId: label.boardId,
+      labelId: label.id,
+    });
     return { success: true };
   } catch (err) {
     return { errors: [{ field: "", message: err instanceof Error ? err.message : "Failed" }] };
