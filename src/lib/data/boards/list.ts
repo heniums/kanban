@@ -19,3 +19,37 @@ export async function listBoardsByMember(userId: string): Promise<Board[]> {
     .limit(MAX_LIMIT)
     .then((rows) => rows.map((r) => r.board));
 }
+
+export async function listBoardsByRole(userId: string): Promise<{
+  owned: Board[];
+  shared: Board[];
+}> {
+  const db = createDbClient();
+
+  const rows = await db
+    .select({
+      board: boards,
+      role: boardMembers.role,
+    })
+    .from(boards)
+    .innerJoin(
+      boardMembers,
+      and(eq(boards.id, boardMembers.boardId), eq(boardMembers.userId, userId)),
+    )
+    .where(isNull(boards.deletedAt))
+    .orderBy(desc(boards.createdAt))
+    .limit(MAX_LIMIT);
+
+  const owned: Board[] = [];
+  const shared: Board[] = [];
+
+  for (const row of rows) {
+    if (row.role === "owner") {
+      owned.push(row.board);
+    } else {
+      shared.push(row.board);
+    }
+  }
+
+  return { owned, shared };
+}

@@ -8,7 +8,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 export default async function BoardsPage() {
   await verifySession();
 
-  const { owned } = await listBoardsAction();
+  const { owned, shared } = await listBoardsAction();
 
   return (
     <PageContainer as="main">
@@ -39,12 +39,20 @@ export default async function BoardsPage() {
 
       <section>
         <h2 className="mb-4 text-lg font-semibold">Shared with me</h2>
-        <div className="rounded-lg border border-dashed p-8 text-center">
-          <p className="text-muted-foreground">
-            No boards shared with you yet. When someone invites you to their board, it will appear
-            here.
-          </p>
-        </div>
+        {shared.length === 0 ? (
+          <div className="rounded-lg border border-dashed p-8 text-center">
+            <p className="text-muted-foreground">
+              No boards shared with you yet. When someone invites you to their board, it will appear
+              here.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {shared.map((board) => (
+              <BoardCard key={board.id} board={board} />
+            ))}
+          </div>
+        )}
       </section>
     </PageContainer>
   );

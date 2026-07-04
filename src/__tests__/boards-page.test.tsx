@@ -99,6 +99,21 @@ describe("BoardsPage", () => {
     expect(screen.getByText(/no boards shared with you yet/i)).toBeTruthy();
   });
 
+  it("renders shared boards under the 'Shared with me' section", async () => {
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockListBoardsAction.mockResolvedValue({
+      owned: [],
+      shared: sampleBoards,
+    });
+
+    const jsx = await BoardsPage();
+    render(jsx);
+
+    expect(screen.getByRole("heading", { name: /shared with me/i })).toBeTruthy();
+    expect(screen.getByText("Product Roadmap")).toBeTruthy();
+    expect(screen.getByText("Sprint Board")).toBeTruthy();
+  });
+
   it("renders a link to /boards/new for creating a board", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
     mockListBoardsAction.mockResolvedValue({

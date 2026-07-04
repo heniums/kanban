@@ -60,6 +60,7 @@ vi.mock("@/lib/db/schema/board-members", () => ({
 import {
   getBoardById,
   listBoardsByMember,
+  listBoardsByRole,
   createBoard,
   updateBoard,
   softDeleteBoard,
@@ -100,6 +101,29 @@ describe("listBoardsByMember", () => {
     expect(db.where).toHaveBeenCalled();
     expect(db.orderBy).toHaveBeenCalled();
     expect(db.limit).toHaveBeenCalledWith(100);
+  });
+});
+
+describe("listBoardsByRole", () => {
+  it("separates boards into owned and shared based on role", async () => {
+    selectResult = [
+      { board: { id: "board-1", title: "Owned Board" }, role: "owner" },
+      { board: { id: "board-2", title: "Shared Board" }, role: "member" },
+      { board: { id: "board-3", title: "Another Owned" }, role: "owner" },
+    ];
+    const result = await listBoardsByRole("user-1");
+    expect(result.owned).toHaveLength(2);
+    expect(result.shared).toHaveLength(1);
+    expect(result.owned[0].title).toBe("Owned Board");
+    expect(result.owned[1].title).toBe("Another Owned");
+    expect(result.shared[0].title).toBe("Shared Board");
+  });
+
+  it("returns empty arrays when no boards found", async () => {
+    selectResult = [];
+    const result = await listBoardsByRole("user-1");
+    expect(result.owned).toHaveLength(0);
+    expect(result.shared).toHaveLength(0);
   });
 });
 

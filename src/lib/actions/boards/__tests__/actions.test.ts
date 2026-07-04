@@ -4,6 +4,7 @@ const {
   mockVerifySession,
   mockGetBoardById,
   mockListBoardsByMember,
+  mockListBoardsByRole,
   mockCreateBoard,
   mockUpdateBoard,
   mockSoftDeleteBoard,
@@ -12,6 +13,7 @@ const {
   mockVerifySession: vi.fn(),
   mockGetBoardById: vi.fn(),
   mockListBoardsByMember: vi.fn(),
+  mockListBoardsByRole: vi.fn(),
   mockCreateBoard: vi.fn(),
   mockUpdateBoard: vi.fn(),
   mockSoftDeleteBoard: vi.fn(),
@@ -25,6 +27,7 @@ vi.mock("@/lib/dal", () => ({
 vi.mock("@/lib/data/boards", () => ({
   getBoardById: mockGetBoardById,
   listBoardsByMember: mockListBoardsByMember,
+  listBoardsByRole: mockListBoardsByRole,
   createBoard: mockCreateBoard,
   updateBoard: mockUpdateBoard,
   softDeleteBoard: mockSoftDeleteBoard,
@@ -118,12 +121,12 @@ describe("createBoardAction", () => {
 describe("listBoardsAction", () => {
   it("returns boards for the current user", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
-    mockListBoardsByMember.mockResolvedValue([SAMPLE_BOARD]);
+    mockListBoardsByRole.mockResolvedValue({ owned: [SAMPLE_BOARD], shared: [] });
 
     const result = await listBoardsAction();
     expect(result.owned).toEqual([SAMPLE_BOARD]);
     expect(result.shared).toEqual([]);
-    expect(mockListBoardsByMember).toHaveBeenCalledWith("user-1");
+    expect(mockListBoardsByRole).toHaveBeenCalledWith("user-1");
   });
 
   it("redirects to /login when not signed in", async () => {
