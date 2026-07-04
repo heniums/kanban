@@ -1,0 +1,8 @@
+{
+  "track_id": "board_member_mgmt_20260705",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-07-05T00:00:00Z",
+  "updated_at": "2026-07-05T00:00:00Z",
+  "description": "Board member management - allow board owners to invite registered users to collaborate on their boards with Owner + Member role model"
+}
