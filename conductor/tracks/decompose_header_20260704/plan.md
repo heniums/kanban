@@ -2,12 +2,12 @@
 
 ## Phase 1: Capture Current Behavior with Tests
 
-- [ ] Task: Write a component render test for `CardDetail` that snapshots the header area (TitleBar, "in list" subtitle, MetadataBar with due date, labels, assignees) to lock in the current visual structure.
-  - [ ] Create test file at `src/components/cards/__tests__/card-detail-header.test.tsx`
-  - [ ] Render `<CardDetail>` with mock data covering all header fields
-  - [ ] Assert that TitleBar, "in list" text, DueDateField, LabelsControl, and AssigneesControl are present
-- [ ] Task: Verify tests pass with current implementation (`npm test`)
-- [ ] Task: Conductor - User Manual Verification 'Capture Current Behavior with Tests' (Protocol in workflow.md)
+- [x] Task: Write a component render test for `CardDetail` that snapshots the header area (TitleBar, "in list" subtitle, MetadataBar with due date, labels, assignees) to lock in the current visual structure.
+  - [x] Create test file at `src/components/cards/__tests__/card-detail-header.test.tsx`
+  - [x] Render `<CardDetail>` with mock data covering all header fields
+  - [x] Assert that TitleBar, "in list" text, DueDateField, LabelsControl, and AssigneesControl are present
+- [x] Task: Verify tests pass with current implementation (`npm test`)
+- [x] Task: Conductor - User Manual Verification 'Capture Current Behavior with Tests' (Protocol in workflow.md)
 
 ## Phase 2: Inline Components into Parent
 

@@ -38,5 +38,5 @@ All tracks are complete. See `conductor/archive/` for historical track folders.
 
 ---
 
-- [ ] **Track: Decompose CardDetailHeader god component into flat list of components**
-      _Link: [./tracks/decompose_header_20260704/](./tracks/decompose_header_20260704/)_
+- [~] **Track: Decompose CardDetailHeader god component into flat list of components**
+  _Link: [./tracks/decompose_header_20260704/](./tracks/decompose_header_20260704/)_
