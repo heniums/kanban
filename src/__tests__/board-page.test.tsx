@@ -146,7 +146,7 @@ describe("BoardPage text color", () => {
     });
     expect(mockVerifySession).toHaveBeenCalledTimes(1);
     expect(mockGetBoardById).toHaveBeenCalledWith("test-id", {
-      ownerId: "user-1",
+      userId: "user-1",
     });
   });
 });

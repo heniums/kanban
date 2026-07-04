@@ -25,7 +25,7 @@ export default async function BoardPage({ params }: BoardPageProps) {
   const { userId } = await verifySession();
 
   const { boardId } = await params;
-  const board = await getBoardById(boardId, { ownerId: userId });
+  const board = await getBoardById(boardId, { userId });
 
   if (!board) {
     notFound();

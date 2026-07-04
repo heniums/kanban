@@ -38,5 +38,5 @@ All tracks are complete. See `conductor/archive/` for historical track folders.
 
 ---
 
-- [ ] **Track: Board member management - allow board owners to invite registered users to collaborate on their boards with Owner + Member role model**
-      _Link: [./tracks/board_member_mgmt_20260705/](./tracks/board_member_mgmt_20260705/)_
+- [~] **Track: Board member management - allow board owners to invite registered users to collaborate on their boards with Owner + Member role model**
+  _Link: [./tracks/board_member_mgmt_20260705/](./tracks/board_member_mgmt_20260705/)_
