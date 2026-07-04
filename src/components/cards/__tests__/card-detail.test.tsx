@@ -275,4 +275,30 @@ describe("CardDetail modal", () => {
       });
     });
   });
+
+  it("renders the 'in list' subtitle below the title bar", async () => {
+    render(<CardDetail boardId="b1" lists={[{ id: "l1", title: "To Do" }]} />);
+    await openModal();
+    const inListText = screen.getByText(/in list/i);
+    expect(inListText).toBeDefined();
+    expect(inListText.textContent).toContain("To Do");
+  });
+
+  it("renders the Assignees field label", async () => {
+    render(<CardDetail boardId="b1" lists={[{ id: "l1", title: "To Do" }]} />);
+    await openModal();
+    expect(screen.getByText("Assignees")).toBeDefined();
+  });
+
+  it("renders the copy card button", async () => {
+    render(<CardDetail boardId="b1" lists={[{ id: "l1", title: "To Do" }]} />);
+    await openModal();
+    expect(screen.getByRole("button", { name: /copy card/i })).toBeDefined();
+  });
+
+  it("renders the move popover trigger", async () => {
+    render(<CardDetail boardId="b1" lists={[{ id: "l1", title: "To Do" }]} />);
+    await openModal();
+    expect(screen.getByRole("button", { name: /move card/i })).toBeDefined();
+  });
 });
