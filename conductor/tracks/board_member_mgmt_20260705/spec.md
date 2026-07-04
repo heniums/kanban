@@ -29,14 +29,32 @@ Implement board member management for the MVP, allowing board owners to invite r
 
 ### 3. Member Permissions
 
+- **Permissions-based access control:** Implement a centralized permissions mapping system that maps roles to specific permissions. This approach allows easy addition of new roles in the future without refactoring permission checks throughout the codebase.
+
+- **Permission definitions:**
+  - `view`: View the board and all its content
+  - `edit_content`: Create, edit, move, and delete lists and cards
+  - `manage_settings`: Manage board settings (title, description, background, delete board)
+  - `manage_members`: Add and remove board members
+
+- **Role-to-permission mapping:**
+
+  ```typescript
+  const ROLE_PERMISSIONS = {
+    owner: ["view", "edit_content", "manage_settings", "manage_members"],
+    member: ["view", "edit_content"],
+  } as const;
+  ```
+
+- **Permission checking:**
+  - Create a utility function `hasPermission(userId, boardId, permission)` that checks if a user has a specific permission on a board
+  - All server actions must use this utility for authorization checks
+  - Client components can use this to conditionally render UI elements
+
 - **Owner role:**
-  - All member permissions
-  - Manage board settings (title, description, background, delete board)
-  - Manage members (add/remove)
+  - Has all permissions: view, edit_content, manage_settings, manage_members
 - **Member role:**
-  - View the board and all its content
-  - Create, edit, move, and delete lists
-  - Create, edit, move, and delete cards
+  - Has limited permissions: view, edit_content
   - Cannot access board settings
   - Cannot manage other members
 

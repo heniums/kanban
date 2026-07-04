@@ -28,15 +28,30 @@
 
 ## Phase 2: Backend Server Actions
 
+- [ ] Task: Write tests for permissions system
+  - [ ] Test ROLE_PERMISSIONS mapping contains correct permissions for each role
+  - [ ] Test hasPermission returns true when user has the permission
+  - [ ] Test hasPermission returns false when user lacks the permission
+  - [ ] Test hasPermission returns false when user is not a board member
+  - [ ] Test getUserRole returns the correct role for a board member
+  - [ ] Test getUserRole returns null when user is not a board member
+
+- [ ] Task: Implement permissions mapping and utility functions
+  - [ ] Create permissions.ts with BoardPermission enum type
+  - [ ] Define ROLE_PERMISSIONS constant mapping roles to permission arrays
+  - [ ] Implement hasPermission(userId, boardId, permission) utility function
+  - [ ] Implement getUserRole(userId, boardId) utility function
+  - [ ] Export permission constants for use in client components
+
 - [ ] Task: Write tests for member management server actions
   - [ ] Test searchUsers action returns matching users by email/username
   - [ ] Test searchUsers excludes existing board members
   - [ ] Test addMember action adds user as 'member' role
   - [ ] Test addMember fails if user is already a member
-  - [ ] Test addMember requires owner permission
+  - [ ] Test addMember requires manage_members permission
   - [ ] Test removeMember action removes user from board
   - [ ] Test removeMember fails if user is the last owner
-  - [ ] Test removeMember requires owner permission
+  - [ ] Test removeMember requires manage_members permission
   - [ ] Test getBoardMembers returns all members with user details
 
 - [ ] Task: Implement searchUsers server action
@@ -46,14 +61,14 @@
 
 - [ ] Task: Implement addMember server action
   - [ ] Create addMember function that inserts user into board_members
-  - [ ] Verify caller is board owner before adding
+  - [ ] Use hasPermission to verify caller has manage_members permission
   - [ ] Check user is not already a member
   - [ ] Set role to 'member'
   - [ ] Return success/error response
 
 - [ ] Task: Implement removeMember server action
   - [ ] Create removeMember function that deletes user from board_members
-  - [ ] Verify caller is board owner before removing
+  - [ ] Use hasPermission to verify caller has manage_members permission
   - [ ] Prevent removal if user is the last owner
   - [ ] Return success/error response
 
@@ -62,11 +77,13 @@
   - [ ] Join with users table to get name, email, username
   - [ ] Return array of members with role and joinedAt
 
-- [ ] Task: Update board access control to check membership
-  - [ ] Write tests for membership-based access control
-  - [ ] Modify getBoard to verify user is in board_members
-  - [ ] Return 403/404 if user is not a member
-  - [ ] Update all board-related server actions to check membership
+- [ ] Task: Update board access control to use permissions
+  - [ ] Write tests for permission-based access control
+  - [ ] Modify getBoard to verify user has 'view' permission
+  - [ ] Return 403/404 if user lacks permission
+  - [ ] Update all board-related server actions to use hasPermission checks
+  - [ ] Update list and card server actions to check 'edit_content' permission
+  - [ ] Update board settings actions to check 'manage_settings' permission
 
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Backend Server Actions' (Protocol in workflow.md)
 
@@ -85,7 +102,7 @@
   - [ ] Create MemberList component that displays board members
   - [ ] Show member name, email/username, role, and join date
   - [ ] Display owner badge for owner role
-  - [ ] Show remove button for owners (not for self)
+  - [ ] Show remove button only if current user has manage_members permission (not for self-removal)
 
 - [ ] Task: Implement AddMemberDialog component
   - [ ] Create AddMemberDialog with search input
@@ -105,9 +122,9 @@
 - [ ] Task: Integrate member management into board page
   - [ ] Add member management section to board page header
   - [ ] Show MemberList component
-  - [ ] Add "Add Member" button (owner only)
+  - [ ] Add "Add Member" button (only if user has manage_members permission)
   - [ ] Wire up AddMemberDialog and RemoveMemberDialog
-  - [ ] Hide member management controls for non-owners
+  - [ ] Hide member management controls based on permissions
 
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Frontend - Member Management UI' (Protocol in workflow.md)
 
