@@ -2,22 +2,22 @@
 
 ## Phase 1: Database Schema & Migrations
 
-- [ ] Task: Write tests for board_members table schema and constraints
-  - [ ] Test that board_members table has correct columns (boardId, userId, role, joinedAt)
-  - [ ] Test composite primary key constraint (boardId, userId)
-  - [ ] Test foreign key constraints to boards and users tables
-  - [ ] Test role enum constraint ('owner', 'member')
-  - [ ] Test that a board must have at least one owner
-  - [ ] Test that a user can only be member of a board once
+- [x] Task: Write tests for board_members table schema and constraints
+  - [x] Test that board_members table has correct columns (boardId, userId, role, joinedAt)
+  - [x] Test composite primary key constraint (boardId, userId)
+  - [x] Test foreign key constraints to boards and users tables
+  - [x] Test role enum constraint ('owner', 'member')
+  - [x] Test that a board must have at least one owner
+  - [x] Test that a user can only be member of a board once
 
-- [ ] Task: Create Drizzle migration for board_members table
-  - [ ] Define boardMembers table schema in Drizzle
-  - [ ] Add boardId column with foreign key to boards
-  - [ ] Add userId column with foreign key to users
-  - [ ] Add role column with enum type ('owner', 'member')
-  - [ ] Add joinedAt timestamp column
-  - [ ] Set composite primary key (boardId, userId)
-  - [ ] Run migration and verify schema
+- [x] Task: Create Drizzle migration for board_members table
+  - [x] Define boardMembers table schema in Drizzle
+  - [x] Add boardId column with foreign key to boards
+  - [x] Add userId column with foreign key to users
+  - [x] Add role column with enum type ('owner', 'member')
+  - [x] Add joinedAt timestamp column
+  - [x] Set composite primary key (boardId, userId)
+  - [x] Run migration and verify schema
 
 - [ ] Task: Update board creation logic to add owner
   - [ ] Write tests for auto-adding board creator as owner
