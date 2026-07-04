@@ -33,5 +33,5 @@ All tracks are complete. See `conductor/archive/` for historical track folders.
 
 ---
 
-- [~] **Track: Refactor card-detail god component and board-cards into composable component architecture**
-  _Link: [./tracks/component_composition_20260703/](./tracks/component_composition_20260703/)_
+- [x] **Track: Refactor card-detail god component and board-cards into composable component architecture**
+      _Link: [../archive/component_composition_20260703/](../archive/component_composition_20260703/)_

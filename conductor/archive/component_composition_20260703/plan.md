@@ -47,11 +47,11 @@
 - [x] Task: Refactor `BoardCards` to use `useListActions`
 - [x] Task: Update board-cards DnD tests if needed
 - [x] Task: Verify typecheck, lint, tests pass
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: BoardCards List Actions Extraction' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: BoardCards List Actions Extraction' (Protocol in workflow.md)
 
 ## Phase 4: Final Integration & Cleanup
 
-- [ ] Task: Remove unused exports and dead code from old interfaces
-- [ ] Task: Run full test suite, typecheck, lint
-- [ ] Task: Manual E2E verification of card detail workflow
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Final Integration & Cleanup' (Protocol in workflow.md)
+- [x] Task: Remove unused exports and dead code from old interfaces
+- [x] Task: Run full test suite, typecheck, lint
+- [x] Task: Manual E2E verification of card detail workflow
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Final Integration & Cleanup' (Protocol in workflow.md)
