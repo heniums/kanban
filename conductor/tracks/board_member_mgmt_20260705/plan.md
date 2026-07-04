@@ -28,20 +28,20 @@
 
 ## Phase 2: Backend Server Actions
 
-- [ ] Task: Write tests for permissions system
-  - [ ] Test ROLE_PERMISSIONS mapping contains correct permissions for each role
-  - [ ] Test hasPermission returns true when user has the permission
-  - [ ] Test hasPermission returns false when user lacks the permission
-  - [ ] Test hasPermission returns false when user is not a board member
-  - [ ] Test getUserRole returns the correct role for a board member
-  - [ ] Test getUserRole returns null when user is not a board member
+- [x] Task: Write tests for permissions system
+  - [x] Test ROLE_PERMISSIONS mapping contains correct permissions for each role
+  - [x] Test hasPermission returns true when user has the permission
+  - [x] Test hasPermission returns false when user lacks the permission
+  - [x] Test hasPermission returns false when user is not a board member
+  - [x] Test getUserRole returns the correct role for a board member
+  - [x] Test getUserRole returns null when user is not a board member
 
-- [ ] Task: Implement permissions mapping and utility functions
-  - [ ] Create permissions.ts with BoardPermission enum type
-  - [ ] Define ROLE_PERMISSIONS constant mapping roles to permission arrays
-  - [ ] Implement hasPermission(userId, boardId, permission) utility function
-  - [ ] Implement getUserRole(userId, boardId) utility function
-  - [ ] Export permission constants for use in client components
+- [x] Task: Implement permissions mapping and utility functions
+  - [x] Create permissions.ts with BoardPermission enum type
+  - [x] Define ROLE_PERMISSIONS constant mapping roles to permission arrays
+  - [x] Implement hasPermission(userId, boardId, permission) utility function
+  - [x] Implement getUserRole(userId, boardId) utility function
+  - [x] Export permission constants for use in client components
 
 - [ ] Task: Write tests for member management server actions
   - [ ] Test searchUsers action returns matching users by email/username
