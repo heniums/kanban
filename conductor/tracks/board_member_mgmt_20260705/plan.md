@@ -43,39 +43,39 @@
   - [x] Implement getUserRole(userId, boardId) utility function
   - [x] Export permission constants for use in client components
 
-- [ ] Task: Write tests for member management server actions
-  - [ ] Test searchUsers action returns matching users by email/username
-  - [ ] Test searchUsers excludes existing board members
-  - [ ] Test addMember action adds user as 'member' role
-  - [ ] Test addMember fails if user is already a member
-  - [ ] Test addMember requires manage_members permission
-  - [ ] Test removeMember action removes user from board
-  - [ ] Test removeMember fails if user is the last owner
-  - [ ] Test removeMember requires manage_members permission
-  - [ ] Test getBoardMembers returns all members with user details
+- [x] Task: Write tests for member management server actions
+  - [x] Test searchUsers action returns matching users by email/username
+  - [x] Test searchUsers excludes existing board members
+  - [x] Test addMember action adds user as 'member' role
+  - [x] Test addMember fails if user is already a member
+  - [x] Test addMember requires manage_members permission
+  - [x] Test removeMember action removes user from board
+  - [x] Test removeMember fails if user is the last owner
+  - [x] Test removeMember requires manage_members permission
+  - [x] Test getBoardMembers returns all members with user details
 
-- [ ] Task: Implement searchUsers server action
-  - [ ] Create searchUsers function that queries users by email or username
-  - [ ] Filter out users who are already members of the board
-  - [ ] Return user info (id, name, email, username)
+- [x] Task: Implement searchUsers server action
+  - [x] Create searchUsers function that queries users by email or username
+  - [x] Filter out users who are already members of the board
+  - [x] Return user info (id, name, email, username)
 
-- [ ] Task: Implement addMember server action
-  - [ ] Create addMember function that inserts user into board_members
-  - [ ] Use hasPermission to verify caller has manage_members permission
-  - [ ] Check user is not already a member
-  - [ ] Set role to 'member'
-  - [ ] Return success/error response
+- [x] Task: Implement addMember server action
+  - [x] Create addMember function that inserts user into board_members
+  - [x] Use hasPermission to verify caller has manage_members permission
+  - [x] Check user is not already a member
+  - [x] Set role to 'member'
+  - [x] Return success/error response
 
-- [ ] Task: Implement removeMember server action
-  - [ ] Create removeMember function that deletes user from board_members
-  - [ ] Use hasPermission to verify caller has manage_members permission
-  - [ ] Prevent removal if user is the last owner
-  - [ ] Return success/error response
+- [x] Task: Implement removeMember server action
+  - [x] Create removeMember function that deletes user from board_members
+  - [x] Use hasPermission to verify caller has manage_members permission
+  - [x] Prevent removal if user is the last owner
+  - [x] Return success/error response
 
-- [ ] Task: Implement getBoardMembers server action
-  - [ ] Create getBoardMembers function that queries board_members with user details
-  - [ ] Join with users table to get name, email, username
-  - [ ] Return array of members with role and joinedAt
+- [x] Task: Implement getBoardMembers server action
+  - [x] Create getBoardMembers function that queries board_members with user details
+  - [x] Join with users table to get name, email, username
+  - [x] Return array of members with role and joinedAt
 
 - [ ] Task: Update board access control to use permissions
   - [ ] Write tests for permission-based access control
