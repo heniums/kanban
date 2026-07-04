@@ -77,13 +77,13 @@
   - [x] Join with users table to get name, email, username
   - [x] Return array of members with role and joinedAt
 
-- [ ] Task: Update board access control to use permissions
-  - [ ] Write tests for permission-based access control
-  - [ ] Modify getBoard to verify user has 'view' permission
-  - [ ] Return 403/404 if user lacks permission
-  - [ ] Update all board-related server actions to use hasPermission checks
-  - [ ] Update list and card server actions to check 'edit_content' permission
-  - [ ] Update board settings actions to check 'manage_settings' permission
+- [x] Task: Update board access control to use permissions
+  - [x] Write tests for permission-based access control
+  - [x] Modify getBoard to verify user has 'view' permission (via membership check)
+  - [x] Return 403/404 if user lacks permission
+  - [x] Update all board-related server actions to use hasPermission checks
+  - [x] Update list and card server actions to check 'edit_content' permission
+  - [x] Update board settings actions to check 'manage_settings' permission (via guards)
 
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Backend Server Actions' (Protocol in workflow.md)
 
