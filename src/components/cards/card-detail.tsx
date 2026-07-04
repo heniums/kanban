@@ -92,7 +92,7 @@ export function CardDetail({ boardId, lists }: CardDetailProps) {
             <MetadataBar>
               <MetadataField label="Due date" icon={<Calendar className="size-3.5" />}>
                 <DueDateField
-                  value={data.card.dueDate ? new Date(data.card.dueDate) : null}
+                  value={draft.dueDate}
                   onChange={(dueDate) => setDraft({ ...draft, dueDate })}
                   isPending={isPending}
                 />
@@ -138,7 +138,11 @@ export function CardDetail({ boardId, lists }: CardDetailProps) {
                         : [...draft.assigneeIds, userId],
                     });
                   }}
-                  byId={Object.fromEntries(data.assignees.map((a) => [a.id, a]))}
+                  byId={Object.fromEntries(
+                    data.boardMembers
+                      .filter((m) => draft.assigneeIds.includes(m.id))
+                      .map((m) => [m.id, m]),
+                  )}
                   disabled={isPending}
                 />
               </MetadataField>
