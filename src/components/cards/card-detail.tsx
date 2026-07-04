@@ -1,5 +1,6 @@
 "use client";
 
+import { Calendar, Tag, Users } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +13,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { CardDetailHeader } from "./card-detail/card-detail-header";
+import { TitleBar } from "./card-detail/card-detail-title-bar";
+import { MovePopover } from "./card-detail/card-detail-move-popover";
+import { DueDateField } from "./card-detail/card-detail-due-date";
+import { LabelsControl } from "./card-detail/card-detail-labels";
+import { AssigneesControl } from "./card-detail/card-detail-assignees";
+import { MetadataBar, MetadataField } from "./card-detail/card-detail-metadata";
 import { DescriptionEditor } from "./card-detail/card-detail-description";
 import { AddChecklistButton, ChecklistsSection } from "./card-detail/card-detail-checklists";
 import { CommentsSection } from "./card-detail/card-detail-comments";
@@ -58,42 +64,85 @@ export function CardDetail({ boardId, lists }: CardDetailProps) {
       >
         {data && draft && (
           <div className="flex flex-col gap-6 p-8">
-            <CardDetailHeader
-              data={data}
-              draft={draft}
-              lists={lists}
-              isPending={isPending}
+            <TitleBar
+              title={draft.title}
               onTitleChange={(title) => setDraft({ ...draft, title })}
               onCopy={handleCopy}
-              onMoveRequest={() => setMoveOpen(true)}
-              moveOpen={moveOpen}
-              onMoveOpenChange={setMoveOpen}
-              onMove={handleMove}
+              moveTrigger={
+                <MovePopover
+                  open={moveOpen}
+                  onOpenChange={setMoveOpen}
+                  lists={lists}
+                  currentListId={data.card.listId}
+                  onMove={handleMove}
+                  isPending={isPending}
+                />
+              }
               onDeleteRequest={() => setDeleteOpen(true)}
-              onLabelToggle={(labelId) => {
-                const has = draft.labelIds.includes(labelId);
-                setDraft({
-                  ...draft,
-                  labelIds: has
-                    ? draft.labelIds.filter((id) => id !== labelId)
-                    : [...draft.labelIds, labelId],
-                });
-              }}
-              onCreateLabel={handleCreateLabel}
-              onUpdateLabel={handleUpdateLabel}
-              onDeleteLabel={handleDeleteLabel}
-              newlyCreatedLabelIds={newlyCreatedLabelIds}
-              onAssigneeToggle={(userId) => {
-                const has = draft.assigneeIds.includes(userId);
-                setDraft({
-                  ...draft,
-                  assigneeIds: has
-                    ? draft.assigneeIds.filter((id) => id !== userId)
-                    : [...draft.assigneeIds, userId],
-                });
-              }}
-              onDueDateChange={(dueDate) => setDraft({ ...draft, dueDate })}
+              isPending={isPending}
             />
+
+            <div className="text-muted-foreground -mt-4 text-xs">
+              in list{" "}
+              <span className="font-medium">
+                {lists.find((l) => l.id === data.card.listId)?.title ?? "—"}
+              </span>
+            </div>
+
+            <MetadataBar>
+              <MetadataField label="Due date" icon={<Calendar className="size-3.5" />}>
+                <DueDateField
+                  value={data.card.dueDate ? new Date(data.card.dueDate) : null}
+                  onChange={(dueDate) => setDraft({ ...draft, dueDate })}
+                  isPending={isPending}
+                />
+              </MetadataField>
+              <MetadataField
+                label="Labels"
+                icon={<Tag className="size-3.5" />}
+                className="min-w-0 flex-1"
+              >
+                <LabelsControl
+                  boardLabels={data.boardLabels}
+                  selectedIds={draft.labelIds}
+                  onToggle={(labelId) => {
+                    const has = draft.labelIds.includes(labelId);
+                    setDraft({
+                      ...draft,
+                      labelIds: has
+                        ? draft.labelIds.filter((id) => id !== labelId)
+                        : [...draft.labelIds, labelId],
+                    });
+                  }}
+                  onCreateLabel={handleCreateLabel}
+                  onUpdateLabel={handleUpdateLabel}
+                  onDeleteLabel={handleDeleteLabel}
+                  newlyCreatedIds={newlyCreatedLabelIds}
+                  disabled={isPending}
+                />
+              </MetadataField>
+              <MetadataField
+                label="Assignees"
+                icon={<Users className="size-3.5" />}
+                className="min-w-0 flex-1"
+              >
+                <AssigneesControl
+                  boardMembers={data.boardMembers}
+                  selectedIds={draft.assigneeIds}
+                  onToggle={(userId) => {
+                    const has = draft.assigneeIds.includes(userId);
+                    setDraft({
+                      ...draft,
+                      assigneeIds: has
+                        ? draft.assigneeIds.filter((id) => id !== userId)
+                        : [...draft.assigneeIds, userId],
+                    });
+                  }}
+                  byId={Object.fromEntries(data.assignees.map((a) => [a.id, a]))}
+                  disabled={isPending}
+                />
+              </MetadataField>
+            </MetadataBar>
 
             <DescriptionEditor
               value={draft.description}
