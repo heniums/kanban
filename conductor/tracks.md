@@ -35,8 +35,3 @@ All tracks are complete. See `conductor/archive/` for historical track folders.
 
 - [x] **Track: Refactor card-detail god component and board-cards into composable component architecture**
       _Link: [../archive/component_composition_20260703/](../archive/component_composition_20260703/)_
-
----
-
-- [x] **Track: Decompose CardDetailHeader god component into flat list of components**
-      _Link: [./tracks/decompose_header_20260704/](./tracks/decompose_header_20260704/)_
