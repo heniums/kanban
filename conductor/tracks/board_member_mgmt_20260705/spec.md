@@ -66,13 +66,24 @@ Implement board member management for the MVP, allowing board owners to invite r
 - Real-time notification to all board members when a member is removed
 - Owner cannot remove themselves from their own board
 
-### 5. Member List Display
+### 5. Board Settings Page
+
+- **Dedicated settings route:** Create a dedicated board settings page at `/boards/[id]/settings` that consolidates all board administration in one place
+- **Access control:** Only users with `manage_settings` permission can access the settings page
+- **Tabbed interface:** Organize settings into logical sections using tabs:
+  - **General tab:** Board metadata (title, description, background)
+  - **Members tab:** Member management (list, add, remove members)
+- **Navigation:** Add a "Settings" link/button on the board page header (visible only to users with `manage_settings` permission)
+- **Future extensibility:** The settings page structure should accommodate additional tabs in the future (e.g., Integrations, Notifications, Permissions)
+
+### 6. Member List Display
 
 - Board UI displays a list of current members with their roles
 - Members can see who else has access to the board
 - Member list shows: name, email/username, role, join date
+- Member management UI (list, add, remove) lives on the Members tab of the settings page
 
-### 6. Access Control
+### 7. Access Control
 
 - Only board members can access the board
 - Non-members attempting to access a board receive a 403/404 error
@@ -92,7 +103,7 @@ Implement board member management for the MVP, allowing board owners to invite r
 3. Owner can add found users as 'member' to the board
 4. Added members can immediately access the board and see it in their dashboard
 5. Members can view and edit all board content (lists, cards)
-6. Members cannot access board settings (edit title, description, background, delete)
+6. Members cannot access board settings page (returns 403/redirect)
 7. Members cannot add or remove other members
 8. Owner can remove members from the board
 9. Removed members immediately lose access and are redirected if currently viewing the board
@@ -100,6 +111,10 @@ Implement board member management for the MVP, allowing board owners to invite r
 11. Member list displays all current members with their roles
 12. Real-time updates when members are added or removed
 13. Dashboard shows boards user owns OR is a member of
+14. Board settings page exists at `/boards/[id]/settings`
+15. Settings page has General tab (board metadata) and Members tab (member management)
+16. Settings page is only accessible to users with `manage_settings` permission
+17. Board page has a "Settings" link visible only to users with `manage_settings` permission
 
 ## Out of Scope
 

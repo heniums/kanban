@@ -87,46 +87,69 @@
 
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Backend Server Actions' (Protocol in workflow.md)
 
-## Phase 3: Frontend - Member Management UI
+## Phase 3: Board Settings Page
 
-- [ ] Task: Write tests for member management components
-  - [ ] Test MemberList displays all members with roles
-  - [ ] Test AddMemberDialog opens and closes correctly
-  - [ ] Test AddMemberDialog search functionality with debounce
-  - [ ] Test AddMemberDialog displays search results
-  - [ ] Test AddMemberDialog adds member on selection
-  - [ ] Test RemoveMemberDialog shows confirmation
-  - [ ] Test RemoveMemberDialog removes member on confirm
+- [ ] Task: Write tests for board settings page structure
+  - [ ] Test settings page route exists at `/boards/[id]/settings`
+  - [ ] Test settings page redirects non-members to dashboard
+  - [ ] Test settings page returns 403 for users without manage_settings permission
+  - [ ] Test tab navigation between General and Members tabs
+  - [ ] Test Settings link appears on board page for users with manage_settings permission
 
-- [ ] Task: Implement MemberList component
-  - [ ] Create MemberList component that displays board members
-  - [ ] Show member name, email/username, role, and join date
-  - [ ] Display owner badge for owner role
-  - [ ] Show remove button only if current user has manage_members permission (not for self-removal)
+- [ ] Task: Create board settings page route and layout
+  - [ ] Create `/boards/[id]/settings/page.tsx` route
+  - [ ] Implement permission check (redirect/403 if no manage_settings)
+  - [ ] Create tabbed layout with General and Members tabs
+  - [ ] Implement tab state management (URL-based or client state)
+  - [ ] Add responsive tab navigation
 
-- [ ] Task: Implement AddMemberDialog component
-  - [ ] Create AddMemberDialog with search input
-  - [ ] Implement debounced search (300ms delay)
-  - [ ] Display search results with user info
-  - [ ] Handle add member action on user selection
-  - [ ] Show loading states and error messages
-  - [ ] Close dialog on successful add
+- [ ] Task: Implement General tab (board metadata)
+  - [ ] Create GeneralTab component for board settings
+  - [ ] Add form fields for board title, description, background
+  - [ ] Implement form validation with Zod
+  - [ ] Add save button with loading states
+  - [ ] Implement updateBoard server action with permission check
+  - [ ] Add success/error feedback
 
-- [ ] Task: Implement RemoveMemberDialog component
-  - [ ] Create RemoveMemberDialog with confirmation message
-  - [ ] Display member name being removed
-  - [ ] Handle remove member action on confirm
-  - [ ] Show loading states and error messages
-  - [ ] Close dialog on successful remove
+- [ ] Task: Implement Members tab (member management)
+  - [ ] Write tests for member management components
+    - [ ] Test MemberList displays all members with roles
+    - [ ] Test AddMemberDialog opens and closes correctly
+    - [ ] Test AddMemberDialog search functionality with debounce
+    - [ ] Test AddMemberDialog displays search results
+    - [ ] Test AddMemberDialog adds member on selection
+    - [ ] Test RemoveMemberDialog shows confirmation
+    - [ ] Test RemoveMemberDialog removes member on confirm
+  - [ ] Implement MemberList component
+    - [ ] Create MemberList component that displays board members
+    - [ ] Show member name, email/username, role, and join date
+    - [ ] Display owner badge for owner role
+    - [ ] Show remove button only if current user has manage_members permission (not for self-removal)
+  - [ ] Implement AddMemberDialog component
+    - [ ] Create AddMemberDialog with search input
+    - [ ] Implement debounced search (300ms delay)
+    - [ ] Display search results with user info
+    - [ ] Handle add member action on user selection
+    - [ ] Show loading states and error messages
+    - [ ] Close dialog on successful add
+  - [ ] Implement RemoveMemberDialog component
+    - [ ] Create RemoveMemberDialog with confirmation message
+    - [ ] Display member name being removed
+    - [ ] Handle remove member action on confirm
+    - [ ] Show loading states and error messages
+    - [ ] Close dialog on successful remove
+  - [ ] Integrate member management components into Members tab
+    - [ ] Display MemberList
+    - [ ] Add "Add Member" button (only if user has manage_members permission)
+    - [ ] Wire up AddMemberDialog and RemoveMemberDialog
 
-- [ ] Task: Integrate member management into board page
-  - [ ] Add member management section to board page header
-  - [ ] Show MemberList component
-  - [ ] Add "Add Member" button (only if user has manage_members permission)
-  - [ ] Wire up AddMemberDialog and RemoveMemberDialog
-  - [ ] Hide member management controls based on permissions
+- [ ] Task: Add Settings link to board page
+  - [ ] Add "Settings" button/link to board page header
+  - [ ] Show Settings link only if user has manage_settings permission
+  - [ ] Link to `/boards/[id]/settings`
+  - [ ] Style consistently with existing header actions
 
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Frontend - Member Management UI' (Protocol in workflow.md)
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: Board Settings Page' (Protocol in workflow.md)
 
 ## Phase 4: Real-Time Updates
 
@@ -143,11 +166,11 @@
   - [ ] Broadcast to board room
 
 - [ ] Task: Update client to handle member events
-  - [ ] Listen for member:added event in board page
-  - [ ] Update member list state on event
-  - [ ] Listen for member:removed event in board page
-  - [ ] Update member list state on event
-  - [ ] Redirect to dashboard if current user was removed
+  - [ ] Listen for member:added event in board page and settings page
+  - [ ] Update member list state on event (settings page Members tab)
+  - [ ] Listen for member:removed event in board page and settings page
+  - [ ] Update member list state on event (settings page Members tab)
+  - [ ] Redirect to dashboard if current user was removed (from any page)
 
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Real-Time Updates' (Protocol in workflow.md)
 
