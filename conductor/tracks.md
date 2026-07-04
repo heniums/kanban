@@ -24,4 +24,14 @@ All tracks are complete. See `conductor/archive/` for historical track folders.
 ---
 
 - [x] **Track: Refactor the fetch before write pattern in the data layer**
-      _Link: [./tracks/fetch_write_refactor_20260703/](./tracks/fetch_write_refactor_20260703/)_
+      _Link: [../archive/fetch_write_refactor_20260703/](../archive/fetch_write_refactor_20260703/)_
+
+---
+
+- [x] **Track: Card UI Polish (cursor, drag animation, due date)**
+      _Link: [../archive/card_ui_polish_20260703/](../archive/card_ui_polish_20260703/)_
+
+---
+
+- [x] **Track: Refactor card-detail god component and board-cards into composable component architecture**
+      _Link: [../archive/component_composition_20260703/](../archive/component_composition_20260703/)_

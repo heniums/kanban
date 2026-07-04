@@ -143,17 +143,17 @@ beforeEach(() => {
 });
 
 describe("BoardCards drag-and-drop wiring", () => {
-  it("marks every card article as draggable (sortable) via dnd-kit's aria-roledescription", () => {
+  it("marks every card wrapper as draggable (sortable) via dnd-kit's aria-roledescription", () => {
     render(
       <BoardCards boardId="b1" initialLists={baseLists} initialCardsByList={makeInitialCards()} />,
     );
     const cards = screen.getAllByTestId("card-item");
     expect(cards).toHaveLength(4);
-    // dnd-kit's useSortable applies aria-roledescription="sortable" so the
-    // entire card is exposed as a single drag handle, not a hidden button
     for (const c of cards) {
-      expect(c.getAttribute("aria-roledescription")).toBe("sortable");
-      expect(c.getAttribute("role")).toBe("button");
+      const wrapper = c.parentElement;
+      expect(wrapper).not.toBeNull();
+      expect(wrapper!.getAttribute("aria-roledescription")).toBe("sortable");
+      expect(wrapper!.getAttribute("role")).toBe("button");
     }
   });
 
@@ -161,18 +161,19 @@ describe("BoardCards drag-and-drop wiring", () => {
     render(
       <BoardCards boardId="b1" initialLists={baseLists} initialCardsByList={makeInitialCards()} />,
     );
-    // The hidden sr-only button is gone — the article itself is the handle
     const moveButtons = screen.queryAllByRole("button", { name: /move card/i });
     expect(moveButtons).toHaveLength(0);
   });
 
-  it("makes the article the pointer-event target for drag (cursor: grab)", () => {
+  it("makes the sortable wrapper the drag handle with cursor: grab", () => {
     render(
       <BoardCards boardId="b1" initialLists={baseLists} initialCardsByList={makeInitialCards()} />,
     );
     const cards = screen.getAllByTestId("card-item");
     for (const c of cards) {
-      expect(c.className).toMatch(/cursor-grab/);
+      const wrapper = c.parentElement;
+      expect(wrapper).not.toBeNull();
+      expect(wrapper!.className).toMatch(/cursor-grab/);
     }
   });
 

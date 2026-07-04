@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
-import { CardItem, type CardItemSortable, type CardSummary } from "@/components/cards/card-item";
+import { CSS } from "@dnd-kit/utilities";
+import { CardItem, type CardSummary } from "@/components/cards/card-item";
 import { AddCardForm } from "@/components/cards/add-card-form";
 import { createCardAction } from "@/lib/actions/cards";
 import { useBoardCardStore } from "@/lib/realtime/board-store";
@@ -47,23 +48,36 @@ export function CardList({ listId, isDropTarget }: CardListProps) {
 }
 
 function SortableCardItem({ card }: { card: CardSummary }) {
-  const sortable = useSortable({
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
     data: { type: "card", listId: card.listId },
-  }) as unknown as CardItemSortable;
+  });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
 
   return (
-    <CardItem
-      card={card}
-      sortable={sortable}
-      onOpen={() => {
-        if (typeof window !== "undefined") {
-          const url = new URL(window.location.href);
-          url.searchParams.set("card", card.id);
-          window.history.pushState({}, "", url);
-          window.dispatchEvent(new CustomEvent("card:open", { detail: { cardId: card.id } }));
-        }
-      }}
-    />
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="cursor-grab touch-none active:cursor-grabbing"
+    >
+      <CardItem
+        card={card}
+        isDragging={isDragging}
+        onOpen={() => {
+          if (typeof window !== "undefined") {
+            const url = new URL(window.location.href);
+            url.searchParams.set("card", card.id);
+            window.history.pushState({}, "", url);
+            window.dispatchEvent(new CustomEvent("card:open", { detail: { cardId: card.id } }));
+          }
+        }}
+      />
+    </div>
   );
 }

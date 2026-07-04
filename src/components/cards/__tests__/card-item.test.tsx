@@ -132,4 +132,31 @@ describe("CardItem", () => {
     render(<CardItem card={baseCard} />);
     expect(screen.queryByTestId("card-description-preview")).toBeNull();
   });
+
+  it("has visible cursor-pointer on the card article", () => {
+    render(<CardItem card={baseCard} />);
+    const card = screen.getByTestId("card-item");
+    expect(card.className).toMatch(/cursor-pointer/);
+    expect(card.className).not.toMatch(/\bcursor-none\b/);
+  });
+
+  it("does not have touch-none or cursor-grab on the article (moved to sortable wrapper)", () => {
+    render(<CardItem card={baseCard} />);
+    const card = screen.getByTestId("card-item");
+    expect(card.className).not.toMatch(/\btouch-none\b/);
+    expect(card.className).not.toMatch(/\bcursor-grab\b/);
+  });
+
+  it("applies opacity-60 when isDragging is true", () => {
+    render(<CardItem card={baseCard} isDragging />);
+    const card = screen.getByTestId("card-item");
+    expect(card.className).toMatch(/opacity-60/);
+  });
+
+  it("does not have inline style transform affecting cursor rendering", () => {
+    render(<CardItem card={baseCard} />);
+    const card = screen.getByTestId("card-item");
+    expect(card.style.transform).toBe("");
+    expect(card.style.transition).toBe("");
+  });
 });

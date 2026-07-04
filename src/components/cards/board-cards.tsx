@@ -1,11 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { DndContext, closestCenter, DragOverlay } from "@dnd-kit/core";
+import { DndContext, closestCorners, DragOverlay, MeasuringStrategy } from "@dnd-kit/core";
 import { SortableContext, horizontalListSortingStrategy } from "@dnd-kit/sortable";
-import { createListAction, deleteListAction, renameListAction } from "@/lib/actions/lists";
 import type { List } from "@/lib/db/schema/lists";
 import { ListColumn } from "@/components/lists/list-column";
 import { AddListForm } from "@/components/lists/add-list-form";
@@ -18,6 +15,7 @@ import { useBoardSocket } from "@/lib/realtime/use-board-socket";
 import { useBoardCardsDnd } from "./board-cards/use-board-cards-dnd";
 import { ListEndDropZone } from "./board-cards/list-end-drop-zone";
 import { SortableListColumn } from "./board-cards/sortable-list-column";
+import { useListActions } from "./board-cards/use-list-actions";
 
 interface BoardCardsProps {
   boardId: string;
@@ -26,7 +24,6 @@ interface BoardCardsProps {
 }
 
 export function BoardCards({ boardId, initialLists, initialCardsByList }: BoardCardsProps) {
-  const router = useRouter();
   useBoardSocket(boardId);
 
   const setInitial = useBoardCardStore((s) => s.setInitial);
@@ -48,37 +45,13 @@ export function BoardCards({ boardId, initialLists, initialCardsByList }: BoardC
     boardId,
   });
 
-  const handleAddList = async (title: string) => {
-    const result = await createListAction({ boardId, title });
-    if ("errors" in result) {
-      toast.error(result.errors.map((e) => e.message).join(", "));
-      return;
-    }
-    router.refresh();
-  };
-
-  const handleRenameList = async (listId: string, title: string) => {
-    const result = await renameListAction({ listId, title });
-    if ("errors" in result) {
-      toast.error(result.errors.map((e) => e.message).join(", "));
-      return;
-    }
-    router.refresh();
-  };
-
-  const handleDeleteList = async (listId: string) => {
-    const result = await deleteListAction({ listId });
-    if ("error" in result) {
-      toast.error(result.error);
-      return;
-    }
-    router.refresh();
-  };
+  const { handleAddList, handleRenameList, handleDeleteList } = useListActions({ boardId });
 
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={closestCorners}
+      measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
