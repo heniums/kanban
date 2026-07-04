@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { toast } from "sonner";
 import type { Board } from "@/lib/db/schema/boards";
 
@@ -31,6 +32,7 @@ type BoardActionsVariant = "default" | "overlay";
 interface BoardActionsProps {
   board: Board;
   variant?: BoardActionsVariant;
+  canManageSettings?: boolean;
 }
 
 const UNDO_DURATION_MS = 5000;
@@ -40,7 +42,11 @@ const SETTINGS_OVERLAY_CLASS =
 const DELETE_OVERLAY_CLASS =
   "border border-red-300/40 bg-red-500/30 text-white backdrop-blur-sm hover:bg-red-500/40";
 
-export function BoardActions({ board, variant = "default" }: BoardActionsProps) {
+export function BoardActions({
+  board,
+  variant = "default",
+  canManageSettings = false,
+}: BoardActionsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -85,12 +91,18 @@ export function BoardActions({ board, variant = "default" }: BoardActionsProps) 
 
   return (
     <div className="flex items-center gap-2">
+      {canManageSettings && (
+        <Button asChild variant={isOverlay ? "ghost" : "outline"} className={settingsClass}>
+          <Link href={`/boards/${board.id}/settings`}>Settings</Link>
+        </Button>
+      )}
+
       <Button
         variant={isOverlay ? "ghost" : "outline"}
         className={settingsClass}
         onClick={() => setSettingsOpen(true)}
       >
-        Settings
+        Edit
       </Button>
 
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>

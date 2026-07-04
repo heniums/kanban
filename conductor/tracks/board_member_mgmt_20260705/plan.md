@@ -85,69 +85,69 @@
   - [x] Update list and card server actions to check 'edit_content' permission
   - [x] Update board settings actions to check 'manage_settings' permission (via guards)
 
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Backend Server Actions' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Backend Server Actions' (Protocol in workflow.md)
 
 ## Phase 3: Board Settings Page
 
-- [ ] Task: Write tests for board settings page structure
-  - [ ] Test settings page route exists at `/boards/[id]/settings`
-  - [ ] Test settings page redirects non-members to dashboard
-  - [ ] Test settings page returns 403 for users without manage_settings permission
-  - [ ] Test tab navigation between General and Members tabs
-  - [ ] Test Settings link appears on board page for users with manage_settings permission
+- [x] Task: Write tests for board settings page structure
+  - [x] Test settings page route exists at `/boards/[id]/settings`
+  - [x] Test settings page redirects non-members to dashboard
+  - [x] Test settings page returns 403 for users without manage_settings permission
+  - [x] Test tab navigation between General and Members tabs
+  - [x] Test Settings link appears on board page for users with manage_settings permission
 
-- [ ] Task: Create board settings page route and layout
-  - [ ] Create `/boards/[id]/settings/page.tsx` route
-  - [ ] Implement permission check (redirect/403 if no manage_settings)
-  - [ ] Create tabbed layout with General and Members tabs
-  - [ ] Implement tab state management (URL-based or client state)
-  - [ ] Add responsive tab navigation
+- [x] Task: Create board settings page route and layout
+  - [x] Create `/boards/[id]/settings/page.tsx` route
+  - [x] Implement permission check (redirect/403 if no manage_settings)
+  - [x] Create tabbed layout with General and Members tabs
+  - [x] Implement tab state management (URL-based or client state)
+  - [x] Add responsive tab navigation
 
-- [ ] Task: Implement General tab (board metadata)
-  - [ ] Create GeneralTab component for board settings
-  - [ ] Add form fields for board title, description, background
-  - [ ] Implement form validation with Zod
-  - [ ] Add save button with loading states
-  - [ ] Implement updateBoard server action with permission check
-  - [ ] Add success/error feedback
+- [x] Task: Implement General tab (board metadata)
+  - [x] Create GeneralTab component for board settings
+  - [x] Add form fields for board title, description, background
+  - [x] Implement form validation with Zod
+  - [x] Add save button with loading states
+  - [x] Implement updateBoard server action with permission check
+  - [x] Add success/error feedback
 
-- [ ] Task: Implement Members tab (member management)
-  - [ ] Write tests for member management components
-    - [ ] Test MemberList displays all members with roles
-    - [ ] Test AddMemberDialog opens and closes correctly
-    - [ ] Test AddMemberDialog search functionality with debounce
-    - [ ] Test AddMemberDialog displays search results
-    - [ ] Test AddMemberDialog adds member on selection
-    - [ ] Test RemoveMemberDialog shows confirmation
-    - [ ] Test RemoveMemberDialog removes member on confirm
-  - [ ] Implement MemberList component
-    - [ ] Create MemberList component that displays board members
-    - [ ] Show member name, email/username, role, and join date
-    - [ ] Display owner badge for owner role
-    - [ ] Show remove button only if current user has manage_members permission (not for self-removal)
-  - [ ] Implement AddMemberDialog component
-    - [ ] Create AddMemberDialog with search input
-    - [ ] Implement debounced search (300ms delay)
-    - [ ] Display search results with user info
-    - [ ] Handle add member action on user selection
-    - [ ] Show loading states and error messages
-    - [ ] Close dialog on successful add
-  - [ ] Implement RemoveMemberDialog component
-    - [ ] Create RemoveMemberDialog with confirmation message
-    - [ ] Display member name being removed
-    - [ ] Handle remove member action on confirm
-    - [ ] Show loading states and error messages
-    - [ ] Close dialog on successful remove
-  - [ ] Integrate member management components into Members tab
-    - [ ] Display MemberList
-    - [ ] Add "Add Member" button (only if user has manage_members permission)
-    - [ ] Wire up AddMemberDialog and RemoveMemberDialog
+- [x] Task: Implement Members tab (member management)
+  - [x] Write tests for member management components
+    - [x] Test MemberList displays all members with roles
+    - [x] Test AddMemberDialog opens and closes correctly
+    - [x] Test AddMemberDialog search functionality with debounce
+    - [x] Test AddMemberDialog displays search results
+    - [x] Test AddMemberDialog adds member on selection
+    - [x] Test RemoveMemberDialog shows confirmation
+    - [x] Test RemoveMemberDialog removes member on confirm
+  - [x] Implement MemberList component
+    - [x] Create MemberList component that displays board members
+    - [x] Show member name, email/username, role, and join date
+    - [x] Display owner badge for owner role
+    - [x] Show remove button only if current user has manage_members permission (not for self-removal)
+  - [x] Implement AddMemberDialog component
+    - [x] Create AddMemberDialog with search input
+    - [x] Implement debounced search (300ms delay)
+    - [x] Display search results with user info
+    - [x] Handle add member action on user selection
+    - [x] Show loading states and error messages
+    - [x] Close dialog on successful add
+  - [x] Implement RemoveMemberDialog component
+    - [x] Create RemoveMemberDialog with confirmation message
+    - [x] Display member name being removed
+    - [x] Handle remove member action on confirm
+    - [x] Show loading states and error messages
+    - [x] Close dialog on successful remove
+  - [x] Integrate member management components into Members tab
+    - [x] Display MemberList
+    - [x] Add "Add Member" button (only if user has manage_members permission)
+    - [x] Wire up AddMemberDialog and RemoveMemberDialog
 
-- [ ] Task: Add Settings link to board page
-  - [ ] Add "Settings" button/link to board page header
-  - [ ] Show Settings link only if user has manage_settings permission
-  - [ ] Link to `/boards/[id]/settings`
-  - [ ] Style consistently with existing header actions
+- [x] Task: Add Settings link to board page
+  - [x] Add "Settings" button/link to board page header
+  - [x] Show Settings link only if user has manage_settings permission
+  - [x] Link to `/boards/[id]/settings`
+  - [x] Style consistently with existing header actions
 
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Board Settings Page' (Protocol in workflow.md)
 

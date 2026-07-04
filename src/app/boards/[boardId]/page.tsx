@@ -15,6 +15,7 @@ import {
 import { getChecklistProgressByBoardId } from "@/lib/data/checklists";
 import { getCommentCountsByBoardId } from "@/lib/data/comments";
 import { verifySession } from "@/lib/dal";
+import { getUserRole } from "@/lib/permissions";
 import type { CardSummary } from "@/components/cards/card-item";
 
 interface BoardPageProps {
@@ -30,6 +31,9 @@ export default async function BoardPage({ params }: BoardPageProps) {
   if (!board) {
     notFound();
   }
+
+  const userRole = await getUserRole(userId, boardId);
+  const canManageSettings = userRole === "owner";
 
   const lists = await getListsByBoardId(boardId, { ownerId: userId });
   const [allCards, cardLabelsMap, cardAssigneesMap, checklistProgressMap, commentCountsMap] =
@@ -67,7 +71,7 @@ export default async function BoardPage({ params }: BoardPageProps) {
           </Link>
         }
       >
-        <BoardActions board={board} variant="overlay" />
+        <BoardActions board={board} variant="overlay" canManageSettings={canManageSettings} />
       </BoardHero>
 
       <PageContainer>
