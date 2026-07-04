@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { deleteCardAction } from "@/lib/actions/cards";
 import type { CardDetailData } from "./types";
@@ -18,7 +18,7 @@ export function useCardDelete({
 }) {
   const [deleteOpen, setDeleteOpen] = useState(false);
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     if (!data) return;
     startTransition(async () => {
       const result = await deleteCardAction({ cardId: data.card.id });
@@ -31,7 +31,7 @@ export function useCardDelete({
       router.refresh();
       toast.success("Card deleted");
     });
-  };
+  }, [data, startTransition, router, close]);
 
   return { deleteOpen, setDeleteOpen, handleDelete };
 }

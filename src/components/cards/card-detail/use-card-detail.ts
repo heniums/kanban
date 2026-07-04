@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { updateCardAction } from "@/lib/actions/cards";
@@ -40,7 +40,7 @@ export function useCardDetail({
     handleDeleteLabel,
   } = useCardLabels({ boardId, setData, setDraft });
 
-  const close = () => {
+  const close = useCallback(() => {
     setOpen(false);
     setData(null);
     setDraft(null);
@@ -50,7 +50,7 @@ export function useCardDetail({
       url.searchParams.delete("card");
       window.history.pushState({}, "", url);
     }
-  };
+  }, []);
 
   const { moveOpen, setMoveOpen, handleMove } = useCardMove({
     data,

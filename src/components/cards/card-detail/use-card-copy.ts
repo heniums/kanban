@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback } from "react";
 import { toast } from "sonner";
 import { copyCardAction } from "@/lib/actions/cards";
 import type { CardDetailData } from "./types";
@@ -13,7 +14,7 @@ export function useCardCopy({
   startTransition: (fn: () => void) => void;
   router: { refresh: () => void };
 }) {
-  const handleCopy = () => {
+  const handleCopy = useCallback(() => {
     if (!data) return;
     startTransition(async () => {
       const result = await copyCardAction({ cardId: data.card.id });
@@ -24,7 +25,7 @@ export function useCardCopy({
       toast.success("Card copied");
       router.refresh();
     });
-  };
+  }, [data, startTransition, router]);
 
   return { handleCopy };
 }
