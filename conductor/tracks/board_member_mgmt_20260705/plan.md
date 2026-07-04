@@ -19,10 +19,10 @@
   - [x] Set composite primary key (boardId, userId)
   - [x] Run migration and verify schema
 
-- [ ] Task: Update board creation logic to add owner
-  - [ ] Write tests for auto-adding board creator as owner
-  - [ ] Modify createBoard server action to insert creator into board_members as 'owner'
-  - [ ] Verify transaction ensures both board and membership are created atomically
+- [x] Task: Update board creation logic to add owner
+  - [x] Write tests for auto-adding board creator as owner
+  - [x] Modify createBoard server action to insert creator into board_members as 'owner'
+  - [x] Verify transaction ensures both board and membership are created atomically
 
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Database Schema & Migrations' (Protocol in workflow.md)
 
