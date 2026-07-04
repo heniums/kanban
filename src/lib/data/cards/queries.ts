@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { createDbClient } from "@/lib/db/client";
 import { cards, type Card } from "@/lib/db/schema/cards";
 import { cardLabels } from "@/lib/db/schema/card-labels";
@@ -6,41 +6,46 @@ import { labels, type Label } from "@/lib/db/schema/labels";
 import { cardAssignees } from "@/lib/db/schema/card-assignees";
 import { users } from "@/lib/db/schema/users";
 import { boards } from "@/lib/db/schema/boards";
+import { boardMembers } from "@/lib/db/schema/board-members";
 
 export async function getCardById(
   cardId: string,
-  options: { ownerId: string },
+  options: { userId: string },
 ): Promise<Card | null> {
   const db = createDbClient();
   const [card] = await db
     .select({ card: cards })
     .from(cards)
     .innerJoin(boards, sql`${boards.id} = ${cards.boardId}`)
-    .where(
-      sql`${cards.id} = ${cardId} AND ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL`,
-    );
+    .innerJoin(
+      boardMembers,
+      and(eq(boardMembers.boardId, cards.boardId), eq(boardMembers.userId, options.userId)),
+    )
+    .where(sql`${cards.id} = ${cardId} AND ${boards.deletedAt} IS NULL`);
   return card?.card ?? null;
 }
 
 export async function getCardsByBoardId(
   boardId: string,
-  options: { ownerId: string },
+  options: { userId: string },
 ): Promise<Card[]> {
   const db = createDbClient();
   const rows = await db
     .select({ card: cards })
     .from(cards)
     .innerJoin(boards, sql`${boards.id} = ${cards.boardId}`)
-    .where(
-      sql`${cards.boardId} = ${boardId} AND ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL`,
+    .innerJoin(
+      boardMembers,
+      and(eq(boardMembers.boardId, boardId), eq(boardMembers.userId, options.userId)),
     )
+    .where(sql`${cards.boardId} = ${boardId} AND ${boards.deletedAt} IS NULL`)
     .orderBy(sql`${cards.listId} ASC, ${cards.position} ASC`);
   return rows.map((r) => r.card);
 }
 
 export async function getCardLabelsByBoardId(
   boardId: string,
-  options: { ownerId: string },
+  options: { userId: string },
 ): Promise<Record<string, Label[]>> {
   const db = createDbClient();
   const rows = await db
@@ -54,9 +59,11 @@ export async function getCardLabelsByBoardId(
     .innerJoin(cards, eq(cards.id, cardLabels.cardId))
     .innerJoin(labels, eq(labels.id, cardLabels.labelId))
     .innerJoin(boards, sql`${boards.id} = ${cards.boardId}`)
-    .where(
-      sql`${cards.boardId} = ${boardId} AND ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL`,
-    );
+    .innerJoin(
+      boardMembers,
+      and(eq(boardMembers.boardId, boardId), eq(boardMembers.userId, options.userId)),
+    )
+    .where(sql`${cards.boardId} = ${boardId} AND ${boards.deletedAt} IS NULL`);
   const out: Record<string, Label[]> = {};
   for (const r of rows) {
     if (!out[r.cardId]) out[r.cardId] = [];
@@ -67,7 +74,7 @@ export async function getCardLabelsByBoardId(
 
 export async function getCardAssigneesByBoardId(
   boardId: string,
-  options: { ownerId: string },
+  options: { userId: string },
 ): Promise<Record<string, { id: string; name: string }[]>> {
   const db = createDbClient();
   const rows = await db
@@ -78,9 +85,11 @@ export async function getCardAssigneesByBoardId(
     .from(cardAssignees)
     .innerJoin(cards, eq(cards.id, cardAssignees.cardId))
     .innerJoin(boards, sql`${boards.id} = ${cards.boardId}`)
-    .where(
-      sql`${cards.boardId} = ${boardId} AND ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL`,
-    );
+    .innerJoin(
+      boardMembers,
+      and(eq(boardMembers.boardId, boardId), eq(boardMembers.userId, options.userId)),
+    )
+    .where(sql`${cards.boardId} = ${boardId} AND ${boards.deletedAt} IS NULL`);
   const ids = [...new Set(rows.map((r) => r.userId))];
   const nameById = new Map<string, string>();
   if (ids.length) {

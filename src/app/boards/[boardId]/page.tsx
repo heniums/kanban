@@ -35,13 +35,13 @@ export default async function BoardPage({ params }: BoardPageProps) {
   const userRole = await getUserRole(userId, boardId);
   const canManageSettings = userRole === "owner";
 
-  const lists = await getListsByBoardId(boardId, { ownerId: userId });
+  const lists = await getListsByBoardId(boardId, { userId });
   const [allCards, cardLabelsMap, cardAssigneesMap, checklistProgressMap, commentCountsMap] =
     await Promise.all([
-      getCardsByBoardId(boardId, { ownerId: userId }),
-      getCardLabelsByBoardId(boardId, { ownerId: userId }),
-      getCardAssigneesByBoardId(boardId, { ownerId: userId }),
-      getChecklistProgressByBoardId(boardId, { ownerId: userId }),
+      getCardsByBoardId(boardId, { userId }),
+      getCardLabelsByBoardId(boardId, { userId }),
+      getCardAssigneesByBoardId(boardId, { userId }),
+      getChecklistProgressByBoardId(boardId, { userId }),
       getCommentCountsByBoardId(boardId, { userId }),
     ]);
 

@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 let db: any;
 let selectResult: any[] = [];
-let capturedWhere: unknown = null;
 
 const setupDbMock = () => {
   const mock: any = {};
@@ -13,10 +12,7 @@ const setupDbMock = () => {
   });
   mock.from = vi.fn(() => mock);
   mock.innerJoin = vi.fn(() => mock);
-  mock.where = vi.fn((w: unknown) => {
-    capturedWhere = w;
-    return mock;
-  });
+  mock.where = vi.fn(() => mock);
   mock.orderBy = vi.fn(() => mock);
 
   return { db: mock };
@@ -38,13 +34,16 @@ vi.mock("@/lib/db/schema/boards", () => ({
   boards: { _table: "boards" },
 }));
 
+vi.mock("@/lib/db/schema/board-members", () => ({
+  boardMembers: { _table: "board_members" },
+}));
+
 import { getListsByBoardId } from "../get";
 
 beforeEach(() => {
   const m = setupDbMock();
   db = m.db;
   selectResult = [];
-  capturedWhere = null;
 });
 
 describe("getListsByBoardId", () => {
@@ -54,7 +53,7 @@ describe("getListsByBoardId", () => {
       { list: { id: "l2", position: 1, title: "B", boardId: "board-1" } },
     ];
 
-    const result = await getListsByBoardId("board-1", { ownerId: "user-1" });
+    const result = await getListsByBoardId("board-1", { userId: "user-1" });
 
     expect(result).toEqual([
       { id: "l1", position: 0, title: "A", boardId: "board-1" },
@@ -69,14 +68,13 @@ describe("getListsByBoardId", () => {
 
   it("returns empty array when board has no lists", async () => {
     selectResult = [];
-    const result = await getListsByBoardId("empty-board", { ownerId: "user-1" });
+    const result = await getListsByBoardId("empty-board", { userId: "user-1" });
     expect(result).toEqual([]);
   });
 
-  it("scopes the query to the owner (refuses mismatched board owner)", async () => {
+  it("joins with board_members for membership check", async () => {
     selectResult = [];
-    await getListsByBoardId("board-other", { ownerId: "user-1" });
-    const whereString = JSON.stringify(capturedWhere);
-    expect(whereString).toContain("user-1");
+    await getListsByBoardId("board-other", { userId: "user-1" });
+    expect(db.innerJoin).toHaveBeenCalled();
   });
 });

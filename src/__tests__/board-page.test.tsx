@@ -232,10 +232,8 @@ describe("BoardPage hero section", () => {
     render(jsx);
     const hero = screen.getByRole("region", { name: /my test board board header/i });
     const settings = screen.getByRole("link", { name: /^settings$/i });
-    const edit = screen.getByRole("button", { name: /^edit$/i });
     const del = screen.getByRole("button", { name: /^delete$/i });
     expect(hero.contains(settings)).toBe(true);
-    expect(hero.contains(edit)).toBe(true);
     expect(hero.contains(del)).toBe(true);
   });
 
@@ -275,11 +273,9 @@ describe("BoardPage hero section", () => {
     });
     render(jsx);
     const settings = screen.getByRole("link", { name: /^settings$/i });
-    const edit = screen.getByRole("button", { name: /^edit$/i });
     const del = screen.getByRole("button", { name: /^delete$/i });
-    // All buttons should use a backdrop-blur + semi-transparent overlay class
+    // Both buttons should use a backdrop-blur + semi-transparent overlay class
     expect(settings.className).toMatch(/backdrop-blur/);
-    expect(edit.className).toMatch(/backdrop-blur/);
     expect(del.className).toMatch(/backdrop-blur/);
   });
 });

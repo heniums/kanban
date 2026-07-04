@@ -9,13 +9,6 @@ import type { Board } from "@/lib/db/schema/boards";
 import { deleteBoardAction, restoreBoardAction } from "@/lib/actions/boards";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   AlertDialog,
   AlertDialogCancel,
   AlertDialogContent,
@@ -25,7 +18,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { BoardSettings } from "./board-settings";
 
 type BoardActionsVariant = "default" | "overlay";
 
@@ -49,7 +41,6 @@ export function BoardActions({
 }: BoardActionsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [inFlight, setInFlight] = useState(false);
 
@@ -97,52 +88,34 @@ export function BoardActions({
         </Button>
       )}
 
-      <Button
-        variant={isOverlay ? "ghost" : "outline"}
-        className={settingsClass}
-        onClick={() => setSettingsOpen(true)}
-      >
-        Edit
-      </Button>
-
-      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Board settings</DialogTitle>
-            <DialogDescription>
-              Update your board&apos;s title, description, and background.
-            </DialogDescription>
-          </DialogHeader>
-          <BoardSettings board={board} onClose={() => setSettingsOpen(false)} />
-        </DialogContent>
-      </Dialog>
-
-      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogTrigger asChild>
-          <Button variant="ghost" className={deleteClass}>
-            Delete
-          </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete this board?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. The board will be removed from your dashboard.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={inFlight}>Cancel</AlertDialogCancel>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={isPending || inFlight}
-            >
-              {isPending || inFlight ? "Deleting..." : "Delete"}
+      {canManageSettings && (
+        <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+          <AlertDialogTrigger asChild>
+            <Button variant="ghost" className={deleteClass}>
+              Delete
             </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this board?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. The board will be removed from your dashboard.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={inFlight}>Cancel</AlertDialogCancel>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={isPending || inFlight}
+              >
+                {isPending || inFlight ? "Deleting..." : "Delete"}
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   );
 }

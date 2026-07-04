@@ -37,7 +37,7 @@ async function getCardsByListIdDirect(listId: string) {
 
 async function resetList(boardId: string, ownerId: string) {
   await db.delete(cards).where(eq(cards.boardId, boardId));
-  const remaining = await getListsByBoardId(boardId, { ownerId });
+  const remaining = await getListsByBoardId(boardId, { userId: ownerId });
   for (const l of remaining) {
     await db.delete(lists).where(eq(lists.id, l.id));
   }

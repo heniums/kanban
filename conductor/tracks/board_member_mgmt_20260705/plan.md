@@ -176,22 +176,22 @@
 
 ## Phase 5: Dashboard Integration
 
-- [ ] Task: Write tests for dashboard membership queries
-  - [ ] Test dashboard returns boards user owns
-  - [ ] Test dashboard returns boards user is member of
-  - [ ] Test dashboard excludes boards user is not member of
-  - [ ] Test "My Boards" section shows owned boards
-  - [ ] Test "Shared with me" section shows member boards
+- [x] Task: Write tests for dashboard membership queries
+  - [x] Test dashboard returns boards user owns
+  - [x] Test dashboard returns boards user is member of
+  - [x] Test dashboard excludes boards user is not member of
+  - [x] Test "My Boards" section shows owned boards
+  - [x] Test "Shared with me" section shows member boards
 
-- [ ] Task: Update dashboard queries to include membership
-  - [ ] Modify getBoards to query board_members table
-  - [ ] Return boards where user is owner OR member
-  - [ ] Separate owned boards from member boards in response
+- [x] Task: Update dashboard queries to include membership
+  - [x] Modify getBoards to query board_members table
+  - [x] Return boards where user is owner OR member
+  - [x] Separate owned boards from member boards in response
 
-- [ ] Task: Update dashboard UI to show membership boards
-  - [ ] Display "My Boards" section with owned boards
-  - [ ] Display "Shared with me" section with member boards
-  - [ ] Show member role badge on shared boards
-  - [ ] Update board cards to reflect membership
+- [x] Task: Update dashboard UI to show membership boards
+  - [x] Display "My Boards" section with owned boards
+  - [x] Display "Shared with me" section with member boards
+  - [x] Show member role badge on shared boards
+  - [x] Update board cards to reflect membership
 
 - [ ] Task: Conductor - User Manual Verification 'Phase 5: Dashboard Integration' (Protocol in workflow.md)

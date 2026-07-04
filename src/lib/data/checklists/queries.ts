@@ -4,10 +4,11 @@ import { checklists } from "@/lib/db/schema/checklists";
 import { checklistItems } from "@/lib/db/schema/checklist-items";
 import { cards } from "@/lib/db/schema/cards";
 import { boards } from "@/lib/db/schema/boards";
+import { boardMembers } from "@/lib/db/schema/board-members";
 
 export async function getChecklistProgressByBoardId(
   boardId: string,
-  options: { ownerId: string },
+  options: { userId: string },
 ): Promise<Record<string, { total: number; completed: number }>> {
   const db = createDbClient();
   const rows = (
@@ -19,8 +20,8 @@ export async function getChecklistProgressByBoardId(
          LEFT JOIN ${checklists} cl ON cl.card_id = c.id
          LEFT JOIN ${checklistItems} ci ON ci.checklist_id = cl.id
          INNER JOIN ${boards} b ON b.id = c.board_id
+         INNER JOIN ${boardMembers} bm ON bm.board_id = c.board_id AND bm.user_id = ${options.userId}
          WHERE c.board_id = ${boardId}
-           AND b.owner_id = ${options.ownerId}
            AND b.deleted_at IS NULL
          GROUP BY c.id`,
     )
