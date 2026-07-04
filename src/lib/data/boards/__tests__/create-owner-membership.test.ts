@@ -29,6 +29,7 @@ describe("createBoard adds creator as owner", () => {
       background: "#1a1a2e",
       ownerId: user.id,
     });
+    factory.trackBoard(board.id);
 
     const membership = await db
       .select()
@@ -51,6 +52,7 @@ describe("createBoard adds creator as owner", () => {
       background: "#000000",
       ownerId: user.id,
     });
+    factory.trackBoard(board.id);
 
     // Verify both board and membership exist
     const membership = await db
@@ -72,6 +74,7 @@ describe("createBoard adds creator as owner", () => {
       background: "#ffffff",
       ownerId: user.id,
     });
+    factory.trackBoard(board.id);
 
     const membership = await db
       .select()

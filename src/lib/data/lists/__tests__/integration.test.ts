@@ -41,7 +41,7 @@ describe("getListsByBoardId (integration)", () => {
 
 describe("createList (integration)", () => {
   it("auto-assigns the next position based on existing lists", async () => {
-    const { boardId, ownerId } = await ensureTestBoard();
+    const { boardId } = await ensureTestBoard();
     const l0 = await createList({ boardId, title: "Zero" });
     const l1 = await createList({ boardId, title: "One" });
     expect(l0.position).toBe(0);

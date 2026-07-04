@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterAll } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { createDbClient } from "@/lib/db/client";
 import { boardMembers } from "@/lib/db/schema/board-members";
 import { eq } from "drizzle-orm";
@@ -32,20 +32,8 @@ describe("Board access control (membership-based)", () => {
 
     await db.insert(boardMembers).values({
       boardId: boardId1,
-      userId: userId1,
-      role: "owner",
-    });
-
-    await db.insert(boardMembers).values({
-      boardId: boardId1,
       userId: userId2,
       role: "member",
-    });
-
-    await db.insert(boardMembers).values({
-      boardId: boardId2,
-      userId: userId2,
-      role: "owner",
     });
   });
 

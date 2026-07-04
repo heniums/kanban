@@ -1,4 +1,4 @@
-import { eq, and, or, like, sql } from "drizzle-orm";
+import { eq, or, like, sql } from "drizzle-orm";
 import { createDbClient } from "@/lib/db/client";
 import { users } from "@/lib/db/schema/users";
 import { boardMembers } from "@/lib/db/schema/board-members";

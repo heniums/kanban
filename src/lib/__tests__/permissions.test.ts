@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 // @vitest-environment node
 import { TestDataFactory } from "@/__tests__/test-factory";
-import { createBoard } from "@/lib/data/boards/create";
 import { createDbClient } from "@/lib/db/client";
 import { boardMembers } from "@/lib/db/schema/board-members";
 import { BoardPermission, ROLE_PERMISSIONS, hasPermission, getUserRole } from "@/lib/permissions";
@@ -39,7 +38,7 @@ describe("Permissions system", () => {
   describe("getUserRole", () => {
     it("returns the correct role for a board owner", async () => {
       const user = await createTestUser("owner-role");
-      const board = await createBoard({
+      const board = await factory.createBoard({
         title: "Owner Role Board",
         background: "#000000",
         ownerId: user.id,
@@ -52,7 +51,7 @@ describe("Permissions system", () => {
     it("returns the correct role for a board member", async () => {
       const owner = await createTestUser("member-role-owner");
       const member = await createTestUser("member-role-member");
-      const board = await createBoard({
+      const board = await factory.createBoard({
         title: "Member Role Board",
         background: "#000000",
         ownerId: owner.id,
@@ -71,7 +70,7 @@ describe("Permissions system", () => {
     it("returns null when user is not a board member", async () => {
       const owner = await createTestUser("non-member-owner");
       const nonMember = await createTestUser("non-member");
-      const board = await createBoard({
+      const board = await factory.createBoard({
         title: "Non-Member Board",
         background: "#000000",
         ownerId: owner.id,
@@ -85,7 +84,7 @@ describe("Permissions system", () => {
   describe("hasPermission", () => {
     it("returns true when owner has the permission", async () => {
       const user = await createTestUser("owner-perm");
-      const board = await createBoard({
+      const board = await factory.createBoard({
         title: "Owner Perm Board",
         background: "#000000",
         ownerId: user.id,
@@ -100,7 +99,7 @@ describe("Permissions system", () => {
     it("returns true when member has view permission", async () => {
       const owner = await createTestUser("member-view-owner");
       const member = await createTestUser("member-view");
-      const board = await createBoard({
+      const board = await factory.createBoard({
         title: "Member View Board",
         background: "#000000",
         ownerId: owner.id,
@@ -119,7 +118,7 @@ describe("Permissions system", () => {
     it("returns false when member lacks manage_settings permission", async () => {
       const owner = await createTestUser("member-no-settings-owner");
       const member = await createTestUser("member-no-settings");
-      const board = await createBoard({
+      const board = await factory.createBoard({
         title: "Member No Settings Board",
         background: "#000000",
         ownerId: owner.id,
@@ -138,7 +137,7 @@ describe("Permissions system", () => {
     it("returns false when user is not a board member", async () => {
       const owner = await createTestUser("non-member-perm-owner");
       const nonMember = await createTestUser("non-member-perm");
-      const board = await createBoard({
+      const board = await factory.createBoard({
         title: "Non-Member Perm Board",
         background: "#000000",
         ownerId: owner.id,

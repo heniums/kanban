@@ -29,6 +29,7 @@ describe("createBoard default list side effect", () => {
       background: "#1a1a2e",
       ownerId: user.id,
     });
+    factory.trackBoard(board.id);
 
     const boardLists = await db.select().from(lists).where(eq(lists.boardId, board.id));
 
@@ -47,6 +48,7 @@ describe("createBoard default list side effect", () => {
       background: "linear-gradient(135deg, #000, #fff)",
       ownerId: user.id,
     });
+    factory.trackBoard(board.id);
 
     const boardLists = await db.select().from(lists).where(eq(lists.boardId, board.id));
 
