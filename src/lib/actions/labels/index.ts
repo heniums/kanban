@@ -5,7 +5,8 @@ import { verifySession } from "@/lib/dal";
 import { createLabel, updateLabel, deleteLabel } from "@/lib/data/labels";
 import { createLabelSchema, updateLabelSchema, deleteLabelSchema } from "@/lib/schemas/label";
 import { emitToBoard, REALTIME_EVENTS } from "@/lib/realtime/events";
-import { assertBoardOwnedBy } from "@/lib/actions/guards";
+import { assertBoardPermission } from "@/lib/actions/guards";
+import { BoardPermission } from "@/lib/permissions";
 import type { Label } from "@/lib/db/schema/labels";
 
 type Result<T> = { data: T } | { errors: Array<{ field: string; message: string }> };
@@ -19,9 +20,13 @@ export async function createLabelAction(input: unknown): Promise<Result<Label>> 
   const parsed = createLabelSchema.safeParse(input);
   if (!parsed.success) return { errors: formatZodErrors(parsed.error) };
 
-  const owned = await assertBoardOwnedBy(parsed.data.boardId, userId);
-  if (!owned) {
-    return { errors: [{ field: "", message: "Board not found or not owned" }] };
+  const hasAccess = await assertBoardPermission(
+    parsed.data.boardId,
+    userId,
+    BoardPermission.EDIT_CONTENT,
+  );
+  if (!hasAccess) {
+    return { errors: [{ field: "", message: "Board not found or insufficient permissions" }] };
   }
 
   try {

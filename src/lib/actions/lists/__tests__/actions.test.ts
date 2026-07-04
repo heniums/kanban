@@ -6,14 +6,14 @@ const {
   mockRenameList,
   mockDeleteList,
   mockReorderLists,
-  mockAssertBoardOwnedBy,
+  mockAssertBoardPermission,
 } = vi.hoisted(() => ({
   mockVerifySession: vi.fn(),
   mockCreateList: vi.fn(),
   mockRenameList: vi.fn(),
   mockDeleteList: vi.fn(),
   mockReorderLists: vi.fn(),
-  mockAssertBoardOwnedBy: vi.fn(),
+  mockAssertBoardPermission: vi.fn(),
 }));
 
 vi.mock("@/lib/dal", () => ({
@@ -32,7 +32,7 @@ vi.mock("next/cache", () => ({
 }));
 
 vi.mock("@/lib/actions/guards", () => ({
-  assertBoardOwnedBy: mockAssertBoardOwnedBy,
+  assertBoardPermission: mockAssertBoardPermission,
 }));
 
 const { mockEmitToBoard } = vi.hoisted(() => ({
@@ -59,7 +59,7 @@ beforeEach(() => {
 describe("createListAction", () => {
   it("creates a list with the session user as the owner scope", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
-    mockAssertBoardOwnedBy.mockResolvedValue(true);
+    mockAssertBoardPermission.mockResolvedValue(true);
     mockCreateList.mockResolvedValue({
       id: "list-1",
       title: "Doing",
@@ -88,9 +88,9 @@ describe("createListAction", () => {
     expect(mockCreateList).not.toHaveBeenCalled();
   });
 
-  it("returns an error when the board is not owned", async () => {
+  it("returns an error when the user lacks permission", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
-    mockAssertBoardOwnedBy.mockResolvedValue(false);
+    mockAssertBoardPermission.mockResolvedValue(false);
     const result = await createListAction({
       boardId: "11111111-1111-1111-1111-111111111111",
       title: "X",

@@ -12,7 +12,8 @@ import {
   deleteCommentSchema,
 } from "@/lib/schemas/comment";
 import { emitToBoard, REALTIME_EVENTS } from "@/lib/realtime/events";
-import { assertCardOwnedBy } from "@/lib/actions/guards";
+import { assertCardPermission } from "@/lib/actions/guards";
+import { BoardPermission } from "@/lib/permissions";
 import type { Comment } from "@/lib/db/schema/comments";
 
 type Result<T> = { data: T } | { errors: Array<{ field: string; message: string }> };
@@ -36,9 +37,13 @@ export async function createCommentAction(input: unknown): Promise<Result<Commen
   const parsed = createCommentSchema.safeParse(input);
   if (!parsed.success) return { errors: formatZodErrors(parsed.error) };
 
-  const owned = await assertCardOwnedBy(parsed.data.cardId, userId);
-  if (!owned) {
-    return { errors: [{ field: "", message: "Card not found or board not owned" }] };
+  const hasAccess = await assertCardPermission(
+    parsed.data.cardId,
+    userId,
+    BoardPermission.EDIT_CONTENT,
+  );
+  if (!hasAccess) {
+    return { errors: [{ field: "", message: "Card not found or insufficient permissions" }] };
   }
 
   try {

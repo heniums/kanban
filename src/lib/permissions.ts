@@ -32,6 +32,10 @@ export async function getUserRole(
   return membership?.role ?? null;
 }
 
+export function hasPermissionForRole(role: BoardMemberRole, permission: BoardPermission): boolean {
+  return ROLE_PERMISSIONS[role].includes(permission);
+}
+
 export async function hasPermission(
   userId: string,
   boardId: string,
@@ -41,5 +45,5 @@ export async function hasPermission(
   if (!role) {
     return false;
   }
-  return ROLE_PERMISSIONS[role].includes(permission);
+  return hasPermissionForRole(role, permission);
 }

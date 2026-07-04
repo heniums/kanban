@@ -20,7 +20,8 @@ import {
 } from "@/lib/schemas/checklist";
 import { emitToBoard, REALTIME_EVENTS } from "@/lib/realtime/events";
 import { sql } from "drizzle-orm";
-import { assertCardOwnedBy, assertChecklistOwnedBy } from "@/lib/actions/guards";
+import { assertCardPermission, assertChecklistPermission } from "@/lib/actions/guards";
+import { BoardPermission } from "@/lib/permissions";
 
 type Result<T> = { data: T } | { errors: Array<{ field: string; message: string }> };
 
@@ -45,9 +46,13 @@ export async function createChecklistAction(
   const parsed = createChecklistSchema.safeParse(input);
   if (!parsed.success) return { errors: formatZodErrors(parsed.error) };
 
-  const owned = await assertCardOwnedBy(parsed.data.cardId, userId);
-  if (!owned) {
-    return { errors: [{ field: "", message: "Card not found or board not owned" }] };
+  const hasAccess = await assertCardPermission(
+    parsed.data.cardId,
+    userId,
+    BoardPermission.EDIT_CONTENT,
+  );
+  if (!hasAccess) {
+    return { errors: [{ field: "", message: "Card not found or insufficient permissions" }] };
   }
 
   try {
@@ -84,9 +89,13 @@ export async function createChecklistItemAction(
   const parsed = createChecklistItemSchema.safeParse(input);
   if (!parsed.success) return { errors: formatZodErrors(parsed.error) };
 
-  const owned = await assertChecklistOwnedBy(parsed.data.checklistId, userId);
-  if (!owned) {
-    return { errors: [{ field: "", message: "Checklist not found" }] };
+  const hasAccess = await assertChecklistPermission(
+    parsed.data.checklistId,
+    userId,
+    BoardPermission.EDIT_CONTENT,
+  );
+  if (!hasAccess) {
+    return { errors: [{ field: "", message: "Checklist not found or insufficient permissions" }] };
   }
 
   try {
