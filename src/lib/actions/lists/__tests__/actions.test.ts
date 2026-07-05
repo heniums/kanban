@@ -6,14 +6,16 @@ const {
   mockRenameList,
   mockDeleteList,
   mockReorderLists,
-  mockAssertBoardOwnedBy,
+  mockAssertBoardPermission,
+  mockAssertListPermission,
 } = vi.hoisted(() => ({
   mockVerifySession: vi.fn(),
   mockCreateList: vi.fn(),
   mockRenameList: vi.fn(),
   mockDeleteList: vi.fn(),
   mockReorderLists: vi.fn(),
-  mockAssertBoardOwnedBy: vi.fn(),
+  mockAssertBoardPermission: vi.fn(),
+  mockAssertListPermission: vi.fn(),
 }));
 
 vi.mock("@/lib/dal", () => ({
@@ -32,7 +34,8 @@ vi.mock("next/cache", () => ({
 }));
 
 vi.mock("@/lib/actions/guards", () => ({
-  assertBoardOwnedBy: mockAssertBoardOwnedBy,
+  assertBoardPermission: mockAssertBoardPermission,
+  assertListPermission: mockAssertListPermission,
 }));
 
 const { mockEmitToBoard } = vi.hoisted(() => ({
@@ -59,7 +62,7 @@ beforeEach(() => {
 describe("createListAction", () => {
   it("creates a list with the session user as the owner scope", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
-    mockAssertBoardOwnedBy.mockResolvedValue(true);
+    mockAssertBoardPermission.mockResolvedValue(true);
     mockCreateList.mockResolvedValue({
       id: "list-1",
       title: "Doing",
@@ -88,9 +91,9 @@ describe("createListAction", () => {
     expect(mockCreateList).not.toHaveBeenCalled();
   });
 
-  it("returns an error when the board is not owned", async () => {
+  it("returns an error when the user lacks permission", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
-    mockAssertBoardOwnedBy.mockResolvedValue(false);
+    mockAssertBoardPermission.mockResolvedValue(false);
     const result = await createListAction({
       boardId: "11111111-1111-1111-1111-111111111111",
       title: "X",
@@ -115,6 +118,7 @@ describe("createListAction", () => {
 describe("renameListAction", () => {
   it("renames the list and revalidates the board path", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockAssertListPermission.mockResolvedValue(true);
     mockRenameList.mockResolvedValue({ id: "l1", title: "New", boardId: "b1", position: 0 });
 
     const result = await renameListAction({
@@ -122,11 +126,9 @@ describe("renameListAction", () => {
       title: "New",
     });
 
-    expect(mockRenameList).toHaveBeenCalledWith(
-      "11111111-1111-1111-1111-111111111111",
-      { title: "New" },
-      { ownerId: "user-1" },
-    );
+    expect(mockRenameList).toHaveBeenCalledWith("11111111-1111-1111-1111-111111111111", {
+      title: "New",
+    });
     expect(result).toHaveProperty("list");
   });
 
@@ -135,36 +137,58 @@ describe("renameListAction", () => {
     const result = await renameListAction({ listId: "bad", title: "" });
     expect(result).toHaveProperty("errors");
   });
+
+  it("returns forbidden when user lacks permission", async () => {
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockAssertListPermission.mockResolvedValue(false);
+    const result = await renameListAction({
+      listId: "11111111-1111-1111-1111-111111111111",
+      title: "New",
+    });
+    expect(result).toHaveProperty("errors");
+    expect(mockRenameList).not.toHaveBeenCalled();
+  });
 });
 
 describe("deleteListAction", () => {
   it("deletes the list and returns success", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockAssertListPermission.mockResolvedValue(true);
     mockDeleteList.mockResolvedValue({ id: "l1", boardId: "b1", position: 0 });
 
     const result = await deleteListAction({
       listId: "11111111-1111-1111-1111-111111111111",
     });
 
-    expect(mockDeleteList).toHaveBeenCalledWith("11111111-1111-1111-1111-111111111111", {
-      ownerId: "user-1",
-    });
+    expect(mockDeleteList).toHaveBeenCalledWith("11111111-1111-1111-1111-111111111111");
     expect(result).toEqual({ success: true });
   });
 
-  it("returns an error if the list is not found or not owned", async () => {
+  it("returns an error if the list is not found", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockAssertListPermission.mockResolvedValue(true);
     mockDeleteList.mockResolvedValue(null);
     const result = await deleteListAction({
       listId: "11111111-1111-1111-1111-111111111111",
     });
     expect(result).toHaveProperty("error");
   });
+
+  it("returns forbidden when user lacks permission", async () => {
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockAssertListPermission.mockResolvedValue(false);
+    const result = await deleteListAction({
+      listId: "11111111-1111-1111-1111-111111111111",
+    });
+    expect(result).toHaveProperty("error");
+    expect(mockDeleteList).not.toHaveBeenCalled();
+  });
 });
 
 describe("reorderListsAction", () => {
   it("reorders the lists and returns the updated list", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockAssertBoardPermission.mockResolvedValue(true);
     mockReorderLists.mockResolvedValue([{ id: "l2", boardId: "b1", position: 0, title: "B" }]);
 
     const result = await reorderListsAction({
@@ -181,12 +205,14 @@ describe("reorderListsAction", () => {
 
   it("returns errors for invalid input", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockAssertBoardPermission.mockResolvedValue(true);
     const result = await reorderListsAction({ boardId: "bad", orderedListIds: [] });
     expect(result).toHaveProperty("errors");
   });
 
   it("returns an error when the data layer rejects duplicate ids", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockAssertBoardPermission.mockResolvedValue(true);
     mockReorderLists.mockRejectedValue(new Error("orderedListIds must not contain duplicates"));
     const result = await reorderListsAction({
       boardId: "11111111-1111-1111-1111-111111111111",
@@ -200,6 +226,7 @@ describe("reorderListsAction", () => {
 
   it("emits LIST_REORDERED after a successful reorder", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockAssertBoardPermission.mockResolvedValue(true);
     mockReorderLists.mockResolvedValue([
       { id: "l2", boardId: "b1", position: 0, title: "B" },
       { id: "l1", boardId: "b1", position: 1, title: "A" },
@@ -222,6 +249,7 @@ describe("reorderListsAction", () => {
 
   it("does not emit LIST_REORDERED on validation error", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockAssertBoardPermission.mockResolvedValue(true);
     const result = await reorderListsAction({ boardId: "bad", orderedListIds: [] });
     expect(result).toHaveProperty("errors");
     expect(emitToBoard).not.toHaveBeenCalled();
@@ -229,6 +257,7 @@ describe("reorderListsAction", () => {
 
   it("does not emit LIST_REORDERED when the data layer throws", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockAssertBoardPermission.mockResolvedValue(true);
     mockReorderLists.mockRejectedValue(new Error("orderedListIds must not contain duplicates"));
     const result = await reorderListsAction({
       boardId: "11111111-1111-1111-1111-111111111111",

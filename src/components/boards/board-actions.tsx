@@ -2,18 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { toast } from "sonner";
 import type { Board } from "@/lib/db/schema/boards";
+import type { BoardCapabilities } from "@/lib/capabilities";
 
 import { deleteBoardAction, restoreBoardAction } from "@/lib/actions/boards";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -24,13 +19,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { BoardSettings } from "./board-settings";
 
 type BoardActionsVariant = "default" | "overlay";
 
 interface BoardActionsProps {
   board: Board;
   variant?: BoardActionsVariant;
+  capabilities?: BoardCapabilities;
 }
 
 const UNDO_DURATION_MS = 5000;
@@ -40,10 +35,9 @@ const SETTINGS_OVERLAY_CLASS =
 const DELETE_OVERLAY_CLASS =
   "border border-red-300/40 bg-red-500/30 text-white backdrop-blur-sm hover:bg-red-500/40";
 
-export function BoardActions({ board, variant = "default" }: BoardActionsProps) {
+export function BoardActions({ board, variant = "default", capabilities }: BoardActionsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [inFlight, setInFlight] = useState(false);
 
@@ -85,52 +79,40 @@ export function BoardActions({ board, variant = "default" }: BoardActionsProps) 
 
   return (
     <div className="flex items-center gap-2">
-      <Button
-        variant={isOverlay ? "ghost" : "outline"}
-        className={settingsClass}
-        onClick={() => setSettingsOpen(true)}
-      >
-        Settings
-      </Button>
+      {capabilities?.settings && (
+        <Button asChild variant={isOverlay ? "ghost" : "outline"} className={settingsClass}>
+          <Link href={`/boards/${board.id}/settings`}>Settings</Link>
+        </Button>
+      )}
 
-      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Board settings</DialogTitle>
-            <DialogDescription>
-              Update your board&apos;s title, description, and background.
-            </DialogDescription>
-          </DialogHeader>
-          <BoardSettings board={board} onClose={() => setSettingsOpen(false)} />
-        </DialogContent>
-      </Dialog>
-
-      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogTrigger asChild>
-          <Button variant="ghost" className={deleteClass}>
-            Delete
-          </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete this board?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. The board will be removed from your dashboard.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={inFlight}>Cancel</AlertDialogCancel>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={isPending || inFlight}
-            >
-              {isPending || inFlight ? "Deleting..." : "Delete"}
+      {capabilities?.delete && (
+        <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+          <AlertDialogTrigger asChild>
+            <Button variant="ghost" className={deleteClass}>
+              Delete
             </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this board?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. The board will be removed from your dashboard.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={inFlight}>Cancel</AlertDialogCancel>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={isPending || inFlight}
+              >
+                {isPending || inFlight ? "Deleting..." : "Delete"}
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   );
 }

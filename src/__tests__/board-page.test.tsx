@@ -13,6 +13,7 @@ const {
   mockGetLabelsByBoardId,
   mockGetChecklistProgressByBoardId,
   mockGetCommentCountsByBoardId,
+  mockGetBoardCapabilities,
 } = vi.hoisted(() => ({
   mockVerifySession: vi.fn(),
   mockGetBoardById: vi.fn(),
@@ -23,6 +24,7 @@ const {
   mockGetLabelsByBoardId: vi.fn(),
   mockGetChecklistProgressByBoardId: vi.fn(),
   mockGetCommentCountsByBoardId: vi.fn(),
+  mockGetBoardCapabilities: vi.fn(),
 }));
 
 vi.mock("@/lib/dal", () => ({
@@ -64,6 +66,10 @@ vi.mock("@/lib/data/comments", () => ({
   getCommentCountsByBoardId: mockGetCommentCountsByBoardId,
 }));
 
+vi.mock("@/lib/capabilities", () => ({
+  getBoardCapabilities: mockGetBoardCapabilities,
+}));
+
 vi.mock("@/lib/actions/boards", () => ({
   deleteBoardAction: vi.fn(),
   restoreBoardAction: vi.fn(),
@@ -100,6 +106,7 @@ describe("BoardPage text color", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockGetBoardCapabilities.mockResolvedValue({ settings: true, delete: true });
     mockGetListsByBoardId.mockResolvedValue(baseLists);
     mockGetCardsByBoardId.mockResolvedValue([]);
     mockGetCardLabelsByBoardId.mockResolvedValue({});
@@ -146,7 +153,7 @@ describe("BoardPage text color", () => {
     });
     expect(mockVerifySession).toHaveBeenCalledTimes(1);
     expect(mockGetBoardById).toHaveBeenCalledWith("test-id", {
-      ownerId: "user-1",
+      userId: "user-1",
     });
   });
 });
@@ -155,6 +162,7 @@ describe("BoardPage hero section", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockGetBoardCapabilities.mockResolvedValue({ settings: true, delete: true });
     mockGetListsByBoardId.mockResolvedValue(baseLists);
     mockGetCardsByBoardId.mockResolvedValue([]);
     mockGetCardLabelsByBoardId.mockResolvedValue({});
@@ -223,7 +231,7 @@ describe("BoardPage hero section", () => {
     });
     render(jsx);
     const hero = screen.getByRole("region", { name: /my test board board header/i });
-    const settings = screen.getByRole("button", { name: /^settings$/i });
+    const settings = screen.getByRole("link", { name: /^settings$/i });
     const del = screen.getByRole("button", { name: /^delete$/i });
     expect(hero.contains(settings)).toBe(true);
     expect(hero.contains(del)).toBe(true);
@@ -264,7 +272,7 @@ describe("BoardPage hero section", () => {
       params: Promise.resolve({ boardId: "test-id" }),
     });
     render(jsx);
-    const settings = screen.getByRole("button", { name: /^settings$/i });
+    const settings = screen.getByRole("link", { name: /^settings$/i });
     const del = screen.getByRole("button", { name: /^delete$/i });
     // Both buttons should use a backdrop-blur + semi-transparent overlay class
     expect(settings.className).toMatch(/backdrop-blur/);

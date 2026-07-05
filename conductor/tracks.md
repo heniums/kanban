@@ -35,3 +35,8 @@ All tracks are complete. See `conductor/archive/` for historical track folders.
 
 - [x] **Track: Refactor card-detail god component and board-cards into composable component architecture**
       _Link: [../archive/component_composition_20260703/](../archive/component_composition_20260703/)_
+
+---
+
+- [x] **Track: Board member management - allow board owners to invite registered users to collaborate on their boards with Owner + Member role model**
+      _Link: [../archive/board_member_mgmt_20260705/](../archive/board_member_mgmt_20260705/)_

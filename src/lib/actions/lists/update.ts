@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { verifySession } from "@/lib/dal";
 import { renameList } from "@/lib/data/lists";
 import { renameListSchema } from "@/lib/schemas/list";
+import { assertListPermission } from "@/lib/actions/guards";
+import { BoardPermission } from "@/lib/permissions";
 
 type RenameListResult =
   | { list: NonNullable<Awaited<ReturnType<typeof renameList>>> }
@@ -26,11 +28,16 @@ export async function renameListAction(input: {
     };
   }
 
-  const list = await renameList(
+  const allowed = await assertListPermission(
     parsed.data.listId,
-    { title: parsed.data.title },
-    { ownerId: userId },
+    userId,
+    BoardPermission.EDIT_CONTENT,
   );
+  if (!allowed) {
+    return { errors: [{ field: "", message: "Forbidden" }] };
+  }
+
+  const list = await renameList(parsed.data.listId, { title: parsed.data.title });
   if (!list) {
     return { errors: [{ field: "", message: "List not found" }] };
   }

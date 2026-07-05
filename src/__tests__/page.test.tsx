@@ -84,8 +84,8 @@ describe("Home page (app/page.tsx)", () => {
       user: { id: "user-1", email: "test@example.com" },
       expires: "2099-01-01",
     } as never);
-    const owned = [makeBoard("b1"), makeBoard("b2")];
-    const shared = [makeBoard("s1")];
+    const owned: Board[] = [makeBoard("b1"), makeBoard("b2")];
+    const shared: Board[] = [makeBoard("s1")];
     vi.mocked(listBoardsAction).mockResolvedValue({ owned, shared });
 
     const jsx = await Home();

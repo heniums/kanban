@@ -47,7 +47,7 @@ describe("BoardActions undo toast", () => {
     vi.mocked(deleteBoardAction).mockResolvedValue({ success: true });
     vi.mocked(restoreBoardAction).mockRejectedValue(new Error("network down"));
 
-    render(<BoardActions board={baseBoard} />);
+    render(<BoardActions board={baseBoard} capabilities={{ settings: true, delete: true }} />);
 
     const deleteButton = screen.getByRole("button", { name: /^delete$/i });
     await user.click(deleteButton);
@@ -73,7 +73,7 @@ describe("BoardActions undo toast", () => {
     vi.mocked(deleteBoardAction).mockResolvedValue({ success: true });
     vi.mocked(restoreBoardAction).mockResolvedValue({ success: true });
 
-    render(<BoardActions board={baseBoard} />);
+    render(<BoardActions board={baseBoard} capabilities={{ settings: true, delete: true }} />);
 
     const deleteButton = screen.getByRole("button", { name: /^delete$/i });
     await user.click(deleteButton);

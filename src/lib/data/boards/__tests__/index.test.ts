@@ -24,6 +24,7 @@ const setupDbMock = () => {
   });
   mock.transaction = vi.fn(async (fn: (tx: any) => Promise<unknown>) => fn(mock));
   mock.from = vi.fn(() => mock);
+  mock.innerJoin = vi.fn(() => mock);
   mock.values = vi.fn(() => mock);
   mock.set = vi.fn(() => mock);
   mock.orderBy = vi.fn(() => mock);
@@ -52,9 +53,14 @@ vi.mock("@/lib/db/schema/boards", () => ({
   boards: { _table: "boards" },
 }));
 
+vi.mock("@/lib/db/schema/board-members", () => ({
+  boardMembers: { _table: "board_members" },
+}));
+
 import {
   getBoardById,
-  listBoardsByOwner,
+  listBoardsByMember,
+  listBoardsByRole,
   createBoard,
   updateBoard,
   softDeleteBoard,
@@ -70,34 +76,54 @@ beforeEach(() => {
 });
 
 describe("getBoardById", () => {
-  it("returns the first row from db.select scoped to the owner", async () => {
-    selectResult = [{ id: "board-1", title: "Test" }];
-    const board = await getBoardById("board-1", { ownerId: "user-1" });
+  it("returns the first row from db.select scoped to the user via membership", async () => {
+    selectResult = [{ board: { id: "board-1", title: "Test" } }];
+    const board = await getBoardById("board-1", { userId: "user-1" });
     expect(db.select).toHaveBeenCalled();
     expect(db.from).toHaveBeenCalled();
+    expect(db.innerJoin).toHaveBeenCalled();
     expect(db.where).toHaveBeenCalled();
-    const whereArg = db.where.mock.calls[0][0] as { queryChunks: unknown[] };
-    const serialized = JSON.stringify(whereArg);
-    expect(serialized).toContain("user-1");
     expect(board).toEqual({ id: "board-1", title: "Test" });
   });
 
   it("returns null if no row found", async () => {
     selectResult = [];
-    const board = await getBoardById("missing", { ownerId: "user-1" });
+    const board = await getBoardById("missing", { userId: "user-1" });
     expect(board).toBeNull();
   });
 });
 
-describe("listBoardsByOwner", () => {
-  it("filters by owner, orders, and applies limit", async () => {
+describe("listBoardsByMember", () => {
+  it("filters by membership, orders, and applies limit", async () => {
     selectResult = [];
-    await listBoardsByOwner("user-1");
+    await listBoardsByMember("user-1");
+    expect(db.innerJoin).toHaveBeenCalled();
     expect(db.where).toHaveBeenCalled();
-    const whereArg = db.where.mock.calls[0][0] as { queryChunks: unknown[] };
-    expect(JSON.stringify(whereArg)).toContain("user-1");
     expect(db.orderBy).toHaveBeenCalled();
     expect(db.limit).toHaveBeenCalledWith(100);
+  });
+});
+
+describe("listBoardsByRole", () => {
+  it("separates boards into owned and shared based on role", async () => {
+    selectResult = [
+      { board: { id: "board-1", title: "Owned Board" }, role: "owner" },
+      { board: { id: "board-2", title: "Shared Board" }, role: "member" },
+      { board: { id: "board-3", title: "Another Owned" }, role: "owner" },
+    ];
+    const result = await listBoardsByRole("user-1");
+    expect(result.owned).toHaveLength(2);
+    expect(result.shared).toHaveLength(1);
+    expect(result.owned[0].title).toBe("Owned Board");
+    expect(result.owned[1].title).toBe("Another Owned");
+    expect(result.shared[0].title).toBe("Shared Board");
+  });
+
+  it("returns empty arrays when no boards found", async () => {
+    selectResult = [];
+    const result = await listBoardsByRole("user-1");
+    expect(result.owned).toHaveLength(0);
+    expect(result.shared).toHaveLength(0);
   });
 });
 
@@ -119,7 +145,7 @@ describe("createBoard", () => {
 describe("updateBoard", () => {
   it("calls db.update and returns the updated row", async () => {
     returningImpl.mockResolvedValueOnce([{ id: "board-1", title: "New" }]);
-    const result = await updateBoard("board-1", { title: "New" }, { ownerId: "user-1" });
+    const result = await updateBoard("board-1", { title: "New" });
     expect(db.update).toHaveBeenCalled();
     expect(db.set).toHaveBeenCalledWith({ title: "New" });
     expect(result).toEqual({ id: "board-1", title: "New" });
@@ -127,7 +153,7 @@ describe("updateBoard", () => {
 
   it("returns null if no row updated", async () => {
     returningImpl.mockResolvedValueOnce([]);
-    const result = await updateBoard("board-1", { title: "New" }, { ownerId: "user-1" });
+    const result = await updateBoard("board-1", { title: "New" });
     expect(result).toBeNull();
   });
 });
@@ -135,7 +161,7 @@ describe("updateBoard", () => {
 describe("softDeleteBoard", () => {
   it("sets deletedAt to a Date and filters by id", async () => {
     returningImpl.mockResolvedValueOnce([{ id: "board-1" }]);
-    await softDeleteBoard("board-1", { ownerId: "user-1" });
+    await softDeleteBoard("board-1");
     expect(db.update).toHaveBeenCalled();
     const setArg = db.set.mock.calls[0][0];
     expect(setArg).toHaveProperty("deletedAt");
@@ -146,7 +172,7 @@ describe("softDeleteBoard", () => {
 describe("restoreBoard", () => {
   it("sets deletedAt to null", async () => {
     returningImpl.mockResolvedValueOnce([{ id: "board-1" }]);
-    await restoreBoard("board-1", { ownerId: "user-1" });
+    await restoreBoard("board-1");
     expect(db.update).toHaveBeenCalled();
     expect(db.set).toHaveBeenCalledWith({ deletedAt: null });
   });

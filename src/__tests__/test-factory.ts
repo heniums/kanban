@@ -3,6 +3,7 @@ import { users, type User } from "@/lib/db/schema/users";
 import { boards, type Board } from "@/lib/db/schema/boards";
 import { lists, type List } from "@/lib/db/schema/lists";
 import { cards, type Card } from "@/lib/db/schema/cards";
+import { boardMembers } from "@/lib/db/schema/board-members";
 import { eq } from "drizzle-orm";
 import { afterAll } from "vitest";
 
@@ -42,6 +43,11 @@ export class TestDataFactory {
     };
     const [board] = await this.db.insert(boards).values(data).returning();
     this._boardIds.push(board.id);
+    await this.db.insert(boardMembers).values({
+      boardId: board.id,
+      userId: ownerId,
+      role: "owner",
+    });
     return board;
   }
 
@@ -104,25 +110,29 @@ export class TestDataFactory {
   }
 
   async cleanup(): Promise<void> {
-    for (const id of [...this._cardIds].reverse()) {
+    for (const id of [...this._boardIds].reverse()) {
       await this.db
         .delete(cards)
-        .where(eq(cards.id, id))
+        .where(eq(cards.boardId, id))
         .catch(() => {});
-    }
-    for (const id of [...this._listIds].reverse()) {
       await this.db
         .delete(lists)
-        .where(eq(lists.id, id))
+        .where(eq(lists.boardId, id))
         .catch(() => {});
-    }
-    for (const id of [...this._boardIds].reverse()) {
+      await this.db
+        .delete(boardMembers)
+        .where(eq(boardMembers.boardId, id))
+        .catch(() => {});
       await this.db
         .delete(boards)
         .where(eq(boards.id, id))
         .catch(() => {});
     }
     for (const id of [...this._userIds].reverse()) {
+      await this.db
+        .delete(boardMembers)
+        .where(eq(boardMembers.userId, id))
+        .catch(() => {});
       await this.db
         .delete(users)
         .where(eq(users.id, id))

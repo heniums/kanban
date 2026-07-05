@@ -3,19 +3,23 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const {
   mockVerifySession,
   mockGetBoardById,
-  mockListBoardsByOwner,
+  mockListBoardsByMember,
+  mockListBoardsByRole,
   mockCreateBoard,
   mockUpdateBoard,
   mockSoftDeleteBoard,
   mockRestoreBoard,
+  mockAssertBoardPermission,
 } = vi.hoisted(() => ({
   mockVerifySession: vi.fn(),
   mockGetBoardById: vi.fn(),
-  mockListBoardsByOwner: vi.fn(),
+  mockListBoardsByMember: vi.fn(),
+  mockListBoardsByRole: vi.fn(),
   mockCreateBoard: vi.fn(),
   mockUpdateBoard: vi.fn(),
   mockSoftDeleteBoard: vi.fn(),
   mockRestoreBoard: vi.fn(),
+  mockAssertBoardPermission: vi.fn(),
 }));
 
 vi.mock("@/lib/dal", () => ({
@@ -24,7 +28,8 @@ vi.mock("@/lib/dal", () => ({
 
 vi.mock("@/lib/data/boards", () => ({
   getBoardById: mockGetBoardById,
-  listBoardsByOwner: mockListBoardsByOwner,
+  listBoardsByMember: mockListBoardsByMember,
+  listBoardsByRole: mockListBoardsByRole,
   createBoard: mockCreateBoard,
   updateBoard: mockUpdateBoard,
   softDeleteBoard: mockSoftDeleteBoard,
@@ -41,6 +46,10 @@ vi.mock("next/navigation", () => ({
     err.digest = `NEXT_REDIRECT;${url}`;
     throw err;
   }),
+}));
+
+vi.mock("@/lib/actions/guards", () => ({
+  assertBoardPermission: mockAssertBoardPermission,
 }));
 
 import { createBoardAction } from "../create";
@@ -116,14 +125,14 @@ describe("createBoardAction", () => {
 });
 
 describe("listBoardsAction", () => {
-  it("returns owned boards for the current user", async () => {
+  it("returns boards for the current user", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
-    mockListBoardsByOwner.mockResolvedValue([SAMPLE_BOARD]);
+    mockListBoardsByRole.mockResolvedValue({ owned: [SAMPLE_BOARD], shared: [] });
 
     const result = await listBoardsAction();
     expect(result.owned).toEqual([SAMPLE_BOARD]);
     expect(result.shared).toEqual([]);
-    expect(mockListBoardsByOwner).toHaveBeenCalledWith("user-1");
+    expect(mockListBoardsByRole).toHaveBeenCalledWith("user-1");
   });
 
   it("redirects to /login when not signed in", async () => {
@@ -133,8 +142,9 @@ describe("listBoardsAction", () => {
 });
 
 describe("updateBoardAction", () => {
-  it("updates the board when caller is owner", async () => {
+  it("updates the board when caller has permission", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockAssertBoardPermission.mockResolvedValue(true);
     mockUpdateBoard.mockResolvedValue({ ...SAMPLE_BOARD, title: "Updated" });
 
     const formData = new FormData();
@@ -150,6 +160,7 @@ describe("updateBoardAction", () => {
 
   it("returns errors for invalid input", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockAssertBoardPermission.mockResolvedValue(true);
     const formData = new FormData();
     formData.set("title", "OK");
     formData.set("background", "<script>alert(1)</script>");
@@ -158,8 +169,9 @@ describe("updateBoardAction", () => {
     expect(result).toHaveProperty("errors");
   });
 
-  it("returns errors when board not found or not owned", async () => {
+  it("returns errors when board not found", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockAssertBoardPermission.mockResolvedValue(true);
     mockUpdateBoard.mockResolvedValue(null);
     const formData = new FormData();
     formData.set("title", "Updated");
@@ -168,42 +180,76 @@ describe("updateBoardAction", () => {
     const result = await updateBoardAction("board-1", formData);
     expect(result).toHaveProperty("errors");
   });
+
+  it("returns forbidden when user lacks permission", async () => {
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockAssertBoardPermission.mockResolvedValue(false);
+    const formData = new FormData();
+    formData.set("title", "Updated");
+    formData.set("background", "#000");
+
+    const result = await updateBoardAction("board-1", formData);
+    expect(result).toHaveProperty("errors");
+    expect(mockUpdateBoard).not.toHaveBeenCalled();
+  });
 });
 
 describe("deleteBoardAction", () => {
-  it("soft-deletes when caller is owner", async () => {
+  it("soft-deletes when caller has permission", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockAssertBoardPermission.mockResolvedValue(true);
     mockSoftDeleteBoard.mockResolvedValue(SAMPLE_BOARD);
 
     const result = await deleteBoardAction("board-1");
     expect(result).toEqual({ success: true });
-    expect(mockSoftDeleteBoard).toHaveBeenCalledWith("board-1", { ownerId: "user-1" });
+    expect(mockSoftDeleteBoard).toHaveBeenCalledWith("board-1");
   });
 
-  it("returns error when board not found or not owned", async () => {
+  it("returns error when board not found", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockAssertBoardPermission.mockResolvedValue(true);
     mockSoftDeleteBoard.mockResolvedValue(null);
 
     const result = await deleteBoardAction("board-1");
     expect(result).toHaveProperty("error");
   });
+
+  it("returns forbidden when user lacks permission", async () => {
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockAssertBoardPermission.mockResolvedValue(false);
+
+    const result = await deleteBoardAction("board-1");
+    expect(result).toHaveProperty("error");
+    expect(mockSoftDeleteBoard).not.toHaveBeenCalled();
+  });
 });
 
 describe("restoreBoardAction", () => {
-  it("restores a soft-deleted board when caller is owner", async () => {
+  it("restores a soft-deleted board when caller has permission", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockAssertBoardPermission.mockResolvedValue(true);
     mockRestoreBoard.mockResolvedValue(SAMPLE_BOARD);
 
     const result = await restoreBoardAction("board-1");
     expect(result).toEqual({ success: true });
-    expect(mockRestoreBoard).toHaveBeenCalledWith("board-1", { ownerId: "user-1" });
+    expect(mockRestoreBoard).toHaveBeenCalledWith("board-1");
   });
 
-  it("returns error when board not found or not owned", async () => {
+  it("returns error when board not found", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockAssertBoardPermission.mockResolvedValue(true);
     mockRestoreBoard.mockResolvedValue(null);
 
     const result = await restoreBoardAction("board-1");
     expect(result).toHaveProperty("error");
+  });
+
+  it("returns forbidden when user lacks permission", async () => {
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockAssertBoardPermission.mockResolvedValue(false);
+
+    const result = await restoreBoardAction("board-1");
+    expect(result).toHaveProperty("error");
+    expect(mockRestoreBoard).not.toHaveBeenCalled();
   });
 });

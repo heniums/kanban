@@ -2,12 +2,8 @@ import { sql } from "drizzle-orm";
 import { createDbClient } from "@/lib/db/client";
 import { cards } from "@/lib/db/schema/cards";
 import { comments } from "@/lib/db/schema/comments";
-import { boards } from "@/lib/db/schema/boards";
 
-export async function getCommentCountsByBoardId(
-  boardId: string,
-  options: { userId: string },
-): Promise<Record<string, number>> {
+export async function getCommentCountsByBoardId(boardId: string): Promise<Record<string, number>> {
   const db = createDbClient();
   const rows = (
     await db.execute(
@@ -18,10 +14,7 @@ export async function getCommentCountsByBoardId(
            FROM ${comments}
            GROUP BY card_id
          ) cnt ON cnt.card_id = c.id
-         INNER JOIN ${boards} b ON b.id = c.board_id
-         WHERE c.board_id = ${boardId}
-           AND b.owner_id = ${options.userId}
-           AND b.deleted_at IS NULL`,
+         WHERE c.board_id = ${boardId}`,
     )
   ).rows as Array<{ card_id: string; n: number }>;
   const out: Record<string, number> = {};

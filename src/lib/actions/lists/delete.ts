@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { verifySession } from "@/lib/dal";
 import { deleteList } from "@/lib/data/lists";
+import { assertListPermission } from "@/lib/actions/guards";
+import { BoardPermission } from "@/lib/permissions";
 import { z } from "zod";
 
 const deleteListInputSchema = z.object({
@@ -19,9 +21,18 @@ export async function deleteListAction(input: { listId: string }): Promise<Delet
     return { error: "Invalid input" };
   }
 
-  const deleted = await deleteList(parsed.data.listId, { ownerId: userId });
+  const allowed = await assertListPermission(
+    parsed.data.listId,
+    userId,
+    BoardPermission.EDIT_CONTENT,
+  );
+  if (!allowed) {
+    return { error: "Forbidden" };
+  }
+
+  const deleted = await deleteList(parsed.data.listId);
   if (!deleted) {
-    return { error: "List not found or not owned" };
+    return { error: "List not found" };
   }
 
   revalidatePath(`/boards/${deleted.boardId}`);

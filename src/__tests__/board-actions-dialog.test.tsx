@@ -50,7 +50,7 @@ describe("BoardActions delete dialog state binding (FR4)", () => {
     });
     vi.mocked(deleteBoardAction).mockReturnValue(pending);
 
-    render(<BoardActions board={baseBoard} />);
+    render(<BoardActions board={baseBoard} capabilities={{ settings: true, delete: true }} />);
 
     const triggerButton = screen.getByRole("button", { name: /^delete$/i });
     await user.click(triggerButton);
@@ -80,7 +80,7 @@ describe("BoardActions delete dialog state binding (FR4)", () => {
       error: "Board not found or not owned",
     });
 
-    render(<BoardActions board={baseBoard} />);
+    render(<BoardActions board={baseBoard} capabilities={{ settings: true, delete: true }} />);
 
     const triggerButton = screen.getByRole("button", { name: /^delete$/i });
     await user.click(triggerButton);
@@ -109,7 +109,7 @@ describe("BoardActions race condition guard (FR5)", () => {
     });
     vi.mocked(deleteBoardAction).mockReturnValue(pending);
 
-    render(<BoardActions board={baseBoard} />);
+    render(<BoardActions board={baseBoard} capabilities={{ settings: true, delete: true }} />);
 
     const triggerButton = screen.getByRole("button", { name: /^delete$/i });
     await user.click(triggerButton);

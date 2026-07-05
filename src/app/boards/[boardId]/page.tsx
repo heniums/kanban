@@ -15,6 +15,7 @@ import {
 import { getChecklistProgressByBoardId } from "@/lib/data/checklists";
 import { getCommentCountsByBoardId } from "@/lib/data/comments";
 import { verifySession } from "@/lib/dal";
+import { getBoardCapabilities } from "@/lib/capabilities";
 import type { CardSummary } from "@/components/cards/card-item";
 
 interface BoardPageProps {
@@ -25,20 +26,22 @@ export default async function BoardPage({ params }: BoardPageProps) {
   const { userId } = await verifySession();
 
   const { boardId } = await params;
-  const board = await getBoardById(boardId, { ownerId: userId });
+  const board = await getBoardById(boardId, { userId });
 
   if (!board) {
     notFound();
   }
 
-  const lists = await getListsByBoardId(boardId, { ownerId: userId });
+  const capabilities = await getBoardCapabilities(userId, boardId);
+
+  const lists = await getListsByBoardId(boardId);
   const [allCards, cardLabelsMap, cardAssigneesMap, checklistProgressMap, commentCountsMap] =
     await Promise.all([
-      getCardsByBoardId(boardId, { ownerId: userId }),
-      getCardLabelsByBoardId(boardId, { ownerId: userId }),
-      getCardAssigneesByBoardId(boardId, { ownerId: userId }),
-      getChecklistProgressByBoardId(boardId, { ownerId: userId }),
-      getCommentCountsByBoardId(boardId, { userId }),
+      getCardsByBoardId(boardId),
+      getCardLabelsByBoardId(boardId),
+      getCardAssigneesByBoardId(boardId),
+      getChecklistProgressByBoardId(boardId),
+      getCommentCountsByBoardId(boardId),
     ]);
 
   const cardsByList: Record<string, CardSummary[]> = {};
@@ -67,7 +70,7 @@ export default async function BoardPage({ params }: BoardPageProps) {
           </Link>
         }
       >
-        <BoardActions board={board} variant="overlay" />
+        <BoardActions board={board} variant="overlay" capabilities={capabilities} />
       </BoardHero>
 
       <PageContainer>

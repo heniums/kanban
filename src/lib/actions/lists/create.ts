@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { verifySession } from "@/lib/dal";
 import { createList } from "@/lib/data/lists";
 import { createListSchema } from "@/lib/schemas/list";
-import { assertBoardOwnedBy } from "@/lib/actions/guards";
+import { assertBoardPermission } from "@/lib/actions/guards";
+import { BoardPermission } from "@/lib/permissions";
 
 type CreateListResult =
   | { list: NonNullable<Awaited<ReturnType<typeof createList>>> }
@@ -27,9 +28,13 @@ export async function createListAction(input: {
     };
   }
 
-  const owned = await assertBoardOwnedBy(parsed.data.boardId, userId);
-  if (!owned) {
-    return { errors: [{ field: "", message: "Board not found or not owned" }] };
+  const hasAccess = await assertBoardPermission(
+    parsed.data.boardId,
+    userId,
+    BoardPermission.EDIT_CONTENT,
+  );
+  if (!hasAccess) {
+    return { errors: [{ field: "", message: "Board not found or insufficient permissions" }] };
   }
 
   try {

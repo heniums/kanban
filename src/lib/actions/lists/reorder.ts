@@ -5,6 +5,8 @@ import { verifySession } from "@/lib/dal";
 import { reorderLists } from "@/lib/data/lists";
 import { reorderListsSchema } from "@/lib/schemas/list";
 import { emitToBoard, REALTIME_EVENTS } from "@/lib/realtime/events";
+import { assertBoardPermission } from "@/lib/actions/guards";
+import { BoardPermission } from "@/lib/permissions";
 
 type ReorderListsResult =
   | { lists: Awaited<ReturnType<typeof reorderLists>> }
@@ -26,10 +28,17 @@ export async function reorderListsAction(input: {
     };
   }
 
+  const allowed = await assertBoardPermission(
+    parsed.data.boardId,
+    userId,
+    BoardPermission.EDIT_CONTENT,
+  );
+  if (!allowed) {
+    return { errors: [{ field: "", message: "Forbidden" }] };
+  }
+
   try {
-    const lists = await reorderLists(parsed.data.boardId, parsed.data.orderedListIds, {
-      ownerId: userId,
-    });
+    const lists = await reorderLists(parsed.data.boardId, parsed.data.orderedListIds);
     revalidatePath(`/boards/${parsed.data.boardId}`);
     emitToBoard(parsed.data.boardId, REALTIME_EVENTS.LIST_REORDERED, {
       boardId: parsed.data.boardId,

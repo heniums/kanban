@@ -1,0 +1,35 @@
+"use server";
+
+import { verifySession } from "@/lib/dal";
+import { hasPermission, BoardPermission } from "@/lib/permissions";
+import { removeMember } from "@/lib/data/members";
+import { revalidatePath } from "next/cache";
+import { removeMemberSchema } from "@/lib/schemas/member";
+
+export async function removeMemberAction(input: unknown) {
+  const { userId: currentUserId } = await verifySession();
+
+  const parsed = removeMemberSchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: "Invalid input" };
+  }
+
+  const canManageMembers = await hasPermission(
+    currentUserId,
+    parsed.data.boardId,
+    BoardPermission.MANAGE_MEMBERS,
+  );
+  if (!canManageMembers) {
+    return { error: "You do not have permission to manage members" };
+  }
+
+  const result = await removeMember(parsed.data.boardId, parsed.data.userId, currentUserId);
+
+  if ("error" in result) {
+    return { error: result.error };
+  }
+
+  revalidatePath(`/boards/${parsed.data.boardId}/settings`);
+  revalidatePath("/boards");
+  return { success: true };
+}

@@ -12,7 +12,8 @@ import {
   deleteCommentSchema,
 } from "@/lib/schemas/comment";
 import { emitToBoard, REALTIME_EVENTS } from "@/lib/realtime/events";
-import { assertCardOwnedBy } from "@/lib/actions/guards";
+import { assertCardPermission, assertCommentPermission } from "@/lib/actions/guards";
+import { BoardPermission } from "@/lib/permissions";
 import type { Comment } from "@/lib/db/schema/comments";
 
 type Result<T> = { data: T } | { errors: Array<{ field: string; message: string }> };
@@ -36,9 +37,13 @@ export async function createCommentAction(input: unknown): Promise<Result<Commen
   const parsed = createCommentSchema.safeParse(input);
   if (!parsed.success) return { errors: formatZodErrors(parsed.error) };
 
-  const owned = await assertCardOwnedBy(parsed.data.cardId, userId);
-  if (!owned) {
-    return { errors: [{ field: "", message: "Card not found or board not owned" }] };
+  const hasAccess = await assertCardPermission(
+    parsed.data.cardId,
+    userId,
+    BoardPermission.EDIT_CONTENT,
+  );
+  if (!hasAccess) {
+    return { errors: [{ field: "", message: "Card not found or insufficient permissions" }] };
   }
 
   try {
@@ -56,12 +61,18 @@ export async function updateCommentAction(input: unknown): Promise<Result<Commen
   const { userId } = await verifySession();
   const parsed = updateCommentSchema.safeParse(input);
   if (!parsed.success) return { errors: formatZodErrors(parsed.error) };
+
+  const hasAccess = await assertCommentPermission(
+    parsed.data.commentId,
+    userId,
+    BoardPermission.EDIT_CONTENT,
+  );
+  if (!hasAccess) {
+    return { errors: [{ field: "", message: "Comment not found or insufficient permissions" }] };
+  }
+
   try {
-    const comment = await updateComment(
-      parsed.data.commentId,
-      { content: parsed.data.content },
-      { userId },
-    );
+    const comment = await updateComment(parsed.data.commentId, { content: parsed.data.content });
     if (!comment) return { errors: [{ field: "", message: "Comment not found" }] };
     const boardId = await revalidateForCard(comment.cardId);
     if (boardId)
@@ -76,8 +87,18 @@ export async function deleteCommentAction(input: unknown): Promise<Result<{ card
   const { userId } = await verifySession();
   const parsed = deleteCommentSchema.safeParse(input);
   if (!parsed.success) return { errors: formatZodErrors(parsed.error) };
+
+  const hasAccess = await assertCommentPermission(
+    parsed.data.commentId,
+    userId,
+    BoardPermission.EDIT_CONTENT,
+  );
+  if (!hasAccess) {
+    return { errors: [{ field: "", message: "Comment not found or insufficient permissions" }] };
+  }
+
   try {
-    const deleted = await deleteComment(parsed.data.commentId, { userId });
+    const deleted = await deleteComment(parsed.data.commentId);
     if (!deleted) return { errors: [{ field: "", message: "Comment not found" }] };
     const boardId = await revalidateForCard(deleted.cardId);
     if (boardId)

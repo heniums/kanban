@@ -7,21 +7,16 @@ import { lists } from "@/lib/db/schema/lists";
 import { boards } from "@/lib/db/schema/boards";
 import type { CreateCardInput, UpdateCardInput } from "./schemas";
 
-export async function createCard(
-  data: CreateCardInput,
-  options: { ownerId: string },
-): Promise<Card> {
+export async function createCard(data: CreateCardInput): Promise<Card> {
   const db = createDbClient();
   return db.transaction(async (tx) => {
     const [list] = await tx
       .select({ id: lists.id, boardId: lists.boardId })
       .from(lists)
       .innerJoin(boards, sql`${boards.id} = ${lists.boardId}`)
-      .where(
-        sql`${lists.id} = ${data.listId} AND ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL`,
-      );
+      .where(sql`${lists.id} = ${data.listId} AND ${boards.deletedAt} IS NULL`);
     if (!list) {
-      throw new Error("List not found or board not owned");
+      throw new Error("List not found");
     }
 
     const [maxRow] = await tx
@@ -57,11 +52,7 @@ export async function createCard(
   });
 }
 
-export async function updateCard(
-  cardId: string,
-  data: UpdateCardInput,
-  options: { ownerId: string },
-): Promise<Card | null> {
+export async function updateCard(cardId: string, data: UpdateCardInput): Promise<Card | null> {
   const db = createDbClient();
   return db.transaction(async (tx) => {
     const patch: Partial<NewCard> = {};
@@ -75,9 +66,7 @@ export async function updateCard(
       const rows = await tx
         .update(cards)
         .set(patch)
-        .where(
-          sql`${cards.id} = ${cardId} AND ${cards.boardId} IN (SELECT id FROM ${boards} WHERE ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL)`,
-        )
+        .where(sql`${cards.id} = ${cardId}`)
         .returning();
       updated = rows[0];
       if (!updated) return null;
@@ -100,9 +89,7 @@ export async function updateCard(
       const [card] = await tx
         .select()
         .from(cards)
-        .where(
-          sql`${cards.id} = ${cardId} AND ${cards.boardId} IN (SELECT id FROM ${boards} WHERE ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL)`,
-        );
+        .where(sql`${cards.id} = ${cardId}`);
       return card ?? null;
     }
 
@@ -110,17 +97,12 @@ export async function updateCard(
   });
 }
 
-export async function deleteCard(
-  cardId: string,
-  options: { ownerId: string },
-): Promise<Card | null> {
+export async function deleteCard(cardId: string): Promise<Card | null> {
   const db = createDbClient();
   return db.transaction(async (tx) => {
     const [deleted] = await tx
       .delete(cards)
-      .where(
-        sql`${cards.id} = ${cardId} AND ${cards.boardId} IN (SELECT id FROM ${boards} WHERE ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL)`,
-      )
+      .where(sql`${cards.id} = ${cardId}`)
       .returning();
     if (!deleted) return null;
     await tx.execute(
@@ -134,16 +116,13 @@ export async function moveCard(
   cardId: string,
   targetListId: string,
   targetPosition: number,
-  options: { ownerId: string },
 ): Promise<Card | null> {
   const db = createDbClient();
   return db.transaction(async (tx) => {
     const [existing] = await tx
       .select()
       .from(cards)
-      .where(
-        sql`${cards.id} = ${cardId} AND ${cards.boardId} IN (SELECT id FROM ${boards} WHERE ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL)`,
-      );
+      .where(sql`${cards.id} = ${cardId}`);
     if (!existing) return null;
 
     const [targetList] = await tx
@@ -151,7 +130,7 @@ export async function moveCard(
       .from(lists)
       .innerJoin(boards, sql`${boards.id} = ${lists.boardId}`)
       .where(
-        sql`${lists.id} = ${targetListId} AND ${boards.id} = ${existing.boardId} AND ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL`,
+        sql`${lists.id} = ${targetListId} AND ${boards.id} = ${existing.boardId} AND ${boards.deletedAt} IS NULL`,
       );
     if (!targetList) return null;
 
@@ -207,11 +186,7 @@ export async function moveCard(
   });
 }
 
-export async function reorderCards(
-  listId: string,
-  orderedCardIds: string[],
-  options: { ownerId: string },
-): Promise<Card[]> {
+export async function reorderCards(listId: string, orderedCardIds: string[]): Promise<Card[]> {
   if (orderedCardIds.length === 0) return [];
 
   if (new Set(orderedCardIds).size !== orderedCardIds.length) {
@@ -226,7 +201,7 @@ export async function reorderCards(
         .update(cards)
         .set({ position: -(i + 1) })
         .where(
-          sql`${cards.id} = ${orderedCardIds[i]} AND ${cards.listId} = ${listId} AND ${cards.boardId} IN (SELECT id FROM ${boards} WHERE ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL)`,
+          sql`${cards.id} = ${orderedCardIds[i]} AND ${cards.listId} = ${listId} AND ${cards.boardId} IN (SELECT id FROM ${boards} WHERE ${boards.deletedAt} IS NULL)`,
         );
     }
     for (let i = 0; i < orderedCardIds.length; i++) {
@@ -234,7 +209,7 @@ export async function reorderCards(
         .update(cards)
         .set({ position: i })
         .where(
-          sql`${cards.id} = ${orderedCardIds[i]} AND ${cards.listId} = ${listId} AND ${cards.boardId} IN (SELECT id FROM ${boards} WHERE ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL)`,
+          sql`${cards.id} = ${orderedCardIds[i]} AND ${cards.listId} = ${listId} AND ${cards.boardId} IN (SELECT id FROM ${boards} WHERE ${boards.deletedAt} IS NULL)`,
         )
         .returning();
       if (row) updated.push(row);
@@ -243,18 +218,13 @@ export async function reorderCards(
   });
 }
 
-export async function copyCard(
-  sourceCardId: string,
-  options: { ownerId: string },
-): Promise<Card | null> {
+export async function copyCard(sourceCardId: string): Promise<Card | null> {
   const db = createDbClient();
   return db.transaction(async (tx) => {
     const [source] = await tx
       .select()
       .from(cards)
-      .where(
-        sql`${cards.id} = ${sourceCardId} AND ${cards.boardId} IN (SELECT id FROM ${boards} WHERE ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL)`,
-      );
+      .where(sql`${cards.id} = ${sourceCardId}`);
     if (!source) return null;
 
     const [maxRow] = await tx
