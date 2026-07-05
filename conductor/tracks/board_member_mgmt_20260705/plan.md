@@ -24,7 +24,7 @@
   - [x] Modify createBoard server action to insert creator into board_members as 'owner'
   - [x] Verify transaction ensures both board and membership are created atomically
 
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Database Schema & Migrations' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Database Schema & Migrations' (Protocol in workflow.md)
 
 ## Phase 2: Backend Server Actions
 
@@ -149,30 +149,32 @@
   - [x] Link to `/boards/[id]/settings`
   - [x] Style consistently with existing header actions
 
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Board Settings Page' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Board Settings Page' (Protocol in workflow.md)
 
-## Phase 4: Real-Time Updates
+## Phase 4: Real-Time Updates (Deferred)
 
-- [ ] Task: Write tests for real-time member events
-  - [ ] Test member:added event broadcasts to board room
-  - [ ] Test member:removed event broadcasts to board room
-  - [ ] Test client receives and updates member list on events
-  - [ ] Test removed member is redirected if viewing board
+Real-time member events deferred to future track.
 
-- [ ] Task: Implement Socket.io events for member management
-  - [ ] Emit member:added event when addMember succeeds
-  - [ ] Emit member:removed event when removeMember succeeds
-  - [ ] Include updated member list in event payload
-  - [ ] Broadcast to board room
+- [~] Task: Write tests for real-time member events
+  - [~] Test member:added event broadcasts to board room
+  - [~] Test member:removed event broadcasts to board room
+  - [~] Test client receives and updates member list on events
+  - [~] Test removed member is redirected if viewing board
 
-- [ ] Task: Update client to handle member events
-  - [ ] Listen for member:added event in board page and settings page
-  - [ ] Update member list state on event (settings page Members tab)
-  - [ ] Listen for member:removed event in board page and settings page
-  - [ ] Update member list state on event (settings page Members tab)
-  - [ ] Redirect to dashboard if current user was removed (from any page)
+- [~] Task: Implement Socket.io events for member management
+  - [~] Emit member:added event when addMember succeeds
+  - [~] Emit member:removed event when removeMember succeeds
+  - [~] Include updated member list in event payload
+  - [~] Broadcast to board room
 
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Real-Time Updates' (Protocol in workflow.md)
+- [~] Task: Update client to handle member events
+  - [~] Listen for member:added event in board page and settings page
+  - [~] Update member list state on event (settings page Members tab)
+  - [~] Listen for member:removed event in board page and settings page
+  - [~] Update member list state on event (settings page Members tab)
+  - [~] Redirect to dashboard if current user was removed (from any page)
+
+- [~] Task: Conductor - User Manual Verification 'Phase 4: Real-Time Updates' (Protocol in workflow.md)
 
 ## Phase 5: Dashboard Integration
 
@@ -194,4 +196,4 @@
   - [x] Show member role badge on shared boards
   - [x] Update board cards to reflect membership
 
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Dashboard Integration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Dashboard Integration' (Protocol in workflow.md)
