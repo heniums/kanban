@@ -7,6 +7,7 @@ import { cardLabels } from "@/lib/db/schema/card-labels";
 import { cardAssignees } from "@/lib/db/schema/card-assignees";
 import { labels } from "@/lib/db/schema/labels";
 import { boards } from "@/lib/db/schema/boards";
+import { boardMembers } from "@/lib/db/schema/board-members";
 import { checklists } from "@/lib/db/schema/checklists";
 import { checklistItems } from "@/lib/db/schema/checklist-items";
 import { comments } from "@/lib/db/schema/comments";
@@ -21,9 +22,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ car
     .select({ card: cards, boardId: cards.boardId, listId: cards.listId })
     .from(cards)
     .innerJoin(boards, sql`${boards.id} = ${cards.boardId}`)
-    .where(
-      sql`${cards.id} = ${cardId} AND ${boards.ownerId} = ${userId} AND ${boards.deletedAt} IS NULL`,
-    );
+    .innerJoin(
+      boardMembers,
+      sql`${boardMembers.boardId} = ${boards.id} AND ${boardMembers.userId} = ${userId}`,
+    )
+    .where(sql`${cards.id} = ${cardId} AND ${boards.deletedAt} IS NULL`);
   if (!card) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
@@ -35,7 +38,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ car
     cardChecklistRows,
     cardItemRows,
     cardCommentRows,
-    boardMembers,
+    boardMembersList,
   ] = await Promise.all([
     db
       .select({ id: labels.id, name: labels.name, color: labels.color })
@@ -85,6 +88,6 @@ export async function GET(_request: Request, { params }: { params: Promise<{ car
     assignees: cardAssigneeRows,
     checklists: cardChecklistRows.map((c) => ({ ...c, items: itemsByChecklist.get(c.id) ?? [] })),
     comments: cardCommentRows,
-    boardMembers,
+    boardMembers: boardMembersList,
   });
 }

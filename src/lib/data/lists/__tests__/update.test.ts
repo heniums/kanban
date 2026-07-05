@@ -36,7 +36,7 @@ vi.mock("@/lib/db/schema/lists", () => ({
 }));
 
 vi.mock("@/lib/db/schema/boards", () => ({
-  boards: { _table: "boards" },
+  boards: { _table: "boards", deletedAt: "deletedAt" },
 }));
 
 import { renameList } from "../update";
@@ -50,26 +50,26 @@ beforeEach(() => {
 });
 
 describe("renameList", () => {
-  it("updates the list title scoped to the owner", async () => {
+  it("updates the list title", async () => {
     returningImpl.mockResolvedValueOnce([{ id: "l1", title: "New Title" }]);
 
-    const result = await renameList("l1", { title: "New Title" }, { ownerId: "user-1" });
+    const result = await renameList("l1", { title: "New Title" });
 
     expect(db.update).toHaveBeenCalled();
     expect(capturedSet).toEqual({ title: "New Title" });
     expect(result).toEqual({ id: "l1", title: "New Title" });
   });
 
-  it("returns null if the list is not found or not owned", async () => {
+  it("returns null if the list is not found", async () => {
     returningImpl.mockResolvedValueOnce([]);
-    const result = await renameList("missing", { title: "X" }, { ownerId: "user-1" });
+    const result = await renameList("missing", { title: "X" });
     expect(result).toBeNull();
   });
 
-  it("scopes to the owner via the boards subquery", async () => {
+  it("scopes to non-deleted boards via the boards subquery", async () => {
     returningImpl.mockResolvedValueOnce([{ id: "l1", title: "X" }]);
-    await renameList("l1", { title: "X" }, { ownerId: "user-1" });
+    await renameList("l1", { title: "X" });
     const whereString = JSON.stringify(capturedWhere);
-    expect(whereString).toContain("user-1");
+    expect(whereString).toContain("deletedAt");
   });
 });

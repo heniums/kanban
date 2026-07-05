@@ -138,7 +138,7 @@ describe("removeMemberAction", () => {
     const result = await removeMemberAction({ boardId: BOARD_ID, userId: USER_2 });
 
     expect(result).toEqual({ success: true });
-    expect(mockRemoveMember).toHaveBeenCalledWith(BOARD_ID, USER_2);
+    expect(mockRemoveMember).toHaveBeenCalledWith(BOARD_ID, USER_2, USER_1);
   });
 
   it("returns error when user lacks manage_members permission", async () => {

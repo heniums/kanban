@@ -46,7 +46,7 @@ describe("deleteList", () => {
   it("deletes the list and returns the deleted record", async () => {
     returningImpl.mockResolvedValueOnce([{ id: "l1", boardId: "board-1", position: 1 }]);
 
-    const result = await deleteList("l1", { ownerId: "user-1" });
+    const result = await deleteList("l1");
 
     expect(db.transaction).toHaveBeenCalled();
     expect(db.delete).toHaveBeenCalled();
@@ -55,14 +55,14 @@ describe("deleteList", () => {
 
   it("returns null when nothing was deleted", async () => {
     returningImpl.mockResolvedValueOnce([]);
-    const result = await deleteList("missing", { ownerId: "user-1" });
+    const result = await deleteList("missing");
     expect(result).toBeNull();
   });
 
   it("compacts positions of remaining lists on the same board", async () => {
     returningImpl.mockResolvedValueOnce([{ id: "l1", boardId: "board-1", position: 1 }]);
 
-    await deleteList("l1", { ownerId: "user-1" });
+    await deleteList("l1");
 
     expect(db.execute).toHaveBeenCalledTimes(1);
   });

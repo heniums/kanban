@@ -30,5 +30,6 @@ export async function addMemberAction(input: unknown) {
   }
 
   revalidatePath(`/boards/${parsed.data.boardId}/settings`);
+  revalidatePath("/boards");
   return { success: true };
 }

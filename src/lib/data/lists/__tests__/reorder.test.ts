@@ -50,7 +50,7 @@ describe("reorderLists", () => {
     returningImpl.mockResolvedValueOnce([{ id: "l1", position: 1 }]);
     returningImpl.mockResolvedValueOnce([{ id: "l3", position: 2 }]);
 
-    const result = await reorderLists("board-1", ["l2", "l1", "l3"], { ownerId: "user-1" });
+    const result = await reorderLists("board-1", ["l2", "l1", "l3"]);
 
     expect(db.transaction).toHaveBeenCalled();
     expect(db.update).toHaveBeenCalled();
@@ -58,7 +58,7 @@ describe("reorderLists", () => {
   });
 
   it("returns empty array when no list IDs are provided", async () => {
-    const result = await reorderLists("board-1", [], { ownerId: "user-1" });
+    const result = await reorderLists("board-1", []);
     expect(result).toEqual([]);
   });
 
@@ -67,16 +67,14 @@ describe("reorderLists", () => {
     returningImpl.mockResolvedValueOnce([]);
     returningImpl.mockResolvedValueOnce([{ id: "l3", position: 2 }]);
 
-    const result = await reorderLists("board-1", ["l1", "l2", "l3"], { ownerId: "user-1" });
+    const result = await reorderLists("board-1", ["l1", "l2", "l3"]);
 
     expect(result).toHaveLength(2);
     expect(result.map((r: { id: string }) => r.id)).toEqual(["l1", "l3"]);
   });
 
   it("rejects duplicate list ids", async () => {
-    await expect(
-      reorderLists("board-1", ["l1", "l2", "l1"], { ownerId: "user-1" }),
-    ).rejects.toThrow(/duplicates/);
+    await expect(reorderLists("board-1", ["l1", "l2", "l1"])).rejects.toThrow(/duplicates/);
     expect(db.transaction).not.toHaveBeenCalled();
   });
 });

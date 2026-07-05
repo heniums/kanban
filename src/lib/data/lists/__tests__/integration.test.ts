@@ -25,7 +25,7 @@ async function ensureTestBoard() {
 
 describe("getListsByBoardId (integration)", () => {
   it("returns lists in position order for the owner", async () => {
-    const { boardId, ownerId } = await ensureTestBoard();
+    const { boardId } = await ensureTestBoard();
     await createList({ boardId, title: "A" });
     await createList({ boardId, title: "B" });
     await createList({ boardId, title: "C" });
@@ -53,10 +53,10 @@ describe("createList (integration)", () => {
 
 describe("renameList (integration)", () => {
   it("updates the list title", async () => {
-    const { boardId, ownerId } = await ensureTestBoard();
+    const { boardId } = await ensureTestBoard();
     const list = await createList({ boardId, title: "Original" });
 
-    const updated = await renameList(list.id, { title: "Renamed" }, { ownerId });
+    const updated = await renameList(list.id, { title: "Renamed" });
 
     expect(updated?.title).toBe("Renamed");
 
@@ -66,13 +66,13 @@ describe("renameList (integration)", () => {
 
 describe("deleteList (integration) — position recompaction", () => {
   it("recompacts positions after deletion", async () => {
-    const { boardId, ownerId } = await ensureTestBoard();
+    const { boardId } = await ensureTestBoard();
     const l0 = await createList({ boardId, title: "L0" });
     const l1 = await createList({ boardId, title: "L1" });
     const l2 = await createList({ boardId, title: "L2" });
     const l3 = await createList({ boardId, title: "L3" });
 
-    const result = await deleteList(l1.id, { ownerId });
+    const result = await deleteList(l1.id);
     expect(result?.id).toBe(l1.id);
 
     const after = await getListsByBoardId(boardId);
@@ -94,12 +94,12 @@ describe("deleteList (integration) — position recompaction", () => {
 
 describe("reorderLists (integration)", () => {
   it("reorders lists to match the new positions", async () => {
-    const { boardId, ownerId } = await ensureTestBoard();
+    const { boardId } = await ensureTestBoard();
     const a = await createList({ boardId, title: "A" });
     const b = await createList({ boardId, title: "B" });
     const c = await createList({ boardId, title: "C" });
 
-    await reorderLists(boardId, [c.id, a.id, b.id], { ownerId });
+    await reorderLists(boardId, [c.id, a.id, b.id]);
 
     const after = await getListsByBoardId(boardId);
     expect(after.map((l) => l.title)).toEqual(["C", "A", "B"]);

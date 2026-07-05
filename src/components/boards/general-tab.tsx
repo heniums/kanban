@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -22,12 +22,13 @@ interface GeneralTabProps {
 export function GeneralTab({ board }: GeneralTabProps) {
   const router = useRouter();
   const [serverError, setServerError] = useState("");
+  const [isPending, startTransition] = useTransition();
 
   const {
     register,
     handleSubmit,
     control,
-    formState: { errors, isSubmitting, isDirty },
+    formState: { errors, isDirty },
   } = useForm<UpdateBoardInput>({
     resolver: zodResolver(updateBoardSchema),
     defaultValues: {
@@ -37,7 +38,7 @@ export function GeneralTab({ board }: GeneralTabProps) {
     },
   });
 
-  const onSubmit = async (data: UpdateBoardInput) => {
+  const onSubmit = (data: UpdateBoardInput) => {
     setServerError("");
     const formData = new FormData();
     if (data.title !== undefined) formData.set("title", data.title);
@@ -46,14 +47,16 @@ export function GeneralTab({ board }: GeneralTabProps) {
     }
     if (data.background !== undefined) formData.set("background", data.background);
 
-    const result = await updateBoardAction(board.id, formData);
+    startTransition(async () => {
+      const result = await updateBoardAction(board.id, formData);
 
-    if (result && "errors" in result) {
-      setServerError((result.errors ?? []).map((e: { message: string }) => e.message).join(", "));
-      return;
-    }
+      if (result && "errors" in result) {
+        setServerError((result.errors ?? []).map((e: { message: string }) => e.message).join(", "));
+        return;
+      }
 
-    router.refresh();
+      router.refresh();
+    });
   };
 
   return (
@@ -128,8 +131,8 @@ export function GeneralTab({ board }: GeneralTabProps) {
           )}
 
           <div className="flex justify-end">
-            <Button type="submit" disabled={isSubmitting || !isDirty}>
-              {isSubmitting ? "Saving..." : "Save changes"}
+            <Button type="submit" disabled={isPending || !isDirty}>
+              {isPending ? "Saving..." : "Save changes"}
             </Button>
           </div>
         </form>

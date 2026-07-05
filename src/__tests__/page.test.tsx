@@ -11,7 +11,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@/lib/actions/boards", () => ({
-  listBoardsAction: vi.fn<() => Promise<{ owned: Board[]; shared: Board[] }>>(),
+  listBoardsAction: vi.fn(),
 }));
 
 vi.mock("@/components/marketing/marketing-landing", () => ({
@@ -52,7 +52,7 @@ describe("Home page (app/page.tsx)", () => {
 
   it("renders MarketingLanding when the user is not authenticated", async () => {
     vi.mocked(auth).mockResolvedValue(null as never);
-    (vi.mocked(listBoardsAction).mockResolvedValue as any)({ owned: [], shared: [] });
+    vi.mocked(listBoardsAction).mockResolvedValue({ owned: [], shared: [] });
 
     const jsx = await Home();
     render(jsx);
@@ -68,7 +68,7 @@ describe("Home page (app/page.tsx)", () => {
       user: { id: "user-1", email: "test@example.com" },
       expires: "2099-01-01",
     } as never);
-    (vi.mocked(listBoardsAction).mockResolvedValue as any)({ owned: [], shared: [] });
+    vi.mocked(listBoardsAction).mockResolvedValue({ owned: [], shared: [] });
 
     const jsx = await Home();
     render(jsx);
@@ -86,7 +86,7 @@ describe("Home page (app/page.tsx)", () => {
     } as never);
     const owned: Board[] = [makeBoard("b1"), makeBoard("b2")];
     const shared: Board[] = [makeBoard("s1")];
-    (vi.mocked(listBoardsAction).mockResolvedValue as any)({ owned, shared });
+    vi.mocked(listBoardsAction).mockResolvedValue({ owned, shared });
 
     const jsx = await Home();
     render(jsx);

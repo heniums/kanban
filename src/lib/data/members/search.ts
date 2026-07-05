@@ -3,6 +3,10 @@ import { createDbClient } from "@/lib/db/client";
 import { users } from "@/lib/db/schema/users";
 import { boardMembers } from "@/lib/db/schema/board-members";
 
+function escapeLikePattern(value: string): string {
+  return value.replace(/[\\%_]/g, (match) => `\\${match}`);
+}
+
 export async function searchUsers(boardId: string, query: string) {
   const db = createDbClient();
 
@@ -11,9 +15,12 @@ export async function searchUsers(boardId: string, query: string) {
     .from(boardMembers)
     .where(eq(boardMembers.boardId, boardId));
 
+  const escaped = escapeLikePattern(query);
+  const pattern = `%${escaped}%`;
+
   const conditions = [
-    like(sql`lower(${users.email})`, sql`lower(${`%${query}%`})`),
-    like(sql`lower(${users.name})`, sql`lower(${`%${query}%`})`),
+    like(sql`lower(${users.email})`, sql`lower(${pattern})`),
+    like(sql`lower(${users.name})`, sql`lower(${pattern})`),
   ];
 
   const results = await db

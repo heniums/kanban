@@ -7,6 +7,7 @@ import { checklists } from "@/lib/db/schema/checklists";
 import { checklistItems } from "@/lib/db/schema/checklist-items";
 import { comments } from "@/lib/db/schema/comments";
 import { labels } from "@/lib/db/schema/labels";
+import { lists } from "@/lib/db/schema/lists";
 import { hasPermissionForRole, BoardPermission } from "@/lib/permissions";
 
 export async function assertBoardPermission(
@@ -96,6 +97,20 @@ export async function assertLabelPermission(
     .select({ boardId: labels.boardId })
     .from(labels)
     .where(sql`${labels.id} = ${labelId}`);
+  if (!row) return false;
+  return assertBoardPermission(row.boardId, userId, permission);
+}
+
+export async function assertListPermission(
+  listId: string,
+  userId: string,
+  permission: BoardPermission,
+): Promise<boolean> {
+  const db = createDbClient();
+  const [row] = await db
+    .select({ boardId: lists.boardId })
+    .from(lists)
+    .where(sql`${lists.id} = ${listId}`);
   if (!row) return false;
   return assertBoardPermission(row.boardId, userId, permission);
 }

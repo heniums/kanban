@@ -145,7 +145,7 @@ describe("createBoard", () => {
 describe("updateBoard", () => {
   it("calls db.update and returns the updated row", async () => {
     returningImpl.mockResolvedValueOnce([{ id: "board-1", title: "New" }]);
-    const result = await updateBoard("board-1", { title: "New" }, { ownerId: "user-1" });
+    const result = await updateBoard("board-1", { title: "New" });
     expect(db.update).toHaveBeenCalled();
     expect(db.set).toHaveBeenCalledWith({ title: "New" });
     expect(result).toEqual({ id: "board-1", title: "New" });
@@ -153,7 +153,7 @@ describe("updateBoard", () => {
 
   it("returns null if no row updated", async () => {
     returningImpl.mockResolvedValueOnce([]);
-    const result = await updateBoard("board-1", { title: "New" }, { ownerId: "user-1" });
+    const result = await updateBoard("board-1", { title: "New" });
     expect(result).toBeNull();
   });
 });
@@ -161,7 +161,7 @@ describe("updateBoard", () => {
 describe("softDeleteBoard", () => {
   it("sets deletedAt to a Date and filters by id", async () => {
     returningImpl.mockResolvedValueOnce([{ id: "board-1" }]);
-    await softDeleteBoard("board-1", { ownerId: "user-1" });
+    await softDeleteBoard("board-1");
     expect(db.update).toHaveBeenCalled();
     const setArg = db.set.mock.calls[0][0];
     expect(setArg).toHaveProperty("deletedAt");
@@ -172,7 +172,7 @@ describe("softDeleteBoard", () => {
 describe("restoreBoard", () => {
   it("sets deletedAt to null", async () => {
     returningImpl.mockResolvedValueOnce([{ id: "board-1" }]);
-    await restoreBoard("board-1", { ownerId: "user-1" });
+    await restoreBoard("board-1");
     expect(db.update).toHaveBeenCalled();
     expect(db.set).toHaveBeenCalledWith({ deletedAt: null });
   });

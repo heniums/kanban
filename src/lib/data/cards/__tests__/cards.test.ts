@@ -103,7 +103,7 @@ describe("createCard", () => {
       [{ id: "card-new", title: "Do thing", listId: "list-1", boardId: "board-1", position: 3 }],
     ];
 
-    const result = await createCard({ listId: "list-1", title: "Do thing" }, { ownerId: "user-1" });
+    const result = await createCard({ listId: "list-1", title: "Do thing" });
 
     expect(db.transaction).toHaveBeenCalled();
     expect(capturedInserts.length).toBeGreaterThan(0);
@@ -126,26 +126,21 @@ describe("createCard", () => {
     selectResults = [[{ id: "list-1", boardId: "board-1" }], [{ value: null }]];
     returnedRows = [[{ id: "c1", position: 0, listId: "list-1", boardId: "board-1" }]];
 
-    await createCard({ listId: "list-1", title: "First" }, { ownerId: "user-1" });
+    await createCard({ listId: "list-1", title: "First" });
     expect((capturedInserts[0] as { position: number }).position).toBe(0);
   });
 
-  it("rejects when the list is not found or not on an owned board", async () => {
+  it("rejects when the list is not found", async () => {
     selectResults = [[]];
 
-    await expect(
-      createCard({ listId: "missing", title: "X" }, { ownerId: "user-1" }),
-    ).rejects.toThrow(/not found/);
+    await expect(createCard({ listId: "missing", title: "X" })).rejects.toThrow(/not found/);
   });
 
   it("links labels when provided", async () => {
     selectResults = [[{ id: "list-1", boardId: "board-1" }], [{ value: 0 }]];
     returnedRows = [[{ id: "c1", position: 0, listId: "list-1", boardId: "board-1" }]];
 
-    await createCard(
-      { listId: "list-1", title: "With labels", labelIds: ["l1", "l2"] },
-      { ownerId: "user-1" },
-    );
+    await createCard({ listId: "list-1", title: "With labels", labelIds: ["l1", "l2"] });
     // Should have inserted the card and 2 card_labels rows
     expect(capturedInserts.length).toBe(3);
     const labelInserts = capturedInserts.slice(1);
@@ -157,10 +152,7 @@ describe("createCard", () => {
     selectResults = [[{ id: "list-1", boardId: "board-1" }], [{ value: 0 }]];
     returnedRows = [[{ id: "c1", position: 0, listId: "list-1", boardId: "board-1" }]];
 
-    await createCard(
-      { listId: "list-1", title: "With assignees", assigneeIds: ["u1", "u2"] },
-      { ownerId: "user-1" },
-    );
+    await createCard({ listId: "list-1", title: "With assignees", assigneeIds: ["u1", "u2"] });
     expect(capturedInserts.length).toBe(3);
     const assigneeInserts = capturedInserts.slice(1);
     expect(assigneeInserts).toContainEqual({ cardId: "c1", userId: "u1" });
@@ -172,7 +164,7 @@ describe("deleteCard", () => {
   it("deletes the card and recompacts positions in its list", async () => {
     returnedRows = [[{ id: "c1", listId: "list-1", boardId: "board-1", position: 2 }]];
 
-    const result = await deleteCard("c1", { ownerId: "user-1" });
+    const result = await deleteCard("c1");
 
     expect(db.transaction).toHaveBeenCalled();
     expect(db.execute).toHaveBeenCalled();
@@ -184,10 +176,10 @@ describe("deleteCard", () => {
     });
   });
 
-  it("returns null when the card is not found or not owned", async () => {
+  it("returns null when the card is not found", async () => {
     returnedRows = [[]];
 
-    const result = await deleteCard("missing", { ownerId: "user-1" });
+    const result = await deleteCard("missing");
     expect(result).toBeNull();
   });
 });
@@ -200,20 +192,18 @@ describe("reorderCards", () => {
       [{ id: "c3", position: 2 }],
     ];
 
-    const result = await reorderCards("list-1", ["c2", "c1", "c3"], { ownerId: "user-1" });
+    const result = await reorderCards("list-1", ["c2", "c1", "c3"]);
 
     expect(db.transaction).toHaveBeenCalled();
     expect(result).toHaveLength(3);
   });
 
   it("returns empty array when no card IDs are provided", async () => {
-    const result = await reorderCards("list-1", [], { ownerId: "user-1" });
+    const result = await reorderCards("list-1", []);
     expect(result).toEqual([]);
   });
 
   it("rejects duplicate card ids", async () => {
-    await expect(reorderCards("list-1", ["c1", "c2", "c1"], { ownerId: "user-1" })).rejects.toThrow(
-      /duplicates/,
-    );
+    await expect(reorderCards("list-1", ["c1", "c2", "c1"])).rejects.toThrow(/duplicates/);
   });
 });

@@ -23,12 +23,13 @@ export async function removeMemberAction(input: unknown) {
     return { error: "You do not have permission to manage members" };
   }
 
-  const result = await removeMember(parsed.data.boardId, parsed.data.userId);
+  const result = await removeMember(parsed.data.boardId, parsed.data.userId, currentUserId);
 
   if ("error" in result) {
     return { error: result.error };
   }
 
   revalidatePath(`/boards/${parsed.data.boardId}/settings`);
+  revalidatePath("/boards");
   return { success: true };
 }

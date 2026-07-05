@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 
 import { verifySession } from "@/lib/dal";
 import { updateBoard } from "@/lib/data/boards";
+import { assertBoardPermission } from "@/lib/actions/guards";
+import { BoardPermission } from "@/lib/permissions";
 
 type UpdateResult =
   | { board: NonNullable<Awaited<ReturnType<typeof updateBoard>>> }
@@ -12,6 +14,11 @@ type UpdateResult =
 
 export async function updateBoardAction(id: string, formData: FormData): Promise<UpdateResult> {
   const { userId } = await verifySession();
+
+  const allowed = await assertBoardPermission(id, userId, BoardPermission.MANAGE_SETTINGS);
+  if (!allowed) {
+    return { errors: [{ field: "", message: "Forbidden" }] };
+  }
 
   const raw: Record<string, unknown> = {};
   const title = formData.get("title");
@@ -32,7 +39,7 @@ export async function updateBoardAction(id: string, formData: FormData): Promise
     return { errors };
   }
 
-  const updated = await updateBoard(id, parsed.data, { ownerId: userId });
+  const updated = await updateBoard(id, parsed.data);
 
   if (!updated) {
     return { errors: [{ field: "", message: "Board not found" }] };

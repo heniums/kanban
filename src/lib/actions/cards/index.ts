@@ -21,6 +21,8 @@ import {
 } from "@/lib/schemas/card";
 import type { Card } from "@/lib/db/schema/cards";
 import { emitToBoard, REALTIME_EVENTS } from "@/lib/realtime/events";
+import { assertCardPermission, assertListPermission } from "@/lib/actions/guards";
+import { BoardPermission } from "@/lib/permissions";
 
 type Result<T> = { data: T } | { errors: Array<{ field: string; message: string }> };
 
@@ -35,7 +37,15 @@ export async function createCardAction(input: unknown): Promise<Result<Card>> {
     return { errors: formatZodErrors(parsed.error) };
   }
   try {
-    const card = await createCard(parsed.data, { ownerId: userId });
+    const allowed = await assertListPermission(
+      parsed.data.listId,
+      userId,
+      BoardPermission.EDIT_CONTENT,
+    );
+    if (!allowed) {
+      return { errors: [{ field: "", message: "Forbidden" }] };
+    }
+    const card = await createCard(parsed.data);
     revalidatePath(`/boards/${card.boardId}`);
     emitToBoard(card.boardId, REALTIME_EVENTS.CARD_CREATED, { card });
     return { data: card };
@@ -52,7 +62,11 @@ export async function updateCardAction(input: unknown): Promise<Result<Card>> {
   }
   const { cardId, ...patch } = parsed.data;
   try {
-    const card = await updateCard(cardId, patch, { ownerId: userId });
+    const allowed = await assertCardPermission(cardId, userId, BoardPermission.EDIT_CONTENT);
+    if (!allowed) {
+      return { errors: [{ field: "", message: "Forbidden" }] };
+    }
+    const card = await updateCard(cardId, patch);
     if (!card) {
       return { errors: [{ field: "", message: "Card not found" }] };
     }
@@ -71,7 +85,15 @@ export async function deleteCardAction(input: unknown): Promise<Result<{ boardId
     return { errors: formatZodErrors(parsed.error) };
   }
   try {
-    const deleted = await deleteCard(parsed.data.cardId, { ownerId: userId });
+    const allowed = await assertCardPermission(
+      parsed.data.cardId,
+      userId,
+      BoardPermission.EDIT_CONTENT,
+    );
+    if (!allowed) {
+      return { errors: [{ field: "", message: "Forbidden" }] };
+    }
+    const deleted = await deleteCard(parsed.data.cardId);
     if (!deleted) {
       return { errors: [{ field: "", message: "Card not found" }] };
     }
@@ -94,11 +116,18 @@ export async function moveCardAction(input: unknown): Promise<Result<Card>> {
     return { errors: formatZodErrors(parsed.error) };
   }
   try {
+    const allowed = await assertCardPermission(
+      parsed.data.cardId,
+      userId,
+      BoardPermission.EDIT_CONTENT,
+    );
+    if (!allowed) {
+      return { errors: [{ field: "", message: "Forbidden" }] };
+    }
     const card = await moveCard(
       parsed.data.cardId,
       parsed.data.targetListId,
       parsed.data.targetPosition,
-      { ownerId: userId },
     );
     if (!card) {
       return { errors: [{ field: "", message: "Card not found" }] };
@@ -124,9 +153,15 @@ export async function reorderCardsAction(input: unknown): Promise<Result<Card[]>
     return { errors: formatZodErrors(parsed.error) };
   }
   try {
-    const cards = await reorderCards(parsed.data.listId, parsed.data.orderedCardIds, {
-      ownerId: userId,
-    });
+    const allowed = await assertListPermission(
+      parsed.data.listId,
+      userId,
+      BoardPermission.EDIT_CONTENT,
+    );
+    if (!allowed) {
+      return { errors: [{ field: "", message: "Forbidden" }] };
+    }
+    const cards = await reorderCards(parsed.data.listId, parsed.data.orderedCardIds);
     const sample = await getCardById(parsed.data.orderedCardIds[0]);
     if (sample) revalidatePath(`/boards/${sample.boardId}`);
     return { data: cards };
@@ -142,7 +177,15 @@ export async function copyCardAction(input: unknown): Promise<Result<Card>> {
     return { errors: formatZodErrors(parsed.error) };
   }
   try {
-    const card = await copyCard(parsed.data.cardId, { ownerId: userId });
+    const allowed = await assertCardPermission(
+      parsed.data.cardId,
+      userId,
+      BoardPermission.EDIT_CONTENT,
+    );
+    if (!allowed) {
+      return { errors: [{ field: "", message: "Forbidden" }] };
+    }
+    const card = await copyCard(parsed.data.cardId);
     if (!card) {
       return { errors: [{ field: "", message: "Card not found" }] };
     }

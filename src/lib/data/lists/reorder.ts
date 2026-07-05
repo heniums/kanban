@@ -3,11 +3,7 @@ import { createDbClient } from "@/lib/db/client";
 import { lists, type List } from "@/lib/db/schema/lists";
 import { boards } from "@/lib/db/schema/boards";
 
-export async function reorderLists(
-  boardId: string,
-  orderedListIds: string[],
-  options: { ownerId: string },
-): Promise<List[]> {
+export async function reorderLists(boardId: string, orderedListIds: string[]): Promise<List[]> {
   if (orderedListIds.length === 0) return [];
 
   if (new Set(orderedListIds).size !== orderedListIds.length) {
@@ -22,7 +18,7 @@ export async function reorderLists(
         .update(lists)
         .set({ position: -(i + 1) })
         .where(
-          sql`${lists.id} = ${orderedListIds[i]} AND ${lists.boardId} = ${boardId} AND ${lists.boardId} IN (SELECT id FROM ${boards} WHERE ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL)`,
+          sql`${lists.id} = ${orderedListIds[i]} AND ${lists.boardId} = ${boardId} AND ${lists.boardId} IN (SELECT id FROM ${boards} WHERE ${boards.deletedAt} IS NULL)`,
         );
     }
     for (let i = 0; i < orderedListIds.length; i++) {
@@ -30,7 +26,7 @@ export async function reorderLists(
         .update(lists)
         .set({ position: i })
         .where(
-          sql`${lists.id} = ${orderedListIds[i]} AND ${lists.boardId} = ${boardId} AND ${lists.boardId} IN (SELECT id FROM ${boards} WHERE ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL)`,
+          sql`${lists.id} = ${orderedListIds[i]} AND ${lists.boardId} = ${boardId} AND ${lists.boardId} IN (SELECT id FROM ${boards} WHERE ${boards.deletedAt} IS NULL)`,
         )
         .returning();
       if (row) updated.push(row);

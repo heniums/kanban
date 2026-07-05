@@ -1,4 +1,4 @@
-import { pgEnum, pgTable, timestamp, uuid, primaryKey } from "drizzle-orm/pg-core";
+import { pgEnum, pgTable, timestamp, uuid, primaryKey, index } from "drizzle-orm/pg-core";
 import { boards } from "./boards";
 import { users } from "./users";
 
@@ -18,6 +18,7 @@ export const boardMembers = pgTable(
   },
   (table) => ({
     pk: primaryKey({ columns: [table.boardId, table.userId] }),
+    userIdIdx: index("board_members_user_id_idx").on(table.userId),
   }),
 );
 

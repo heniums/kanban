@@ -14,7 +14,7 @@ export const removeMemberSchema = z.object({
 
 export const searchUsersSchema = z.object({
   boardId: uuid,
-  query: z.string().min(2),
+  query: z.string().min(2).max(255),
 });
 
 export const getBoardMembersSchema = z.object({

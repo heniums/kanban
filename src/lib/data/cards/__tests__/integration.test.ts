@@ -35,7 +35,7 @@ async function getCardsByListIdDirect(listId: string) {
   return db.select().from(cards).where(eq(cards.listId, listId)).orderBy(asc(cards.position));
 }
 
-async function resetList(boardId: string, ownerId: string) {
+async function resetList(boardId: string) {
   await db.delete(cards).where(eq(cards.boardId, boardId));
   const remaining = await getListsByBoardId(boardId);
   for (const l of remaining) {
@@ -48,23 +48,20 @@ async function resetList(boardId: string, ownerId: string) {
 
 describe("createCard (integration)", () => {
   it("auto-assigns the next position and links label/assignee ids", async () => {
-    const { boardId, ownerId, owner } = await ensureTestBoard();
-    const { l0 } = await resetList(boardId, ownerId);
+    const { boardId, owner } = await ensureTestBoard();
+    const { l0 } = await resetList(boardId);
 
     const [lbl] = await db
       .insert(labels)
       .values({ boardId, name: "Bug", color: "#ff0000" })
       .returning();
 
-    const card = await createCard(
-      {
-        listId: l0.id,
-        title: "Card A",
-        labelIds: [lbl.id],
-        assigneeIds: [owner.id],
-      },
-      { ownerId },
-    );
+    const card = await createCard({
+      listId: l0.id,
+      title: "Card A",
+      labelIds: [lbl.id],
+      assigneeIds: [owner.id],
+    });
 
     expect(card.position).toBe(0);
     expect(card.title).toBe("Card A");
@@ -84,12 +81,12 @@ describe("createCard (integration)", () => {
 
 describe("getCardsByListId (integration)", () => {
   it("returns cards in position order", async () => {
-    const { boardId, ownerId } = await ensureTestBoard();
-    const { l0 } = await resetList(boardId, ownerId);
+    const { boardId } = await ensureTestBoard();
+    const { l0 } = await resetList(boardId);
 
-    await createCard({ listId: l0.id, title: "A" }, { ownerId });
-    await createCard({ listId: l0.id, title: "B" }, { ownerId });
-    await createCard({ listId: l0.id, title: "C" }, { ownerId });
+    await createCard({ listId: l0.id, title: "A" });
+    await createCard({ listId: l0.id, title: "B" });
+    await createCard({ listId: l0.id, title: "C" });
 
     const result = await getCardsByListIdDirect(l0.id);
     expect(result.map((c) => c.title)).toEqual(["A", "B", "C"]);
@@ -99,8 +96,8 @@ describe("getCardsByListId (integration)", () => {
 
 describe("updateCard (integration)", () => {
   it("updates title and replaces label links", async () => {
-    const { boardId, ownerId } = await ensureTestBoard();
-    const { l0 } = await resetList(boardId, ownerId);
+    const { boardId } = await ensureTestBoard();
+    const { l0 } = await resetList(boardId);
 
     const [lbl1] = await db
       .insert(labels)
@@ -111,15 +108,8 @@ describe("updateCard (integration)", () => {
       .values({ boardId, name: "L2", color: "#00ff00" })
       .returning();
 
-    const created = await createCard(
-      { listId: l0.id, title: "Initial", labelIds: [lbl1.id] },
-      { ownerId },
-    );
-    const updated = await updateCard(
-      created.id,
-      { title: "Renamed", labelIds: [lbl2.id] },
-      { ownerId },
-    );
+    const created = await createCard({ listId: l0.id, title: "Initial", labelIds: [lbl1.id] });
+    const updated = await updateCard(created.id, { title: "Renamed", labelIds: [lbl2.id] });
     expect(updated?.title).toBe("Renamed");
 
     const linked = await db.select().from(cardLabels).where(eq(cardLabels.cardId, created.id));
@@ -128,16 +118,16 @@ describe("updateCard (integration)", () => {
   });
 
   it("replaces labels without changing scalar fields", async () => {
-    const { boardId, ownerId } = await ensureTestBoard();
-    const { l0 } = await resetList(boardId, ownerId);
+    const { boardId } = await ensureTestBoard();
+    const { l0 } = await resetList(boardId);
 
     const [lbl] = await db
       .insert(labels)
       .values({ boardId, name: "Tag A", color: "#0000ff" })
       .returning();
 
-    const created = await createCard({ listId: l0.id, title: "Card" }, { ownerId });
-    const updated = await updateCard(created.id, { labelIds: [lbl.id] }, { ownerId });
+    const created = await createCard({ listId: l0.id, title: "Card" });
+    const updated = await updateCard(created.id, { labelIds: [lbl.id] });
 
     expect(updated?.id).toBe(created.id);
     expect(updated?.title).toBe("Card");
@@ -148,11 +138,11 @@ describe("updateCard (integration)", () => {
   });
 
   it("replaces assignees without changing scalar fields", async () => {
-    const { boardId, ownerId, owner } = await ensureTestBoard();
-    const { l0 } = await resetList(boardId, ownerId);
+    const { boardId, owner } = await ensureTestBoard();
+    const { l0 } = await resetList(boardId);
 
-    const created = await createCard({ listId: l0.id, title: "Card" }, { ownerId });
-    const updated = await updateCard(created.id, { assigneeIds: [owner.id] }, { ownerId });
+    const created = await createCard({ listId: l0.id, title: "Card" });
+    const updated = await updateCard(created.id, { assigneeIds: [owner.id] });
 
     expect(updated?.id).toBe(created.id);
 
@@ -167,16 +157,16 @@ describe("updateCard (integration)", () => {
 
 describe("deleteCard (integration) — position recompaction", () => {
   it("recompacts positions within the same list", async () => {
-    const { boardId, ownerId } = await ensureTestBoard();
-    const { l0 } = await resetList(boardId, ownerId);
+    const { boardId } = await ensureTestBoard();
+    const { l0 } = await resetList(boardId);
 
-    const c0 = await createCard({ listId: l0.id, title: "C0" }, { ownerId });
-    const c1 = await createCard({ listId: l0.id, title: "C1" }, { ownerId });
-    const c2 = await createCard({ listId: l0.id, title: "C2" }, { ownerId });
+    const c0 = await createCard({ listId: l0.id, title: "C0" });
+    const c1 = await createCard({ listId: l0.id, title: "C1" });
+    const c2 = await createCard({ listId: l0.id, title: "C2" });
     void c0;
     void c2;
 
-    await deleteCard(c1.id, { ownerId });
+    await deleteCard(c1.id);
 
     const remaining = await getCardsByListIdDirect(l0.id);
     const sorted = remaining.sort((a, b) => a.position - b.position);
@@ -187,15 +177,15 @@ describe("deleteCard (integration) — position recompaction", () => {
 
 describe("moveCard (integration)", () => {
   it("moves a card across lists and recompacts both", async () => {
-    const { boardId, ownerId } = await ensureTestBoard();
-    const { l0, l1 } = await resetList(boardId, ownerId);
+    const { boardId } = await ensureTestBoard();
+    const { l0, l1 } = await resetList(boardId);
 
-    const c0 = await createCard({ listId: l0.id, title: "C0" }, { ownerId });
-    const c1 = await createCard({ listId: l0.id, title: "C1" }, { ownerId });
-    await createCard({ listId: l1.id, title: "D0" }, { ownerId });
+    const c0 = await createCard({ listId: l0.id, title: "C0" });
+    const c1 = await createCard({ listId: l0.id, title: "C1" });
+    await createCard({ listId: l1.id, title: "D0" });
     void c0;
 
-    const moved = await moveCard(c1.id, l1.id, 0, { ownerId });
+    const moved = await moveCard(c1.id, l1.id, 0);
     expect(moved?.listId).toBe(l1.id);
     expect(moved?.position).toBe(0);
 
@@ -211,14 +201,14 @@ describe("moveCard (integration)", () => {
 
 describe("reorderCards (integration)", () => {
   it("reorders cards to match the new positions", async () => {
-    const { boardId, ownerId } = await ensureTestBoard();
-    const { l0 } = await resetList(boardId, ownerId);
+    const { boardId } = await ensureTestBoard();
+    const { l0 } = await resetList(boardId);
 
-    const a = await createCard({ listId: l0.id, title: "A" }, { ownerId });
-    const b = await createCard({ listId: l0.id, title: "B" }, { ownerId });
-    const c = await createCard({ listId: l0.id, title: "C" }, { ownerId });
+    const a = await createCard({ listId: l0.id, title: "A" });
+    const b = await createCard({ listId: l0.id, title: "B" });
+    const c = await createCard({ listId: l0.id, title: "C" });
 
-    await reorderCards(l0.id, [c.id, a.id, b.id], { ownerId });
+    await reorderCards(l0.id, [c.id, a.id, b.id]);
 
     const after = await getCardsByListIdDirect(l0.id);
     expect(after.map((c) => c.title)).toEqual(["C", "A", "B"]);
