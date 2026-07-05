@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import type { Board } from "@/lib/db/schema/boards";
-import { getBoardMembersAction } from "@/lib/actions/members/list";
 import { addMemberAction } from "@/lib/actions/members/add";
 import { removeMemberAction } from "@/lib/actions/members/remove";
 import { searchUsersAction } from "@/lib/actions/members/search";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -46,11 +46,11 @@ interface SearchUser {
 
 interface MembersTabProps {
   board: Board;
+  initialMembers: Member[];
 }
 
-export function MembersTab({ board }: MembersTabProps) {
-  const [members, setMembers] = useState<Member[]>([]);
-  const [loading, setLoading] = useState(true);
+export function MembersTab({ board, initialMembers }: MembersTabProps) {
+  const [members, setMembers] = useState<Member[]>(initialMembers);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState<Member | null>(null);
@@ -59,25 +59,7 @@ export function MembersTab({ board }: MembersTabProps) {
   const [searching, setSearching] = useState(false);
   const [adding, setAdding] = useState(false);
   const [removing, setRemoving] = useState(false);
-  const initializedRef = useRef(false);
-
-  const loadMembers = useCallback(async () => {
-    setLoading(true);
-    const result = await getBoardMembersAction(board.id);
-    if ("error" in result) {
-      toast.error(result.error);
-    } else {
-      setMembers(result.members);
-    }
-    setLoading(false);
-  }, [board.id]);
-
-  useEffect(() => {
-    if (!initializedRef.current) {
-      initializedRef.current = true;
-      loadMembers();
-    }
-  }, [loadMembers]);
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const handleSearch = useCallback(
     async (query: string) => {
@@ -87,7 +69,7 @@ export function MembersTab({ board }: MembersTabProps) {
       }
 
       setSearching(true);
-      const result = await searchUsersAction(board.id, query);
+      const result = await searchUsersAction({ boardId: board.id, query });
       if ("error" in result) {
         toast.error(result.error);
         setSearchResults([]);
@@ -99,21 +81,19 @@ export function MembersTab({ board }: MembersTabProps) {
     [board.id],
   );
 
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (searchQuery.length >= 2) {
-        handleSearch(searchQuery);
-      } else {
-        setSearchResults([]);
-      }
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
-  }, [searchQuery, handleSearch]);
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    if (value.length >= 2) {
+      searchTimeoutRef.current = setTimeout(() => handleSearch(value), 300);
+    } else {
+      setSearchResults([]);
+    }
+  };
 
   const handleAddMember = async (userId: string) => {
     setAdding(true);
-    const result = await addMemberAction(board.id, userId);
+    const result = await addMemberAction({ boardId: board.id, userId });
     if ("error" in result) {
       toast.error(result.error);
     } else {
@@ -121,7 +101,12 @@ export function MembersTab({ board }: MembersTabProps) {
       setAddDialogOpen(false);
       setSearchQuery("");
       setSearchResults([]);
-      await loadMembers();
+      const membersResult = await (
+        await import("@/lib/actions/members/list")
+      ).getBoardMembersAction({ boardId: board.id });
+      if ("members" in membersResult && membersResult.members) {
+        setMembers(membersResult.members);
+      }
     }
     setAdding(false);
   };
@@ -129,28 +114,25 @@ export function MembersTab({ board }: MembersTabProps) {
   const handleRemoveMember = async () => {
     if (!memberToRemove) return;
 
+    const memberBeingRemoved = memberToRemove;
     setRemoving(true);
-    const result = await removeMemberAction(board.id, memberToRemove.userId);
+    setMembers((prev) => prev.filter((m) => m.userId !== memberBeingRemoved.userId));
+    setRemoveDialogOpen(false);
+
+    const result = await removeMemberAction({
+      boardId: board.id,
+      userId: memberBeingRemoved.userId,
+    });
     if ("error" in result) {
       toast.error(result.error);
+      setMembers((prev) => [...prev, memberBeingRemoved]);
+      setRemoveDialogOpen(true);
     } else {
       toast.success("Member removed successfully");
-      setRemoveDialogOpen(false);
       setMemberToRemove(null);
-      await loadMembers();
     }
     setRemoving(false);
   };
-
-  if (loading) {
-    return (
-      <Card>
-        <CardContent className="py-8">
-          <div className="text-muted-foreground text-center">Loading members...</div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <>
@@ -166,32 +148,36 @@ export function MembersTab({ board }: MembersTabProps) {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {members.map((member) => (
-              <div
-                key={member.userId}
-                className="flex items-center justify-between rounded-lg border p-3"
-              >
-                <div>
-                  <div className="font-medium">{member.user.name || member.user.email}</div>
-                  <div className="text-muted-foreground text-sm">{member.user.email}</div>
+            {members.length === 0 ? (
+              <div className="text-muted-foreground py-8 text-center">No members yet.</div>
+            ) : (
+              members.map((member) => (
+                <div
+                  key={member.userId}
+                  className="flex items-center justify-between rounded-lg border p-3"
+                >
+                  <div>
+                    <div className="font-medium">{member.user.name || member.user.email}</div>
+                    <div className="text-muted-foreground text-sm">{member.user.email}</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground text-sm capitalize">{member.role}</span>
+                    {member.role === "member" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setMemberToRemove(member);
+                          setRemoveDialogOpen(true);
+                        }}
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground text-sm capitalize">{member.role}</span>
-                  {member.role === "member" && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setMemberToRemove(member);
-                        setRemoveDialogOpen(true);
-                      }}
-                    >
-                      Remove
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </CardContent>
       </Card>
@@ -208,9 +194,14 @@ export function MembersTab({ board }: MembersTabProps) {
             <Input
               placeholder="Search by email..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
             />
-            {searching && <div className="text-muted-foreground text-sm">Searching...</div>}
+            {searching && (
+              <div className="space-y-2">
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+              </div>
+            )}
             {!searching && searchResults.length > 0 && (
               <div className="space-y-2">
                 {searchResults.map((user) => (

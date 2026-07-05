@@ -5,7 +5,7 @@ import { verifySession } from "@/lib/dal";
 import { createLabel, updateLabel, deleteLabel } from "@/lib/data/labels";
 import { createLabelSchema, updateLabelSchema, deleteLabelSchema } from "@/lib/schemas/label";
 import { emitToBoard, REALTIME_EVENTS } from "@/lib/realtime/events";
-import { assertBoardPermission } from "@/lib/actions/guards";
+import { assertBoardPermission, assertLabelPermission } from "@/lib/actions/guards";
 import { BoardPermission } from "@/lib/permissions";
 import type { Label } from "@/lib/db/schema/labels";
 
@@ -42,9 +42,19 @@ export async function updateLabelAction(input: unknown): Promise<Result<Label>> 
   const { userId } = await verifySession();
   const parsed = updateLabelSchema.safeParse(input);
   if (!parsed.success) return { errors: formatZodErrors(parsed.error) };
+
+  const hasAccess = await assertLabelPermission(
+    parsed.data.labelId,
+    userId,
+    BoardPermission.EDIT_CONTENT,
+  );
+  if (!hasAccess) {
+    return { errors: [{ field: "", message: "Label not found or insufficient permissions" }] };
+  }
+
   try {
     const { labelId, ...data } = parsed.data;
-    const label = await updateLabel(labelId, data, { ownerId: userId });
+    const label = await updateLabel(labelId, data);
     revalidatePath(`/boards/${label.boardId}`);
     emitToBoard(label.boardId, REALTIME_EVENTS.LABEL_UPDATED, {
       boardId: label.boardId,
@@ -62,8 +72,18 @@ export async function deleteLabelAction(
   const { userId } = await verifySession();
   const parsed = deleteLabelSchema.safeParse(input);
   if (!parsed.success) return { errors: formatZodErrors(parsed.error) };
+
+  const hasAccess = await assertLabelPermission(
+    parsed.data.labelId,
+    userId,
+    BoardPermission.EDIT_CONTENT,
+  );
+  if (!hasAccess) {
+    return { errors: [{ field: "", message: "Label not found or insufficient permissions" }] };
+  }
+
   try {
-    const label = await deleteLabel(parsed.data.labelId, { ownerId: userId });
+    const label = await deleteLabel(parsed.data.labelId);
     revalidatePath(`/boards/${label.boardId}`);
     emitToBoard(label.boardId, REALTIME_EVENTS.LABEL_DELETED, {
       boardId: label.boardId,

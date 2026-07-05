@@ -45,11 +45,8 @@ vi.mock("@/lib/permissions", () => ({
   },
 }));
 
-vi.mock("@/lib/actions/members", () => ({
+vi.mock("@/lib/data/members", () => ({
   getBoardMembers: mockGetBoardMembers,
-  addMember: vi.fn(),
-  removeMember: vi.fn(),
-  searchUsers: vi.fn(),
 }));
 
 vi.mock("@/lib/actions/boards", () => ({

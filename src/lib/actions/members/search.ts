@@ -3,19 +3,25 @@
 import { verifySession } from "@/lib/dal";
 import { hasPermission, BoardPermission } from "@/lib/permissions";
 import { searchUsers } from "@/lib/data/members";
+import { searchUsersSchema } from "@/lib/schemas/member";
 
-export async function searchUsersAction(boardId: string, query: string) {
+export async function searchUsersAction(input: unknown) {
   const { userId } = await verifySession();
 
-  const canManageMembers = await hasPermission(userId, boardId, BoardPermission.MANAGE_MEMBERS);
+  const parsed = searchUsersSchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: "Invalid input" };
+  }
+
+  const canManageMembers = await hasPermission(
+    userId,
+    parsed.data.boardId,
+    BoardPermission.MANAGE_MEMBERS,
+  );
   if (!canManageMembers) {
     return { error: "You do not have permission to manage members" };
   }
 
-  if (query.length < 2) {
-    return { error: "Search query must be at least 2 characters" };
-  }
-
-  const users = await searchUsers(boardId, query);
+  const users = await searchUsers(parsed.data.boardId, parsed.data.query);
   return { users };
 }

@@ -8,9 +8,19 @@ import { MembersTab } from "./members-tab";
 
 interface BoardSettingsTabsProps {
   board: Board;
+  initialMembers: Array<{
+    userId: string;
+    role: "owner" | "member";
+    joinedAt: Date;
+    user: {
+      id: string;
+      email: string;
+      name: string | null;
+    };
+  }>;
 }
 
-export function BoardSettingsTabs({ board }: BoardSettingsTabsProps) {
+export function BoardSettingsTabs({ board, initialMembers }: BoardSettingsTabsProps) {
   const [activeTab, setActiveTab] = useState("general");
 
   return (
@@ -25,7 +35,7 @@ export function BoardSettingsTabs({ board }: BoardSettingsTabsProps) {
       </TabsContent>
 
       <TabsContent value="members">
-        <MembersTab board={board} />
+        <MembersTab board={board} initialMembers={initialMembers} />
       </TabsContent>
     </Tabs>
   );

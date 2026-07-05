@@ -6,8 +6,6 @@ import {
   type ChecklistItem,
   type NewChecklistItem,
 } from "@/lib/db/schema/checklist-items";
-import { cards } from "@/lib/db/schema/cards";
-import { boards } from "@/lib/db/schema/boards";
 
 export async function createChecklist(data: { cardId: string; title: string }): Promise<Checklist> {
   const db = createDbClient();
@@ -25,20 +23,13 @@ export async function createChecklist(data: { cardId: string; title: string }): 
   });
 }
 
-export async function deleteChecklist(
-  checklistId: string,
-  options: { ownerId: string },
-): Promise<Checklist | null> {
+export async function deleteChecklist(checklistId: string): Promise<Checklist | null> {
   const db = createDbClient();
   return db.transaction(async (tx) => {
     const [row] = await tx
       .select({ id: checklists.id, cardId: checklists.cardId, position: checklists.position })
       .from(checklists)
-      .innerJoin(cards, sql`${cards.id} = ${checklists.cardId}`)
-      .innerJoin(boards, sql`${boards.id} = ${cards.boardId}`)
-      .where(
-        sql`${checklists.id} = ${checklistId} AND ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL`,
-      );
+      .where(sql`${checklists.id} = ${checklistId}`);
     if (!row) return null;
     await tx.delete(checklists).where(eq(checklists.id, checklistId));
     await tx.execute(
@@ -75,7 +66,6 @@ export async function createChecklistItem(data: {
 export async function updateChecklistItem(
   itemId: string,
   data: { content?: string; isCompleted?: boolean },
-  options: { ownerId: string },
 ): Promise<ChecklistItem | null> {
   const db = createDbClient();
   const patch: Partial<NewChecklistItem> = {};
@@ -86,25 +76,18 @@ export async function updateChecklistItem(
   const [updated] = await db
     .update(checklistItems)
     .set(patch)
-    .where(
-      sql`${checklistItems.id} = ${itemId} AND ${checklistItems.checklistId} IN (SELECT id FROM ${checklists} WHERE ${checklists.cardId} IN (SELECT id FROM ${cards} WHERE ${cards.boardId} IN (SELECT id FROM ${boards} WHERE ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL)))`,
-    )
+    .where(sql`${checklistItems.id} = ${itemId}`)
     .returning();
   return updated ?? null;
 }
 
-export async function deleteChecklistItem(
-  itemId: string,
-  options: { ownerId: string },
-): Promise<ChecklistItem | null> {
+export async function deleteChecklistItem(itemId: string): Promise<ChecklistItem | null> {
   const db = createDbClient();
   return db.transaction(async (tx) => {
     const [item] = await tx
       .select()
       .from(checklistItems)
-      .where(
-        sql`${checklistItems.id} = ${itemId} AND ${checklistItems.checklistId} IN (SELECT id FROM ${checklists} WHERE ${checklists.cardId} IN (SELECT id FROM ${cards} WHERE ${cards.boardId} IN (SELECT id FROM ${boards} WHERE ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL)))`,
-      );
+      .where(sql`${checklistItems.id} = ${itemId}`);
     if (!item) return null;
     await tx.delete(checklistItems).where(eq(checklistItems.id, itemId));
     await tx.execute(

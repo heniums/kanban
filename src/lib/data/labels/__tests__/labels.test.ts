@@ -93,61 +93,55 @@ describe("getLabelsByBoardId", () => {
         { label: { id: "l2", boardId: "b1", name: "B", color: "#fff" } },
       ],
     ];
-    const result = await getLabelsByBoardId("b1", { ownerId: "user-1" });
+    const result = await getLabelsByBoardId("b1");
     expect(result).toHaveLength(2);
   });
 });
 
 describe("updateLabel", () => {
-  it("modifies name and color for an owned label", async () => {
+  it("modifies name and color for a label", async () => {
     returnedRows = [[{ id: "l1", boardId: "b1", name: "Updated", color: "#00ff00" }]];
 
-    const result = await updateLabel(
-      "l1",
-      { name: "Updated", color: "#00ff00" },
-      { ownerId: "user-1" },
-    );
+    const result = await updateLabel("l1", { name: "Updated", color: "#00ff00" });
 
     expect(result.id).toBe("l1");
     expect(result.name).toBe("Updated");
     expect(result.color).toBe("#00ff00");
   });
 
-  it("rejects when the label does not exist or board is not owned", async () => {
-    await expect(updateLabel("l1", { name: "X" }, { ownerId: "user-1" })).rejects.toThrow(
-      /not found/,
-    );
+  it("rejects when the label does not exist", async () => {
+    await expect(updateLabel("l1", { name: "X" })).rejects.toThrow(/not found/);
   });
 });
 
 describe("deleteLabel", () => {
-  it("removes a label for an owned board", async () => {
+  it("removes a label", async () => {
     returnedRows = [[{ id: "l1", boardId: "b1", name: "Bug", color: "#ff0000" }]];
 
-    const result = await deleteLabel("l1", { ownerId: "user-1" });
+    const result = await deleteLabel("l1");
 
     expect(result.id).toBe("l1");
   });
 
-  it("rejects when the label does not exist or board is not owned", async () => {
-    await expect(deleteLabel("l1", { ownerId: "user-1" })).rejects.toThrow(/not found/);
+  it("rejects when the label does not exist", async () => {
+    await expect(deleteLabel("l1")).rejects.toThrow(/not found/);
   });
 });
 
 describe("getLabelById", () => {
-  it("returns a single label by ID for an owned board", async () => {
+  it("returns a single label by ID", async () => {
     selectResults = [[{ label: { id: "l1", boardId: "b1", name: "Bug", color: "#ff0000" } }]];
 
-    const result = await getLabelById("l1", { ownerId: "user-1" });
+    const result = await getLabelById("l1");
 
     expect(result.id).toBe("l1");
     expect(result.name).toBe("Bug");
     expect(result.color).toBe("#ff0000");
   });
 
-  it("rejects when the label does not exist or board is not owned", async () => {
+  it("rejects when the label does not exist", async () => {
     selectResults = [[]];
 
-    await expect(getLabelById("l1", { ownerId: "user-1" })).rejects.toThrow(/not found/);
+    await expect(getLabelById("l1")).rejects.toThrow(/not found/);
   });
 });

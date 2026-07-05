@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getBoardById } from "@/lib/data/boards";
 import { getUserRole } from "@/lib/permissions";
 import { verifySession } from "@/lib/dal";
+import { getBoardMembers } from "@/lib/data/members";
 import { BoardHero } from "@/components/boards/board-hero";
 import { BoardSettingsTabs } from "@/components/boards/board-settings-tabs";
 
@@ -26,6 +27,8 @@ export default async function BoardSettingsPage({ params }: BoardSettingsPagePro
     redirect(`/boards/${boardId}`);
   }
 
+  const members = await getBoardMembers(boardId);
+
   return (
     <div className="bg-background min-h-[calc(100vh-4rem)]">
       <BoardHero
@@ -39,7 +42,7 @@ export default async function BoardSettingsPage({ params }: BoardSettingsPagePro
       />
 
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-        <BoardSettingsTabs board={board} />
+        <BoardSettingsTabs board={board} initialMembers={members} />
       </div>
     </div>
   );

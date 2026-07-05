@@ -20,7 +20,11 @@ import {
 } from "@/lib/schemas/checklist";
 import { emitToBoard, REALTIME_EVENTS } from "@/lib/realtime/events";
 import { sql } from "drizzle-orm";
-import { assertCardPermission, assertChecklistPermission } from "@/lib/actions/guards";
+import {
+  assertCardPermission,
+  assertChecklistPermission,
+  assertChecklistItemPermission,
+} from "@/lib/actions/guards";
 import { BoardPermission } from "@/lib/permissions";
 
 type Result<T> = { data: T } | { errors: Array<{ field: string; message: string }> };
@@ -70,8 +74,18 @@ export async function deleteChecklistAction(input: unknown): Promise<Result<{ ca
   const { userId } = await verifySession();
   const parsed = deleteChecklistSchema.safeParse(input);
   if (!parsed.success) return { errors: formatZodErrors(parsed.error) };
+
+  const hasAccess = await assertChecklistPermission(
+    parsed.data.checklistId,
+    userId,
+    BoardPermission.EDIT_CONTENT,
+  );
+  if (!hasAccess) {
+    return { errors: [{ field: "", message: "Checklist not found or insufficient permissions" }] };
+  }
+
   try {
-    const cl = await deleteChecklist(parsed.data.checklistId, { ownerId: userId });
+    const cl = await deleteChecklist(parsed.data.checklistId);
     if (!cl) return { errors: [{ field: "", message: "Checklist not found" }] };
     const boardId = await revalidateForCard(cl.cardId);
     if (boardId)
@@ -122,8 +136,18 @@ export async function updateChecklistItemAction(input: unknown): Promise<Result<
   const parsed = updateChecklistItemSchema.safeParse(input);
   if (!parsed.success) return { errors: formatZodErrors(parsed.error) };
   const { itemId, ...patch } = parsed.data;
+
+  const hasAccess = await assertChecklistItemPermission(
+    parsed.data.itemId,
+    userId,
+    BoardPermission.EDIT_CONTENT,
+  );
+  if (!hasAccess) {
+    return { errors: [{ field: "", message: "Checklist not found or insufficient permissions" }] };
+  }
+
   try {
-    const item = await updateChecklistItem(itemId, patch, { ownerId: userId });
+    const item = await updateChecklistItem(itemId, patch);
     if (!item) return { errors: [{ field: "", message: "Item not found" }] };
     const db = createDbClient();
     const [row] = await db
@@ -146,8 +170,18 @@ export async function deleteChecklistItemAction(input: unknown): Promise<Result<
   const { userId } = await verifySession();
   const parsed = deleteChecklistItemSchema.safeParse(input);
   if (!parsed.success) return { errors: formatZodErrors(parsed.error) };
+
+  const hasAccess = await assertChecklistItemPermission(
+    parsed.data.itemId,
+    userId,
+    BoardPermission.EDIT_CONTENT,
+  );
+  if (!hasAccess) {
+    return { errors: [{ field: "", message: "Checklist not found or insufficient permissions" }] };
+  }
+
   try {
-    const item = await deleteChecklistItem(parsed.data.itemId, { ownerId: userId });
+    const item = await deleteChecklistItem(parsed.data.itemId);
     if (!item) return { errors: [{ field: "", message: "Item not found" }] };
     const db = createDbClient();
     const [row] = await db

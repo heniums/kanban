@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockVerifySession, mockUpdateLabel, mockDeleteLabel } = vi.hoisted(() => ({
-  mockVerifySession: vi.fn(),
-  mockUpdateLabel: vi.fn(),
-  mockDeleteLabel: vi.fn(),
-}));
+const { mockVerifySession, mockUpdateLabel, mockDeleteLabel, mockAssertLabelPermission } =
+  vi.hoisted(() => ({
+    mockVerifySession: vi.fn(),
+    mockUpdateLabel: vi.fn(),
+    mockDeleteLabel: vi.fn(),
+    mockAssertLabelPermission: vi.fn(),
+  }));
 
 vi.mock("@/lib/dal", () => ({
   verifySession: mockVerifySession,
@@ -13,6 +15,10 @@ vi.mock("@/lib/dal", () => ({
 vi.mock("@/lib/data/labels", () => ({
   updateLabel: mockUpdateLabel,
   deleteLabel: mockDeleteLabel,
+}));
+
+vi.mock("@/lib/actions/guards", () => ({
+  assertLabelPermission: mockAssertLabelPermission,
 }));
 
 vi.mock("next/cache", () => ({
@@ -36,6 +42,7 @@ import { emitToBoard, REALTIME_EVENTS } from "@/lib/realtime/events";
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockAssertLabelPermission.mockResolvedValue(true);
 });
 
 const validUpdateInput = {
@@ -60,11 +67,10 @@ describe("updateLabelAction", () => {
 
     const result = await updateLabelAction(validUpdateInput);
 
-    expect(mockUpdateLabel).toHaveBeenCalledWith(
-      "11111111-1111-1111-1111-111111111111",
-      { name: "Updated Label", color: "#00ff00" },
-      { ownerId: "user-1" },
-    );
+    expect(mockUpdateLabel).toHaveBeenCalledWith("11111111-1111-1111-1111-111111111111", {
+      name: "Updated Label",
+      color: "#00ff00",
+    });
     expect(result).toHaveProperty("data");
     expect(result).not.toHaveProperty("errors");
   });
@@ -151,9 +157,7 @@ describe("deleteLabelAction", () => {
 
     const result = await deleteLabelAction(validDeleteInput);
 
-    expect(mockDeleteLabel).toHaveBeenCalledWith("11111111-1111-1111-1111-111111111111", {
-      ownerId: "user-1",
-    });
+    expect(mockDeleteLabel).toHaveBeenCalledWith("11111111-1111-1111-1111-111111111111");
     expect(result).toEqual({ success: true });
   });
 

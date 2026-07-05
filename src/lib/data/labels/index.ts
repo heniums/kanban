@@ -18,18 +18,13 @@ export async function createLabel(data: {
   });
 }
 
-export async function getLabelsByBoardId(
-  boardId: string,
-  options: { ownerId: string },
-): Promise<Label[]> {
+export async function getLabelsByBoardId(boardId: string): Promise<Label[]> {
   const db = createDbClient();
   const rows = await db
     .select({ label: labels })
     .from(labels)
     .innerJoin(boards, sql`${boards.id} = ${labels.boardId}`)
-    .where(
-      sql`${labels.boardId} = ${boardId} AND ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL`,
-    )
+    .where(sql`${labels.boardId} = ${boardId} AND ${boards.deletedAt} IS NULL`)
     .orderBy(sql`${labels.name} ASC`);
   return rows.map((r) => r.label);
 }
@@ -37,52 +32,41 @@ export async function getLabelsByBoardId(
 export async function updateLabel(
   labelId: string,
   data: { name?: string; color?: string },
-  options: { ownerId: string },
 ): Promise<Label> {
   const db = createDbClient();
   const [updated] = await db
     .update(labels)
     .set(data)
-    .where(
-      sql`${labels.id} = ${labelId} AND ${labels.boardId} IN (
-        SELECT ${boards.id} FROM ${boards} WHERE ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL
-      )`,
-    )
+    .where(sql`${labels.id} = ${labelId}`)
     .returning();
   if (!updated) {
-    throw new Error("Label not found or board not owned");
+    throw new Error("Label not found");
   }
   return updated;
 }
 
-export async function deleteLabel(labelId: string, options: { ownerId: string }): Promise<Label> {
+export async function deleteLabel(labelId: string): Promise<Label> {
   const db = createDbClient();
   const [deleted] = await db
     .delete(labels)
-    .where(
-      sql`${labels.id} = ${labelId} AND ${labels.boardId} IN (
-        SELECT ${boards.id} FROM ${boards} WHERE ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL
-      )`,
-    )
+    .where(sql`${labels.id} = ${labelId}`)
     .returning();
   if (!deleted) {
-    throw new Error("Label not found or board not owned");
+    throw new Error("Label not found");
   }
   return deleted;
 }
 
-export async function getLabelById(labelId: string, options: { ownerId: string }): Promise<Label> {
+export async function getLabelById(labelId: string): Promise<Label> {
   const db = createDbClient();
   const rows = await db
     .select({ label: labels })
     .from(labels)
     .innerJoin(boards, sql`${boards.id} = ${labels.boardId}`)
-    .where(
-      sql`${labels.id} = ${labelId} AND ${boards.ownerId} = ${options.ownerId} AND ${boards.deletedAt} IS NULL`,
-    );
+    .where(sql`${labels.id} = ${labelId} AND ${boards.deletedAt} IS NULL`);
   const row = rows[0];
   if (!row) {
-    throw new Error("Label not found or board not owned");
+    throw new Error("Label not found");
   }
   return row.label;
 }
