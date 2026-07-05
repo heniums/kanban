@@ -1,7 +1,6 @@
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { createDbClient } from "@/lib/db/client";
 import { labels, type Label } from "@/lib/db/schema/labels";
-import { boards } from "@/lib/db/schema/boards";
 
 export async function createLabel(data: {
   boardId: string;
@@ -23,8 +22,7 @@ export async function getLabelsByBoardId(boardId: string): Promise<Label[]> {
   const rows = await db
     .select({ label: labels })
     .from(labels)
-    .innerJoin(boards, sql`${boards.id} = ${labels.boardId}`)
-    .where(sql`${labels.boardId} = ${boardId} AND ${boards.deletedAt} IS NULL`)
+    .where(eq(labels.boardId, boardId))
     .orderBy(sql`${labels.name} ASC`);
   return rows.map((r) => r.label);
 }
@@ -62,8 +60,7 @@ export async function getLabelById(labelId: string): Promise<Label> {
   const rows = await db
     .select({ label: labels })
     .from(labels)
-    .innerJoin(boards, sql`${boards.id} = ${labels.boardId}`)
-    .where(sql`${labels.id} = ${labelId} AND ${boards.deletedAt} IS NULL`);
+    .where(sql`${labels.id} = ${labelId}`);
   const row = rows[0];
   if (!row) {
     throw new Error("Label not found");

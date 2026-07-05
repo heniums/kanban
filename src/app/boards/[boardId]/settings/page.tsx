@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { getBoardById } from "@/lib/data/boards";
-import { getUserRole } from "@/lib/permissions";
+import { hasPermission, BoardPermission } from "@/lib/permissions";
 import { verifySession } from "@/lib/dal";
 import { getBoardMembers } from "@/lib/data/members";
 import { BoardHero } from "@/components/boards/board-hero";
@@ -21,9 +21,9 @@ export default async function BoardSettingsPage({ params }: BoardSettingsPagePro
     notFound();
   }
 
-  const role = await getUserRole(userId, boardId);
+  const canManageSettings = await hasPermission(userId, boardId, BoardPermission.MANAGE_SETTINGS);
 
-  if (role !== "owner") {
+  if (!canManageSettings) {
     redirect(`/boards/${boardId}`);
   }
 

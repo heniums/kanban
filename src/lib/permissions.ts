@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { eq, and } from "drizzle-orm";
 import { createDbClient } from "@/lib/db/client";
 import { boardMembers, type BoardMemberRole } from "@/lib/db/schema/board-members";
@@ -19,18 +20,17 @@ export const ROLE_PERMISSIONS: Record<BoardMemberRole, BoardPermission[]> = {
   member: [BoardPermission.VIEW, BoardPermission.EDIT_CONTENT],
 };
 
-export async function getUserRole(
-  userId: string,
-  boardId: string,
-): Promise<BoardMemberRole | null> {
-  const db = createDbClient();
-  const [membership] = await db
-    .select({ role: boardMembers.role })
-    .from(boardMembers)
-    .where(and(eq(boardMembers.userId, userId), eq(boardMembers.boardId, boardId)));
+export const getUserRole = cache(
+  async (userId: string, boardId: string): Promise<BoardMemberRole | null> => {
+    const db = createDbClient();
+    const [membership] = await db
+      .select({ role: boardMembers.role })
+      .from(boardMembers)
+      .where(and(eq(boardMembers.userId, userId), eq(boardMembers.boardId, boardId)));
 
-  return membership?.role ?? null;
-}
+    return membership?.role ?? null;
+  },
+);
 
 export function hasPermissionForRole(role: BoardMemberRole, permission: BoardPermission): boolean {
   return ROLE_PERMISSIONS[role].includes(permission);

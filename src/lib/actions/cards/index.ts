@@ -127,7 +127,7 @@ export async function reorderCardsAction(input: unknown): Promise<Result<Card[]>
     const cards = await reorderCards(parsed.data.listId, parsed.data.orderedCardIds, {
       ownerId: userId,
     });
-    const sample = await getCardById(parsed.data.orderedCardIds[0], { userId });
+    const sample = await getCardById(parsed.data.orderedCardIds[0]);
     if (sample) revalidatePath(`/boards/${sample.boardId}`);
     return { data: cards };
   } catch (err) {

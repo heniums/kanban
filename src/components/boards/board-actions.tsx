@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import type { Board } from "@/lib/db/schema/boards";
+import type { BoardCapabilities } from "@/lib/capabilities";
 
 import { deleteBoardAction, restoreBoardAction } from "@/lib/actions/boards";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,7 @@ type BoardActionsVariant = "default" | "overlay";
 interface BoardActionsProps {
   board: Board;
   variant?: BoardActionsVariant;
-  canManageSettings?: boolean;
+  capabilities?: BoardCapabilities;
 }
 
 const UNDO_DURATION_MS = 5000;
@@ -34,11 +35,7 @@ const SETTINGS_OVERLAY_CLASS =
 const DELETE_OVERLAY_CLASS =
   "border border-red-300/40 bg-red-500/30 text-white backdrop-blur-sm hover:bg-red-500/40";
 
-export function BoardActions({
-  board,
-  variant = "default",
-  canManageSettings = false,
-}: BoardActionsProps) {
+export function BoardActions({ board, variant = "default", capabilities }: BoardActionsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -82,13 +79,13 @@ export function BoardActions({
 
   return (
     <div className="flex items-center gap-2">
-      {canManageSettings && (
+      {capabilities?.settings && (
         <Button asChild variant={isOverlay ? "ghost" : "outline"} className={settingsClass}>
           <Link href={`/boards/${board.id}/settings`}>Settings</Link>
         </Button>
       )}
 
-      {canManageSettings && (
+      {capabilities?.delete && (
         <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
           <AlertDialogTrigger asChild>
             <Button variant="ghost" className={deleteClass}>

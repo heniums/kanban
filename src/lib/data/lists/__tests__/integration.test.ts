@@ -30,7 +30,7 @@ describe("getListsByBoardId (integration)", () => {
     await createList({ boardId, title: "B" });
     await createList({ boardId, title: "C" });
 
-    const result = await getListsByBoardId(boardId, { userId: ownerId });
+    const result = await getListsByBoardId(boardId);
 
     expect(result.map((l) => l.title)).toEqual(["A", "B", "C"]);
     expect(result.map((l) => l.position)).toEqual([0, 1, 2]);
@@ -75,7 +75,7 @@ describe("deleteList (integration) — position recompaction", () => {
     const result = await deleteList(l1.id, { ownerId });
     expect(result?.id).toBe(l1.id);
 
-    const after = await getListsByBoardId(boardId, { userId: ownerId });
+    const after = await getListsByBoardId(boardId);
     const positions = after
       .sort((a, b) => a.position - b.position)
       .map((l) => ({ title: l.title, position: l.position }));
@@ -101,7 +101,7 @@ describe("reorderLists (integration)", () => {
 
     await reorderLists(boardId, [c.id, a.id, b.id], { ownerId });
 
-    const after = await getListsByBoardId(boardId, { userId: ownerId });
+    const after = await getListsByBoardId(boardId);
     expect(after.map((l) => l.title)).toEqual(["C", "A", "B"]);
     expect(after.map((l) => l.position)).toEqual([0, 1, 2]);
 

@@ -13,7 +13,7 @@ const {
   mockGetLabelsByBoardId,
   mockGetChecklistProgressByBoardId,
   mockGetCommentCountsByBoardId,
-  mockGetUserRole,
+  mockGetBoardCapabilities,
 } = vi.hoisted(() => ({
   mockVerifySession: vi.fn(),
   mockGetBoardById: vi.fn(),
@@ -24,7 +24,7 @@ const {
   mockGetLabelsByBoardId: vi.fn(),
   mockGetChecklistProgressByBoardId: vi.fn(),
   mockGetCommentCountsByBoardId: vi.fn(),
-  mockGetUserRole: vi.fn(),
+  mockGetBoardCapabilities: vi.fn(),
 }));
 
 vi.mock("@/lib/dal", () => ({
@@ -66,8 +66,8 @@ vi.mock("@/lib/data/comments", () => ({
   getCommentCountsByBoardId: mockGetCommentCountsByBoardId,
 }));
 
-vi.mock("@/lib/permissions", () => ({
-  getUserRole: mockGetUserRole,
+vi.mock("@/lib/capabilities", () => ({
+  getBoardCapabilities: mockGetBoardCapabilities,
 }));
 
 vi.mock("@/lib/actions/boards", () => ({
@@ -106,7 +106,7 @@ describe("BoardPage text color", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
-    mockGetUserRole.mockResolvedValue("owner");
+    mockGetBoardCapabilities.mockResolvedValue({ settings: true, delete: true });
     mockGetListsByBoardId.mockResolvedValue(baseLists);
     mockGetCardsByBoardId.mockResolvedValue([]);
     mockGetCardLabelsByBoardId.mockResolvedValue({});
@@ -162,7 +162,7 @@ describe("BoardPage hero section", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
-    mockGetUserRole.mockResolvedValue("owner");
+    mockGetBoardCapabilities.mockResolvedValue({ settings: true, delete: true });
     mockGetListsByBoardId.mockResolvedValue(baseLists);
     mockGetCardsByBoardId.mockResolvedValue([]);
     mockGetCardLabelsByBoardId.mockResolvedValue({});

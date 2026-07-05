@@ -5,14 +5,14 @@ import type { Board } from "@/lib/db/schema/boards";
 const {
   mockVerifySession,
   mockGetBoardById,
-  mockGetUserRole,
+  mockHasPermission,
   mockGetBoardMembers,
   mockRedirect,
   mockNotFound,
 } = vi.hoisted(() => ({
   mockVerifySession: vi.fn(),
   mockGetBoardById: vi.fn(),
-  mockGetUserRole: vi.fn(),
+  mockHasPermission: vi.fn(),
   mockGetBoardMembers: vi.fn(),
   mockRedirect: vi.fn(),
   mockNotFound: vi.fn(),
@@ -36,7 +36,7 @@ vi.mock("@/lib/data/boards", () => ({
 }));
 
 vi.mock("@/lib/permissions", () => ({
-  getUserRole: mockGetUserRole,
+  hasPermission: mockHasPermission,
   BoardPermission: {
     VIEW: "view",
     EDIT_CONTENT: "edit_content",
@@ -71,7 +71,7 @@ describe("BoardSettingsPage", () => {
     vi.clearAllMocks();
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
     mockGetBoardById.mockResolvedValue(baseBoard);
-    mockGetUserRole.mockResolvedValue("owner");
+    mockHasPermission.mockResolvedValue(true);
     mockGetBoardMembers.mockResolvedValue([]);
   });
 
@@ -120,16 +120,16 @@ describe("BoardSettingsPage", () => {
     expect(mockNotFound).toHaveBeenCalled();
   });
 
-  it("calls getUserRole to check permissions", async () => {
+  it("calls hasPermission to check permissions", async () => {
     await BoardSettingsPage({
       params: Promise.resolve({ boardId: "test-id" }),
     });
 
-    expect(mockGetUserRole).toHaveBeenCalledWith("user-1", "test-id");
+    expect(mockHasPermission).toHaveBeenCalledWith("user-1", "test-id", "manage_settings");
   });
 
   it("redirects to dashboard when user lacks manage_settings permission", async () => {
-    mockGetUserRole.mockResolvedValue("member");
+    mockHasPermission.mockResolvedValue(false);
 
     await BoardSettingsPage({
       params: Promise.resolve({ boardId: "test-id" }),
@@ -139,7 +139,7 @@ describe("BoardSettingsPage", () => {
   });
 
   it("redirects to dashboard when user is not a board member", async () => {
-    mockGetUserRole.mockResolvedValue(null);
+    mockHasPermission.mockResolvedValue(false);
 
     await BoardSettingsPage({
       params: Promise.resolve({ boardId: "test-id" }),
@@ -148,8 +148,8 @@ describe("BoardSettingsPage", () => {
     expect(mockRedirect).toHaveBeenCalledWith("/boards/test-id");
   });
 
-  it("renders the page when user is owner", async () => {
-    mockGetUserRole.mockResolvedValue("owner");
+  it("renders the page when user has manage_settings permission", async () => {
+    mockHasPermission.mockResolvedValue(true);
 
     const jsx = await BoardSettingsPage({
       params: Promise.resolve({ boardId: "test-id" }),
