@@ -51,3 +51,7 @@
   - [x] Test all field types: title, description, due date, labels
   - [x] Verify checklist progress and comment count update
 - [x] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
+
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions 31fff92

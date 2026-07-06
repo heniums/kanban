@@ -81,3 +81,7 @@
   - [x] Manually test real-time updates in browser (card moves, label changes, etc.)
   - [x] Commit any final fixes
 - [x] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
+
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions 31fff92
