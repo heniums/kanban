@@ -70,10 +70,6 @@ export function useCardDetail({
   const { handleCopy } = useCardCopy({ data, startTransition, router });
 
   useEffect(() => {
-    function onOpen(e: Event) {
-      const detail = (e as CustomEvent<{ cardId: string }>).detail;
-      void loadCard(detail.cardId);
-    }
     async function loadCard(cardId: string) {
       try {
         const res = await fetch(`/api/cards/${cardId}`);
@@ -96,8 +92,17 @@ export function useCardDetail({
         toast.error("Failed to load card");
       }
     }
-    window.addEventListener("card:open", onOpen as EventListener);
-    return () => window.removeEventListener("card:open", onOpen as EventListener);
+
+    const unsubscribe = useBoardCardStore.subscribe((state, prevState) => {
+      if (state.cardToOpen && state.cardToOpen !== prevState.cardToOpen) {
+        void loadCard(state.cardToOpen);
+        useBoardCardStore.getState().clearCardToOpen();
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, [setNewlyCreatedLabelIds]);
 
   const dataRef = useRef<CardDetailData | null>(null);
@@ -128,64 +133,79 @@ export function useCardDetail({
   }
 
   useEffect(() => {
-    function onChecklistUpdate() {
+    const unsubscribe = useBoardCardStore.subscribe((state, prevState) => {
       const d = dataRef.current;
       if (!d) return;
-      void refreshChecklists(d.card.id);
-    }
-    function onCommentUpdate() {
-      const d = dataRef.current;
-      if (!d) return;
-      void refreshComments(d.card.id);
-    }
-    window.addEventListener("board:checklist-updated", onChecklistUpdate);
-    window.addEventListener("board:comment-updated", onCommentUpdate);
+
+      const cardId = d.card.id;
+
+      if (
+        state.cardsNeedingChecklistRefresh.has(cardId) &&
+        !prevState.cardsNeedingChecklistRefresh.has(cardId)
+      ) {
+        void refreshChecklists(cardId);
+        useBoardCardStore.getState().clearChecklistRefresh(cardId);
+      }
+
+      if (
+        state.cardsNeedingCommentsRefresh.has(cardId) &&
+        !prevState.cardsNeedingCommentsRefresh.has(cardId)
+      ) {
+        void refreshComments(cardId);
+        useBoardCardStore.getState().clearCommentsRefresh(cardId);
+      }
+    });
+
     return () => {
-      window.removeEventListener("board:checklist-updated", onChecklistUpdate);
-      window.removeEventListener("board:comment-updated", onCommentUpdate);
+      unsubscribe();
     };
   }, []);
 
   useEffect(() => {
-    function onLabelUpdated(e: Event) {
-      const detail = (e as CustomEvent<{ label: { id: string; name: string; color: string } }>)
-        .detail;
-      setData((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          boardLabels: prev.boardLabels.map((l) =>
-            l.id === detail.label.id
-              ? { ...l, name: detail.label.name, color: detail.label.color }
-              : l,
-          ),
-          labels: prev.labels.map((l) =>
-            l.id === detail.label.id
-              ? { ...l, name: detail.label.name, color: detail.label.color }
-              : l,
-          ),
-        };
-      });
-    }
-    function onLabelDeleted(e: Event) {
-      const detail = (e as CustomEvent<{ labelId: string }>).detail;
-      setData((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          boardLabels: prev.boardLabels.filter((l) => l.id !== detail.labelId),
-          labels: prev.labels.filter((l) => l.id !== detail.labelId),
-        };
-      });
-      setDraft((prev) =>
-        prev ? { ...prev, labelIds: prev.labelIds.filter((id) => id !== detail.labelId) } : prev,
-      );
-    }
-    window.addEventListener("board:label-updated", onLabelUpdated);
-    window.addEventListener("board:label-deleted", onLabelDeleted);
+    const unsubscribe = useBoardCardStore.subscribe((state, prevState) => {
+      if (state.labelUpdatedEvent && state.labelUpdatedEvent !== prevState.labelUpdatedEvent) {
+        const label = state.labelUpdatedEvent.label;
+        setData((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            boardLabels: prev.boardLabels.map((l) =>
+              l.id === label.id ? { ...l, name: label.name, color: label.color } : l,
+            ),
+            labels: prev.labels.map((l) =>
+              l.id === label.id ? { ...l, name: label.name, color: label.color } : l,
+            ),
+          };
+        });
+        useBoardCardStore.getState().clearLabelEvents();
+      }
+
+      if (state.labelDeletedEvent && state.labelDeletedEvent !== prevState.labelDeletedEvent) {
+        const labelId = state.labelDeletedEvent.labelId;
+        setData((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            boardLabels: prev.boardLabels.filter((l) => l.id !== labelId),
+            labels: prev.labels.filter((l) => l.id !== labelId),
+          };
+        });
+        setDraft((prev) =>
+          prev ? { ...prev, labelIds: prev.labelIds.filter((id) => id !== labelId) } : prev,
+        );
+        useBoardCardStore.getState().clearLabelEvents();
+      }
+
+      if (
+        state.cardLabelsUpdatedEvent &&
+        state.cardLabelsUpdatedEvent !== prevState.cardLabelsUpdatedEvent
+      ) {
+        useBoardCardStore.getState().clearLabelEvents();
+      }
+    });
+
     return () => {
-      window.removeEventListener("board:label-updated", onLabelUpdated);
-      window.removeEventListener("board:label-deleted", onLabelDeleted);
+      unsubscribe();
     };
   }, []);
 

@@ -74,7 +74,7 @@ function SortableCardItem({ card }: { card: CardSummary }) {
             const url = new URL(window.location.href);
             url.searchParams.set("card", card.id);
             window.history.pushState({}, "", url);
-            window.dispatchEvent(new CustomEvent("card:open", { detail: { cardId: card.id } }));
+            useBoardCardStore.getState().openCard(card.id);
           }
         }}
       />

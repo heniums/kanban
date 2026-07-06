@@ -21,16 +21,16 @@ function TestHarness({ boardId }: { boardId: string }) {
   return null;
 }
 
-const dispatchEvent = vi.fn();
-
 beforeEach(() => {
   vi.clearAllMocks();
   useBoardCardStore.setState({
     boardId: null,
     cardsByList: {},
     lists: [],
+    labelUpdatedEvent: null,
+    labelDeletedEvent: null,
+    cardLabelsUpdatedEvent: null,
   });
-  vi.stubGlobal("dispatchEvent", dispatchEvent);
 });
 
 describe("useBoardSocket LIST_REORDERED listener", () => {
@@ -84,7 +84,7 @@ describe("useBoardSocket LIST_REORDERED listener", () => {
 });
 
 describe("useBoardSocket LABEL_UPDATED listener", () => {
-  it("dispatches a board:label-updated CustomEvent when boardId matches", () => {
+  it("updates the store with the label event when boardId matches", () => {
     render(<TestHarness boardId="b1" />);
 
     const registerCall = mockSocket.on.mock.calls.find(
@@ -96,10 +96,7 @@ describe("useBoardSocket LABEL_UPDATED listener", () => {
     const handler = registerCall![1];
     handler({ boardId: "b1", label });
 
-    expect(dispatchEvent).toHaveBeenCalledTimes(1);
-    const event = dispatchEvent.mock.calls[0][0] as CustomEvent;
-    expect(event.type).toBe("board:label-updated");
-    expect(event.detail).toEqual({ boardId: "b1", label });
+    expect(useBoardCardStore.getState().labelUpdatedEvent).toEqual({ label });
   });
 
   it("ignores the event when boardId does not match", () => {
@@ -113,12 +110,12 @@ describe("useBoardSocket LABEL_UPDATED listener", () => {
     const handler = registerCall![1];
     handler({ boardId: "b2", label: { id: "l1", name: "Bug", color: "#f00" } });
 
-    expect(dispatchEvent).not.toHaveBeenCalled();
+    expect(useBoardCardStore.getState().labelUpdatedEvent).toBeNull();
   });
 });
 
 describe("useBoardSocket LABEL_DELETED listener", () => {
-  it("dispatches a board:label-deleted CustomEvent when boardId matches", () => {
+  it("updates the store with the labelId event when boardId matches", () => {
     render(<TestHarness boardId="b1" />);
 
     const registerCall = mockSocket.on.mock.calls.find(
@@ -129,10 +126,7 @@ describe("useBoardSocket LABEL_DELETED listener", () => {
     const handler = registerCall![1];
     handler({ boardId: "b1", labelId: "l1" });
 
-    expect(dispatchEvent).toHaveBeenCalledTimes(1);
-    const event = dispatchEvent.mock.calls[0][0] as CustomEvent;
-    expect(event.type).toBe("board:label-deleted");
-    expect(event.detail).toEqual({ boardId: "b1", labelId: "l1" });
+    expect(useBoardCardStore.getState().labelDeletedEvent).toEqual({ labelId: "l1" });
   });
 
   it("ignores the event when boardId does not match", () => {
@@ -146,12 +140,12 @@ describe("useBoardSocket LABEL_DELETED listener", () => {
     const handler = registerCall![1];
     handler({ boardId: "b2", labelId: "l1" });
 
-    expect(dispatchEvent).not.toHaveBeenCalled();
+    expect(useBoardCardStore.getState().labelDeletedEvent).toBeNull();
   });
 });
 
 describe("useBoardSocket CARD_LABELS_UPDATED listener", () => {
-  it("dispatches a board:card-labels-updated CustomEvent when boardId matches", () => {
+  it("updates the store with the cardId event when boardId matches", () => {
     render(<TestHarness boardId="b1" />);
 
     const registerCall = mockSocket.on.mock.calls.find(
@@ -162,10 +156,7 @@ describe("useBoardSocket CARD_LABELS_UPDATED listener", () => {
     const handler = registerCall![1];
     handler({ boardId: "b1", cardId: "c1" });
 
-    expect(dispatchEvent).toHaveBeenCalledTimes(1);
-    const event = dispatchEvent.mock.calls[0][0] as CustomEvent;
-    expect(event.type).toBe("board:card-labels-updated");
-    expect(event.detail).toEqual({ boardId: "b1", cardId: "c1" });
+    expect(useBoardCardStore.getState().cardLabelsUpdatedEvent).toEqual({ cardId: "c1" });
   });
 
   it("ignores the event when boardId does not match", () => {
@@ -179,6 +170,6 @@ describe("useBoardSocket CARD_LABELS_UPDATED listener", () => {
     const handler = registerCall![1];
     handler({ boardId: "b2", cardId: "c1" });
 
-    expect(dispatchEvent).not.toHaveBeenCalled();
+    expect(useBoardCardStore.getState().cardLabelsUpdatedEvent).toBeNull();
   });
 });

@@ -60,22 +60,22 @@ export function useBoardSocket(boardId: string | null) {
     });
     socket.on(REALTIME_EVENTS.CHECKLIST_UPDATED, (payload: ChecklistUpdatedPayload) => {
       if (payload?.boardId === boardId) {
-        window.dispatchEvent(new CustomEvent("board:checklist-updated", { detail: payload }));
+        useBoardCardStore.getState().markChecklistRefresh(payload.cardId);
       }
     });
     socket.on(REALTIME_EVENTS.COMMENT_CREATED, (payload: CommentCreatedPayload) => {
       if (payload?.boardId === boardId) {
-        window.dispatchEvent(new CustomEvent("board:comment-updated", { detail: payload }));
+        useBoardCardStore.getState().markCommentsRefresh(payload.cardId);
       }
     });
     socket.on(REALTIME_EVENTS.COMMENT_UPDATED, (payload: CommentUpdatedPayload) => {
       if (payload?.boardId === boardId) {
-        window.dispatchEvent(new CustomEvent("board:comment-updated", { detail: payload }));
+        useBoardCardStore.getState().markCommentsRefresh(payload.cardId);
       }
     });
     socket.on(REALTIME_EVENTS.COMMENT_DELETED, (payload: CommentDeletedPayload) => {
       if (payload?.boardId === boardId) {
-        window.dispatchEvent(new CustomEvent("board:comment-updated", { detail: payload }));
+        useBoardCardStore.getState().markCommentsRefresh(payload.cardId);
       }
     });
     socket.on(REALTIME_EVENTS.LIST_REORDERED, (payload: ListsReorderedPayload) => {
@@ -85,17 +85,17 @@ export function useBoardSocket(boardId: string | null) {
     });
     socket.on(REALTIME_EVENTS.LABEL_UPDATED, (payload: LabelUpdatedPayload) => {
       if (payload?.boardId === boardId) {
-        window.dispatchEvent(new CustomEvent("board:label-updated", { detail: payload }));
+        useBoardCardStore.getState().setLabelUpdatedEvent(payload.label);
       }
     });
     socket.on(REALTIME_EVENTS.LABEL_DELETED, (payload: LabelDeletedPayload) => {
       if (payload?.boardId === boardId) {
-        window.dispatchEvent(new CustomEvent("board:label-deleted", { detail: payload }));
+        useBoardCardStore.getState().setLabelDeletedEvent(payload.labelId);
       }
     });
     socket.on(REALTIME_EVENTS.CARD_LABELS_UPDATED, (payload: CardLabelsUpdatedPayload) => {
       if (payload?.boardId === boardId) {
-        window.dispatchEvent(new CustomEvent("board:card-labels-updated", { detail: payload }));
+        useBoardCardStore.getState().setCardLabelsUpdatedEvent(payload.cardId);
       }
     });
 
