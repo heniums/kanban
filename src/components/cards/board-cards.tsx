@@ -47,6 +47,24 @@ export function BoardCards({ boardId, initialLists, initialCardsByList }: BoardC
 
   const { handleAddList, handleRenameList, handleDeleteList } = useListActions({ boardId });
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const cardId = new URL(window.location.href).searchParams.get("card");
+    if (cardId) {
+      useBoardCardStore.getState().openCard(cardId);
+    }
+
+    function onPopState() {
+      const nextCardId = new URL(window.location.href).searchParams.get("card");
+      if (nextCardId) {
+        useBoardCardStore.getState().openCard(nextCardId);
+      }
+    }
+
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
   return (
     <DndContext
       sensors={sensors}

@@ -10,6 +10,11 @@ beforeEach(() => {
     boardId: null,
     cardsByList: {},
     lists: [],
+    cardsNeedingChecklistRefresh: new Set(),
+    cardsNeedingCommentsRefresh: new Set(),
+    labelUpdatedEvent: null,
+    labelDeletedEvent: null,
+    cardToOpen: null,
   });
 });
 
@@ -108,5 +113,219 @@ describe("useBoardCardStore.setInitial", () => {
     expect(useBoardCardStore.getState().cardsByList["l1"]).toHaveLength(2);
     expect(useBoardCardStore.getState().cardsByList["l1"][0].id).toBe("c2");
     expect(useBoardCardStore.getState().cardsByList["l1"][1].id).toBe("c1");
+  });
+});
+
+describe("useBoardCardStore checklist and comment refresh", () => {
+  it("marks a card for checklist refresh", () => {
+    const store = useBoardCardStore.getState();
+    store.markChecklistRefresh("c1");
+    expect(useBoardCardStore.getState().cardsNeedingChecklistRefresh.has("c1")).toBe(true);
+  });
+
+  it("clears a card from checklist refresh", () => {
+    const store = useBoardCardStore.getState();
+    store.markChecklistRefresh("c1");
+    store.clearChecklistRefresh("c1");
+    expect(useBoardCardStore.getState().cardsNeedingChecklistRefresh.has("c1")).toBe(false);
+  });
+
+  it("marks a card for comments refresh", () => {
+    const store = useBoardCardStore.getState();
+    store.markCommentsRefresh("c1");
+    expect(useBoardCardStore.getState().cardsNeedingCommentsRefresh.has("c1")).toBe(true);
+  });
+
+  it("clears a card from comments refresh", () => {
+    const store = useBoardCardStore.getState();
+    store.markCommentsRefresh("c1");
+    store.clearCommentsRefresh("c1");
+    expect(useBoardCardStore.getState().cardsNeedingCommentsRefresh.has("c1")).toBe(false);
+  });
+
+  it("handles multiple cards in refresh sets", () => {
+    const store = useBoardCardStore.getState();
+    store.markChecklistRefresh("c1");
+    store.markChecklistRefresh("c2");
+    store.markCommentsRefresh("c3");
+    expect(useBoardCardStore.getState().cardsNeedingChecklistRefresh.size).toBe(2);
+    expect(useBoardCardStore.getState().cardsNeedingCommentsRefresh.size).toBe(1);
+  });
+});
+
+describe("useBoardCardStore label events", () => {
+  it("sets label updated event", () => {
+    const store = useBoardCardStore.getState();
+    const label = { id: "l1", name: "Bug", color: "#ff0000" };
+    store.setLabelUpdatedEvent(label);
+    expect(useBoardCardStore.getState().labelUpdatedEvent).toEqual({ label });
+  });
+
+  it("sets label deleted event", () => {
+    const store = useBoardCardStore.getState();
+    store.setLabelDeletedEvent("l1");
+    expect(useBoardCardStore.getState().labelDeletedEvent).toEqual({ labelId: "l1" });
+  });
+
+  it("clears all label events", () => {
+    const store = useBoardCardStore.getState();
+    store.setLabelUpdatedEvent({ id: "l1", name: "Bug", color: "#ff0000" });
+    store.setLabelDeletedEvent("l2");
+    store.clearLabelEvents();
+    expect(useBoardCardStore.getState().labelUpdatedEvent).toBeNull();
+    expect(useBoardCardStore.getState().labelDeletedEvent).toBeNull();
+  });
+});
+
+describe("useBoardCardStore card open", () => {
+  it("opens a card by id", () => {
+    const store = useBoardCardStore.getState();
+    store.openCard("c1");
+    expect(useBoardCardStore.getState().cardToOpen).toBe("c1");
+  });
+
+  it("clears the card to open", () => {
+    const store = useBoardCardStore.getState();
+    store.openCard("c1");
+    store.clearCardToOpen();
+    expect(useBoardCardStore.getState().cardToOpen).toBeNull();
+  });
+
+  it("overwrites previous cardToOpen when opening a new card", () => {
+    const store = useBoardCardStore.getState();
+    store.openCard("c1");
+    store.openCard("c2");
+    expect(useBoardCardStore.getState().cardToOpen).toBe("c2");
+  });
+});
+
+describe("useBoardCardStore.updateCard preserves labels and assignees", () => {
+  function makeCard(
+    id: string,
+    listId: string,
+    position: number,
+    extra?: {
+      labels?: { id: string; name: string; color: string }[];
+      assignees?: { id: string; name: string }[];
+      checklistProgress?: { total: number; completed: number } | null;
+      commentCount?: number;
+    },
+  ) {
+    return {
+      id,
+      listId,
+      boardId: "b1",
+      title: "Card " + id,
+      description: null,
+      dueDate: null,
+      position,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...extra,
+    };
+  }
+
+  it("preserves labels when updateCard is called without labels", () => {
+    const store = useBoardCardStore.getState();
+    const labels = [
+      { id: "lbl1", name: "Bug", color: "#ff0000" },
+      { id: "lbl2", name: "Feature", color: "#00ff00" },
+    ];
+    store.setInitial(
+      "b1",
+      [{ id: "l1", title: "A", position: 0 }],
+      [makeCard("c1", "l1", 0, { labels })],
+    );
+
+    expect(useBoardCardStore.getState().cardsByList["l1"][0].labels).toEqual(labels);
+
+    store.updateCard({
+      id: "c1",
+      listId: "l1",
+      boardId: "b1",
+      title: "Updated Card",
+      description: null,
+      dueDate: null,
+      position: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    expect(useBoardCardStore.getState().cardsByList["l1"][0].labels).toEqual(labels);
+    expect(useBoardCardStore.getState().cardsByList["l1"][0].title).toBe("Updated Card");
+  });
+
+  it("preserves assignees when updateCard is called without assignees", () => {
+    const store = useBoardCardStore.getState();
+    const assignees = [{ id: "u1", name: "Alice" }];
+    store.setInitial(
+      "b1",
+      [{ id: "l1", title: "A", position: 0 }],
+      [makeCard("c1", "l1", 0, { assignees })],
+    );
+
+    expect(useBoardCardStore.getState().cardsByList["l1"][0].assignees).toEqual(assignees);
+
+    store.updateCard({
+      id: "c1",
+      listId: "l1",
+      boardId: "b1",
+      title: "Updated Card",
+      description: null,
+      dueDate: null,
+      position: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    expect(useBoardCardStore.getState().cardsByList["l1"][0].assignees).toEqual(assignees);
+  });
+
+  it("preserves checklistProgress and commentCount when updateCard is called without them", () => {
+    const store = useBoardCardStore.getState();
+    const checklistProgress = { total: 5, completed: 3 };
+    const commentCount = 7;
+    store.setInitial(
+      "b1",
+      [{ id: "l1", title: "A", position: 0 }],
+      [makeCard("c1", "l1", 0, { checklistProgress, commentCount })],
+    );
+
+    expect(useBoardCardStore.getState().cardsByList["l1"][0].checklistProgress).toEqual(
+      checklistProgress,
+    );
+    expect(useBoardCardStore.getState().cardsByList["l1"][0].commentCount).toBe(commentCount);
+
+    store.updateCard({
+      id: "c1",
+      listId: "l1",
+      boardId: "b1",
+      title: "Updated Card",
+      description: null,
+      dueDate: null,
+      position: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    expect(useBoardCardStore.getState().cardsByList["l1"][0].checklistProgress).toEqual(
+      checklistProgress,
+    );
+    expect(useBoardCardStore.getState().cardsByList["l1"][0].commentCount).toBe(commentCount);
+  });
+
+  it("uses new labels when updateCard is called with labels", () => {
+    const store = useBoardCardStore.getState();
+    const oldLabels = [{ id: "lbl1", name: "Bug", color: "#ff0000" }];
+    const newLabels = [{ id: "lbl2", name: "Feature", color: "#00ff00" }];
+    store.setInitial(
+      "b1",
+      [{ id: "l1", title: "A", position: 0 }],
+      [makeCard("c1", "l1", 0, { labels: oldLabels })],
+    );
+
+    store.updateCard(makeCard("c1", "l1", 0, { labels: newLabels }));
+
+    expect(useBoardCardStore.getState().cardsByList["l1"][0].labels).toEqual(newLabels);
   });
 });

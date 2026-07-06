@@ -3,6 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CardDetail } from "@/components/cards/card-detail";
 import type { CardDetailData } from "@/components/cards/card-detail";
+import { useBoardCardStore } from "@/lib/realtime/board-store";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
@@ -72,8 +73,7 @@ const baseCardDetail: CardDetailData = {
 };
 
 async function openModal() {
-  const detail = new CustomEvent("card:open", { detail: { cardId: "c1" } });
-  window.dispatchEvent(detail);
+  useBoardCardStore.getState().openCard("c1");
   await waitFor(() => {
     expect(screen.getByLabelText(/card title/i)).toBeDefined();
   });
@@ -81,6 +81,13 @@ async function openModal() {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  useBoardCardStore.setState({
+    cardToOpen: null,
+    cardsNeedingChecklistRefresh: new Set(),
+    cardsNeedingCommentsRefresh: new Set(),
+    labelUpdatedEvent: null,
+    labelDeletedEvent: null,
+  });
   global.fetch = vi.fn().mockResolvedValue({
     ok: true,
     json: async () => baseCardDetail,

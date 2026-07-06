@@ -5,6 +5,10 @@ import { cardLabels } from "@/lib/db/schema/card-labels";
 import { labels, type Label } from "@/lib/db/schema/labels";
 import { cardAssignees } from "@/lib/db/schema/card-assignees";
 import { users } from "@/lib/db/schema/users";
+import { checklists } from "@/lib/db/schema/checklists";
+import { checklistItems } from "@/lib/db/schema/checklist-items";
+import { comments } from "@/lib/db/schema/comments";
+import type { CardSummary } from "@/components/cards/card-item";
 
 export async function getCardById(cardId: string): Promise<Card | null> {
   const db = createDbClient();
@@ -13,6 +17,57 @@ export async function getCardById(cardId: string): Promise<Card | null> {
     .from(cards)
     .where(sql`${cards.id} = ${cardId}`);
   return card?.card ?? null;
+}
+
+export async function getCardSummaryById(cardId: string): Promise<CardSummary | null> {
+  const db = createDbClient();
+
+  const [cardRows, labelRows, assigneeRows, checklistItemsRows, commentRows] = await Promise.all([
+    db
+      .select({ card: cards })
+      .from(cards)
+      .where(sql`${cards.id} = ${cardId}`),
+    db
+      .select({ id: labels.id, name: labels.name, color: labels.color })
+      .from(cardLabels)
+      .innerJoin(labels, eq(labels.id, cardLabels.labelId))
+      .where(sql`${cardLabels.cardId} = ${cardId}`),
+    db
+      .select({ id: users.id, name: users.name })
+      .from(cardAssignees)
+      .innerJoin(users, eq(users.id, cardAssignees.userId))
+      .where(sql`${cardAssignees.cardId} = ${cardId}`),
+    db
+      .select({ isCompleted: checklistItems.isCompleted })
+      .from(checklists)
+      .innerJoin(checklistItems, eq(checklistItems.checklistId, checklists.id))
+      .where(eq(checklists.cardId, cardId)),
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(comments)
+      .where(eq(comments.cardId, cardId)),
+  ]);
+
+  const card = cardRows[0]?.card ?? null;
+  if (!card) return null;
+
+  const checklistProgress =
+    checklistItemsRows.length > 0
+      ? {
+          total: checklistItemsRows.length,
+          completed: checklistItemsRows.filter((r) => r.isCompleted).length,
+        }
+      : null;
+
+  const commentCount = Number(commentRows[0]?.count ?? 0);
+
+  return {
+    ...card,
+    labels: labelRows,
+    assignees: assigneeRows,
+    checklistProgress,
+    commentCount,
+  };
 }
 
 export async function getCardsByBoardId(boardId: string): Promise<Card[]> {

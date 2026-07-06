@@ -10,6 +10,7 @@ import {
   reorderCards,
   copyCard,
   getCardById,
+  getCardSummaryById,
 } from "@/lib/data/cards";
 import {
   createCardSchema,
@@ -20,6 +21,7 @@ import {
   copyCardSchema,
 } from "@/lib/schemas/card";
 import type { Card } from "@/lib/db/schema/cards";
+import type { CardSummary } from "@/components/cards/card-item";
 import { emitToBoard, REALTIME_EVENTS } from "@/lib/realtime/events";
 import { assertCardPermission, assertListPermission } from "@/lib/actions/guards";
 import { BoardPermission } from "@/lib/permissions";
@@ -54,7 +56,7 @@ export async function createCardAction(input: unknown): Promise<Result<Card>> {
   }
 }
 
-export async function updateCardAction(input: unknown): Promise<Result<Card>> {
+export async function updateCardAction(input: unknown): Promise<Result<CardSummary>> {
   const { userId } = await verifySession();
   const parsed = updateCardSchema.safeParse(input);
   if (!parsed.success) {
@@ -70,9 +72,13 @@ export async function updateCardAction(input: unknown): Promise<Result<Card>> {
     if (!card) {
       return { errors: [{ field: "", message: "Card not found" }] };
     }
+    const cardSummary = await getCardSummaryById(cardId);
+    if (!cardSummary) {
+      return { errors: [{ field: "", message: "Card not found" }] };
+    }
     revalidatePath(`/boards/${card.boardId}`);
-    emitToBoard(card.boardId, REALTIME_EVENTS.CARD_UPDATED, { card });
-    return { data: card };
+    emitToBoard(card.boardId, REALTIME_EVENTS.CARD_UPDATED, { card: cardSummary });
+    return { data: cardSummary };
   } catch (err) {
     return { errors: [{ field: "", message: err instanceof Error ? err.message : "Failed" }] };
   }

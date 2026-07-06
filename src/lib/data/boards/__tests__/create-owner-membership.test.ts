@@ -82,6 +82,7 @@ describe("createBoard adds creator as owner", () => {
       .where(and(eq(boardMembers.boardId, board.id), eq(boardMembers.userId, user.id)));
 
     expect(membership[0].joinedAt).toBeInstanceOf(Date);
-    expect(membership[0].joinedAt.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
+    // Allow 5-second clock skew between test runner and DB server
+    expect(Math.abs(membership[0].joinedAt.getTime() - beforeCreate.getTime())).toBeLessThan(5000);
   });
 });
