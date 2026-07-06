@@ -16,23 +16,23 @@
 
 ## Phase 2: Implement Card Detail Real-Time Updates
 
-- [ ] Task: Write tests for card detail real-time updates (TDD red phase)
-  - [ ] Create test file `src/components/cards/card-detail/__tests__/use-card-detail-realtime.test.ts`
-  - [ ] Test that card detail modal subscribes to CARD_UPDATED events
-  - [ ] Test that modal state updates when CARD_UPDATED arrives for open card
-  - [ ] Test that dirty draft fields are preserved when remote update arrives
-  - [ ] Test that clean fields are updated from payload
-  - [ ] Verify tests fail (TDD red phase)
-- [ ] Task: Implement card detail real-time subscription
-  - [ ] Add subscription to `CARD_UPDATED` events in `use-card-detail.ts`
-  - [ ] Implement logic to update modal state from payload
-  - [ ] Preserve dirty draft fields (don't overwrite if user has unsaved changes)
-  - [ ] Update clean fields from payload (title, description, due date, labels, assignees)
-  - [ ] Update checklist progress and comment count from payload
-  - [ ] Verify tests pass (TDD green phase)
-  - [ ] Run `npm test` to ensure all tests pass
-  - [ ] Run `npm run typecheck` to ensure no type errors
-  - [ ] Commit changes with message `feat(realtime): add real-time updates to card detail modal`
+- [x] Task: Write tests for card detail real-time updates (TDD red phase)
+  - [x] Create test file `src/components/cards/card-detail/__tests__/use-card-detail-realtime.test.ts`
+  - [x] Test that card detail modal subscribes to CARD_UPDATED events
+  - [x] Test that modal state updates when CARD_UPDATED arrives for open card
+  - [x] Test that dirty draft fields are preserved when remote update arrives
+  - [x] Test that clean fields are updated from payload
+  - [x] Verify tests fail (TDD red phase)
+- [x] Task: Implement card detail real-time subscription
+  - [x] Add subscription to `CARD_UPDATED` events in `use-card-detail.ts`
+  - [x] Implement logic to update modal state from payload
+  - [x] Preserve dirty draft fields (don't overwrite if user has unsaved changes)
+  - [x] Update clean fields from payload (title, description, due date, labels, assignees)
+  - [x] Update checklist progress and comment count from payload
+  - [x] Verify tests pass (TDD green phase)
+  - [x] Run `npm test` to ensure all tests pass
+  - [x] Run `npm run typecheck` to ensure no type errors
+  - [x] Commit changes with message `feat(realtime): add real-time updates to card detail modal`
 - [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
 
 ## Phase 3: Final Verification and Cleanup

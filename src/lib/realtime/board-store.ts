@@ -67,8 +67,23 @@ export const useBoardCardStore = create<BoardCardState>((set) => ({
       for (const listId of Object.keys(list)) {
         const idx = list[listId].findIndex((c) => c.id === card.id);
         if (idx >= 0) {
+          const existingCard = list[listId][idx];
           const next = [...list[listId]];
-          next[idx] = card;
+          next[idx] = {
+            ...card,
+            labels:
+              (card as { labels?: unknown }).labels ??
+              (existingCard as { labels?: unknown }).labels,
+            assignees:
+              (card as { assignees?: unknown }).assignees ??
+              (existingCard as { assignees?: unknown }).assignees,
+            checklistProgress:
+              (card as { checklistProgress?: unknown }).checklistProgress ??
+              (existingCard as { checklistProgress?: unknown }).checklistProgress,
+            commentCount:
+              (card as { commentCount?: unknown }).commentCount ??
+              (existingCard as { commentCount?: unknown }).commentCount,
+          } as RealtimeCard;
           list[listId] = next.sort((a, b) => a.position - b.position);
           return { cardsByList: list };
         }
