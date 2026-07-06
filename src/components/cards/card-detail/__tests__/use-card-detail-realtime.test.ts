@@ -200,4 +200,117 @@ describe("useCardDetail real-time updates", () => {
 
     expect(result.current.data?.card.title).toBe(originalTitle);
   });
+
+  it("does not crash when update arrives after card is closed", async () => {
+    const { useCardDetail } = await import("@/components/cards/card-detail/use-card-detail");
+    const { result } = renderHook(() =>
+      useCardDetail({ boardId: "b1", lists: [{ id: "l1", title: "To Do" }] }),
+    );
+
+    await act(async () => {
+      useBoardCardStore.getState().openCard("c1");
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    expect(result.current.data?.card.title).toBe("Test Card");
+
+    // Close the card
+    act(() => {
+      result.current.close();
+    });
+
+    expect(result.current.open).toBe(false);
+    expect(result.current.data).toBeNull();
+
+    // Update should not crash when card is closed
+    act(() => {
+      useBoardCardStore.getState().updateCard({
+        ...baseCardDetail.card,
+        title: "Updated After Close",
+      });
+    });
+
+    // Modal should remain closed and data null
+    expect(result.current.open).toBe(false);
+    expect(result.current.data).toBeNull();
+  });
+
+  it("handles multiple rapid updates correctly", async () => {
+    const { useCardDetail } = await import("@/components/cards/card-detail/use-card-detail");
+    const { result } = renderHook(() =>
+      useCardDetail({ boardId: "b1", lists: [{ id: "l1", title: "To Do" }] }),
+    );
+
+    useBoardCardStore
+      .getState()
+      .setInitial(
+        "b1",
+        [{ id: "l1", title: "To Do", position: 0 }],
+        [{ ...baseCardDetail.card, title: "Initial Title" }],
+      );
+
+    await act(async () => {
+      useBoardCardStore.getState().openCard("c1");
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    // After opening, fetch returns baseCardDetail which has title "Test Card"
+    expect(result.current.data?.card.title).toBe("Test Card");
+
+    // Simulate multiple rapid updates
+    act(() => {
+      useBoardCardStore.getState().updateCard({
+        ...baseCardDetail.card,
+        title: "Update 1",
+      });
+    });
+
+    act(() => {
+      useBoardCardStore.getState().updateCard({
+        ...baseCardDetail.card,
+        title: "Update 2",
+      });
+    });
+
+    act(() => {
+      useBoardCardStore.getState().updateCard({
+        ...baseCardDetail.card,
+        title: "Update 3",
+      });
+    });
+
+    // Should have the latest update
+    expect(result.current.data?.card.title).toBe("Update 3");
+  });
+
+  it("updates labels when remote update includes new labels", async () => {
+    const { useCardDetail } = await import("@/components/cards/card-detail/use-card-detail");
+    const { result } = renderHook(() =>
+      useCardDetail({ boardId: "b1", lists: [{ id: "l1", title: "To Do" }] }),
+    );
+
+    useBoardCardStore
+      .getState()
+      .setInitial(
+        "b1",
+        [{ id: "l1", title: "To Do", position: 0 }],
+        [{ ...baseCardDetail.card, labels: [] }],
+      );
+
+    await act(async () => {
+      useBoardCardStore.getState().openCard("c1");
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    expect(result.current.data?.labels).toEqual([]);
+
+    act(() => {
+      useBoardCardStore.getState().updateCard({
+        ...baseCardDetail.card,
+        labels: [{ id: "lbl1", name: "Bug", color: "#ff0000" }],
+      });
+    });
+
+    expect(result.current.data?.labels).toEqual([{ id: "lbl1", name: "Bug", color: "#ff0000" }]);
+  });
 });

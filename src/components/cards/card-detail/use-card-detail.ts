@@ -169,6 +169,9 @@ export function useCardDetail({
               dueDate: updatedCard.dueDate,
               updatedAt: updatedCard.updatedAt,
             },
+            labels:
+              (updatedCard as { labels?: { id: string; name: string; color: string }[] }).labels ??
+              prev.labels,
           };
         });
       }

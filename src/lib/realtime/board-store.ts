@@ -13,7 +13,6 @@ interface BoardCardState {
   cardsNeedingCommentsRefresh: Set<string>;
   labelUpdatedEvent: { label: { id: string; name: string; color: string } } | null;
   labelDeletedEvent: { labelId: string } | null;
-  cardLabelsUpdatedEvent: { cardId: string } | null;
   cardToOpen: string | null;
   setInitial: (boardId: string, lists: BoardCardState["lists"], cards: RealtimeCard[]) => void;
   addCard: (card: RealtimeCard) => void;
@@ -28,7 +27,6 @@ interface BoardCardState {
   clearCommentsRefresh: (cardId: string) => void;
   setLabelUpdatedEvent: (label: { id: string; name: string; color: string }) => void;
   setLabelDeletedEvent: (labelId: string) => void;
-  setCardLabelsUpdatedEvent: (cardId: string) => void;
   clearLabelEvents: () => void;
   openCard: (cardId: string) => void;
   clearCardToOpen: () => void;
@@ -42,7 +40,6 @@ export const useBoardCardStore = create<BoardCardState>((set) => ({
   cardsNeedingCommentsRefresh: new Set(),
   labelUpdatedEvent: null,
   labelDeletedEvent: null,
-  cardLabelsUpdatedEvent: null,
   cardToOpen: null,
   setInitial: (boardId, lists, cards) =>
     set(() => {
@@ -155,12 +152,10 @@ export const useBoardCardStore = create<BoardCardState>((set) => ({
     }),
   setLabelUpdatedEvent: (label) => set(() => ({ labelUpdatedEvent: { label } })),
   setLabelDeletedEvent: (labelId) => set(() => ({ labelDeletedEvent: { labelId } })),
-  setCardLabelsUpdatedEvent: (cardId) => set(() => ({ cardLabelsUpdatedEvent: { cardId } })),
   clearLabelEvents: () =>
     set(() => ({
       labelUpdatedEvent: null,
       labelDeletedEvent: null,
-      cardLabelsUpdatedEvent: null,
     })),
   openCard: (cardId) => set(() => ({ cardToOpen: cardId })),
   clearCardToOpen: () => set(() => ({ cardToOpen: null })),
