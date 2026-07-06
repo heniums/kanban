@@ -5,6 +5,9 @@ import { cardLabels } from "@/lib/db/schema/card-labels";
 import { labels, type Label } from "@/lib/db/schema/labels";
 import { cardAssignees } from "@/lib/db/schema/card-assignees";
 import { users } from "@/lib/db/schema/users";
+import { checklists } from "@/lib/db/schema/checklists";
+import { checklistItems } from "@/lib/db/schema/checklist-items";
+import { comments } from "@/lib/db/schema/comments";
 import type { CardSummary } from "@/components/cards/card-item";
 
 export async function getCardById(cardId: string): Promise<Card | null> {
@@ -21,7 +24,7 @@ export async function getCardSummaryById(cardId: string): Promise<CardSummary | 
   const card = await getCardById(cardId);
   if (!card) return null;
 
-  const [labelRows, assigneeRows] = await Promise.all([
+  const [labelRows, assigneeRows, checklistItemsRows, commentRows] = await Promise.all([
     db
       .select({ id: labels.id, name: labels.name, color: labels.color })
       .from(cardLabels)
@@ -32,14 +35,33 @@ export async function getCardSummaryById(cardId: string): Promise<CardSummary | 
       .from(cardAssignees)
       .innerJoin(users, eq(users.id, cardAssignees.userId))
       .where(sql`${cardAssignees.cardId} = ${cardId}`),
+    db
+      .select({ isCompleted: checklistItems.isCompleted })
+      .from(checklists)
+      .innerJoin(checklistItems, eq(checklistItems.checklistId, checklists.id))
+      .where(eq(checklists.cardId, cardId)),
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(comments)
+      .where(eq(comments.cardId, cardId)),
   ]);
+
+  const checklistProgress =
+    checklistItemsRows.length > 0
+      ? {
+          total: checklistItemsRows.length,
+          completed: checklistItemsRows.filter((r) => r.isCompleted).length,
+        }
+      : null;
+
+  const commentCount = Number(commentRows[0]?.count ?? 0);
 
   return {
     ...card,
     labels: labelRows,
     assignees: assigneeRows,
-    checklistProgress: null,
-    commentCount: 0,
+    checklistProgress,
+    commentCount,
   };
 }
 

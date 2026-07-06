@@ -50,7 +50,7 @@ export function useCardDetail({
       url.searchParams.delete("card");
       window.history.pushState({}, "", url);
     }
-  }, []);
+  }, [setNewlyCreatedLabelIds]);
 
   const { moveOpen, setMoveOpen, handleMove } = useCardMove({
     data,
@@ -168,6 +168,14 @@ export function useCardDetail({
               description: updatedCard.description,
               dueDate: updatedCard.dueDate,
               updatedAt: updatedCard.updatedAt,
+              checklistProgress:
+                (updatedCard as { checklistProgress?: { total: number; completed: number } | null })
+                  .checklistProgress ??
+                (prev.card as { checklistProgress?: { total: number; completed: number } | null })
+                  .checklistProgress,
+              commentCount:
+                (updatedCard as { commentCount?: number }).commentCount ??
+                (prev.card as { commentCount?: number }).commentCount,
             },
             labels:
               (updatedCard as { labels?: { id: string; name: string; color: string }[] }).labels ??

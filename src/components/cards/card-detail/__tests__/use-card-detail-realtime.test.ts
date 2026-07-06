@@ -96,7 +96,7 @@ describe("useCardDetail real-time updates", () => {
 
     await act(async () => {
       useBoardCardStore.getState().openCard("c1");
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
     expect(result.current.data?.card.title).toBe("Test Card");
@@ -119,7 +119,7 @@ describe("useCardDetail real-time updates", () => {
 
     await act(async () => {
       useBoardCardStore.getState().openCard("c1");
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
     act(() => {
@@ -162,7 +162,7 @@ describe("useCardDetail real-time updates", () => {
 
     await act(async () => {
       useBoardCardStore.getState().openCard("c1");
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
     expect(result.current.data?.card.dueDate).toBeNull();
@@ -185,7 +185,7 @@ describe("useCardDetail real-time updates", () => {
 
     await act(async () => {
       useBoardCardStore.getState().openCard("c1");
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
     const originalTitle = result.current.data?.card.title;
@@ -209,7 +209,7 @@ describe("useCardDetail real-time updates", () => {
 
     await act(async () => {
       useBoardCardStore.getState().openCard("c1");
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
     expect(result.current.data?.card.title).toBe("Test Card");
@@ -251,7 +251,7 @@ describe("useCardDetail real-time updates", () => {
 
     await act(async () => {
       useBoardCardStore.getState().openCard("c1");
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
     // After opening, fetch returns baseCardDetail which has title "Test Card"
@@ -299,7 +299,7 @@ describe("useCardDetail real-time updates", () => {
 
     await act(async () => {
       useBoardCardStore.getState().openCard("c1");
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
     expect(result.current.data?.labels).toEqual([]);
