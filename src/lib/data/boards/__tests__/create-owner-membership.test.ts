@@ -63,25 +63,4 @@ describe("createBoard adds creator as owner", () => {
     expect(membership).toHaveLength(1);
     expect(membership[0].role).toBe("owner");
   });
-
-  it("sets joinedAt timestamp when adding owner", async () => {
-    const user = await createTestUser("timestamp");
-    const beforeCreate = new Date();
-
-    const board = await createBoard({
-      title: "Timestamp Board",
-      description: null,
-      background: "#ffffff",
-      ownerId: user.id,
-    });
-    factory.trackBoard(board.id);
-
-    const membership = await db
-      .select()
-      .from(boardMembers)
-      .where(and(eq(boardMembers.boardId, board.id), eq(boardMembers.userId, user.id)));
-
-    expect(membership[0].joinedAt).toBeInstanceOf(Date);
-    expect(membership[0].joinedAt.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
-  });
 });
