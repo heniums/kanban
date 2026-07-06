@@ -48,5 +48,5 @@ See `conductor/archive/` for historical completed track folders.
 
 ---
 
-- [~] **Track: Card detail modal does not receive real-time updates when another user updates the same card**
-  _Link: [./tracks/card_detail_realtime_20260706/](./tracks/card_detail_realtime_20260706/)_
+- [x] **Track: Card detail modal does not receive real-time updates when another user updates the same card**
+      _Link: [./tracks/card_detail_realtime_20260706/](./tracks/card_detail_realtime_20260706/)_

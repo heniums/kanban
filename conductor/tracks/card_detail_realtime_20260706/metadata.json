@@ -1,7 +1,7 @@
 {
   "track_id": "card_detail_realtime_20260706",
   "type": "bug",
-  "status": "new",
+  "status": "completed",
   "created_at": "2026-07-06T00:00:00Z",
   "updated_at": "2026-07-06T00:00:00Z",
   "description": "Card detail modal does not receive real-time updates when another user updates the same card"
