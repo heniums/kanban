@@ -40,3 +40,8 @@ See `conductor/archive/` for historical completed track folders.
 
 - [x] **Track: Board member management - allow board owners to invite registered users to collaborate on their boards with Owner + Member role model**
       _Link: [../archive/board_member_mgmt_20260705/](../archive/board_member_mgmt_20260705/)_
+
+---
+
+- [ ] **Track: Integration Test Database Cleanup via Transaction Rollback**
+      _Link: [./tracks/test_tx_rollback_20260707/](./tracks/test_tx_rollback_20260707/)_
