@@ -2,16 +2,16 @@
 
 ## Phase 1: Remove Dead Code
 
-- [ ] Task: Remove CARD_LABELS_UPDATED event type
-  - [ ] Remove `CARD_LABELS_UPDATED` from `REALTIME_EVENTS` in `src/lib/realtime/types.ts`
-  - [ ] Remove `CardLabelsUpdatedPayload` type from `types.ts`
-  - [ ] Remove `cardLabelsUpdatedEvent` state and actions from `src/lib/realtime/board-store.ts`
-  - [ ] Remove `CARD_LABELS_UPDATED` listener from `src/lib/realtime/use-board-socket.ts`
-  - [ ] Remove related tests from `src/lib/realtime/__tests__/use-board-socket.test.tsx`
-  - [ ] Remove related tests from `src/lib/realtime/__tests__/board-store.test.ts`
-  - [ ] Run `npm test` to ensure all tests pass
-  - [ ] Run `npm run typecheck` to ensure no type errors
-  - [ ] Commit changes with message `refactor(realtime): remove dead CARD_LABELS_UPDATED code`
+- [x] Task: Remove CARD_LABELS_UPDATED event type
+  - [x] Remove `CARD_LABELS_UPDATED` from `REALTIME_EVENTS` in `src/lib/realtime/types.ts`
+  - [x] Remove `CardLabelsUpdatedPayload` type from `types.ts`
+  - [x] Remove `cardLabelsUpdatedEvent` state and actions from `src/lib/realtime/board-store.ts`
+  - [x] Remove `CARD_LABELS_UPDATED` listener from `src/lib/realtime/use-board-socket.ts`
+  - [x] Remove related tests from `src/lib/realtime/__tests__/use-board-socket.test.tsx`
+  - [x] Remove related tests from `src/lib/realtime/__tests__/board-store.test.ts`
+  - [x] Run `npm test` to ensure all tests pass
+  - [x] Run `npm run typecheck` to ensure no type errors
+  - [x] Commit changes with message `refactor(realtime): remove dead CARD_LABELS_UPDATED code`
 - [ ] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
 ## Phase 2: Implement Card Detail Real-Time Updates

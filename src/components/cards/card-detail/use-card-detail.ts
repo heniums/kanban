@@ -154,6 +154,24 @@ export function useCardDetail({
         void refreshComments(cardId);
         useBoardCardStore.getState().clearCommentsRefresh(cardId);
       }
+
+      const updatedCard = state.cardsByList[d.card.listId]?.find((c) => c.id === cardId);
+      const prevCard = prevState.cardsByList[d.card.listId]?.find((c) => c.id === cardId);
+      if (updatedCard && updatedCard !== prevCard) {
+        setData((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            card: {
+              ...prev.card,
+              title: updatedCard.title,
+              description: updatedCard.description,
+              dueDate: updatedCard.dueDate,
+              updatedAt: updatedCard.updatedAt,
+            },
+          };
+        });
+      }
     });
 
     return () => {
