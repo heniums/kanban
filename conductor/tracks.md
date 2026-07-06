@@ -45,3 +45,8 @@ See `conductor/archive/` for historical completed track folders.
 
 - [x] **Track: Socket.io real-time events not working due to runtime isolation between custom server and Server Actions**
       _Link: [./tracks/socketio_runtime_fix_20260706/](./tracks/socketio_runtime_fix_20260706/)_
+
+---
+
+- [ ] **Track: Card detail modal does not receive real-time updates when another user updates the same card**
+      _Link: [./tracks/card_detail_realtime_20260706/](./tracks/card_detail_realtime_20260706/)_
