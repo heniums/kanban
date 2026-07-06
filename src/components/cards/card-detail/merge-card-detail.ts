@@ -21,17 +21,13 @@ export function mergeCardUpdate(prev: CardDetailData, updatedCard: RealtimeCard)
       dueDate: updatedCard.dueDate,
       updatedAt: updatedCard.updatedAt,
       checklistProgress:
-        (updatedCard as { checklistProgress?: { total: number; completed: number } | null })
-          .checklistProgress ??
+        updatedCard.checklistProgress ??
         (prev.card as { checklistProgress?: { total: number; completed: number } | null })
           .checklistProgress,
       commentCount:
-        (updatedCard as { commentCount?: number }).commentCount ??
-        (prev.card as { commentCount?: number }).commentCount,
-    },
-    labels:
-      (updatedCard as { labels?: { id: string; name: string; color: string }[] }).labels ??
-      prev.labels,
+        updatedCard.commentCount ?? (prev.card as { commentCount?: number }).commentCount,
+    } as CardDetailData["card"],
+    labels: updatedCard.labels ?? prev.labels,
   };
 }
 
@@ -39,7 +35,7 @@ export function mergeLabelUpdate(
   prev: CardDetailData,
   label: { id: string; name: string; color: string },
 ): CardDetailData {
-  const mapLabel = (l: { id: string; name: string; color: string }) =>
+  const mapLabel = <T extends { id: string; name: string; color: string }>(l: T) =>
     l.id === label.id ? { ...l, name: label.name, color: label.color } : l;
 
   return {
