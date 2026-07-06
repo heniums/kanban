@@ -38,10 +38,6 @@ export type LabelDeletedPayload = {
   boardId: string;
   labelId: string;
 };
-export type CardLabelsUpdatedPayload = {
-  boardId: string;
-  cardId: string;
-};
 
 export const REALTIME_EVENTS = {
   CARD_CREATED: "card:created",
@@ -55,7 +51,6 @@ export const REALTIME_EVENTS = {
   LIST_REORDERED: "list:reordered",
   LABEL_UPDATED: "label:updated",
   LABEL_DELETED: "label:deleted",
-  CARD_LABELS_UPDATED: "card:labelsUpdated",
 } as const;
 
 export const REALTIME_JOIN_BOARD = "board:join" as const;

@@ -195,13 +195,6 @@ export function useCardDetail({
         );
         useBoardCardStore.getState().clearLabelEvents();
       }
-
-      if (
-        state.cardLabelsUpdatedEvent &&
-        state.cardLabelsUpdatedEvent !== prevState.cardLabelsUpdatedEvent
-      ) {
-        useBoardCardStore.getState().clearLabelEvents();
-      }
     });
 
     return () => {

@@ -18,7 +18,6 @@ import {
   type ListsReorderedPayload,
   type LabelUpdatedPayload,
   type LabelDeletedPayload,
-  type CardLabelsUpdatedPayload,
 } from "@/lib/realtime/types";
 
 export function useBoardSocket(boardId: string | null) {
@@ -91,11 +90,6 @@ export function useBoardSocket(boardId: string | null) {
     socket.on(REALTIME_EVENTS.LABEL_DELETED, (payload: LabelDeletedPayload) => {
       if (payload?.boardId === boardId) {
         useBoardCardStore.getState().setLabelDeletedEvent(payload.labelId);
-      }
-    });
-    socket.on(REALTIME_EVENTS.CARD_LABELS_UPDATED, (payload: CardLabelsUpdatedPayload) => {
-      if (payload?.boardId === boardId) {
-        useBoardCardStore.getState().setCardLabelsUpdatedEvent(payload.cardId);
       }
     });
 

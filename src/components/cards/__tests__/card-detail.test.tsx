@@ -87,7 +87,6 @@ beforeEach(() => {
     cardsNeedingCommentsRefresh: new Set(),
     labelUpdatedEvent: null,
     labelDeletedEvent: null,
-    cardLabelsUpdatedEvent: null,
   });
   global.fetch = vi.fn().mockResolvedValue({
     ok: true,

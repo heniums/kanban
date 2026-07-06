@@ -29,7 +29,6 @@ beforeEach(() => {
     lists: [],
     labelUpdatedEvent: null,
     labelDeletedEvent: null,
-    cardLabelsUpdatedEvent: null,
   });
 });
 
@@ -141,35 +140,5 @@ describe("useBoardSocket LABEL_DELETED listener", () => {
     handler({ boardId: "b2", labelId: "l1" });
 
     expect(useBoardCardStore.getState().labelDeletedEvent).toBeNull();
-  });
-});
-
-describe("useBoardSocket CARD_LABELS_UPDATED listener", () => {
-  it("updates the store with the cardId event when boardId matches", () => {
-    render(<TestHarness boardId="b1" />);
-
-    const registerCall = mockSocket.on.mock.calls.find(
-      (call) => call[0] === REALTIME_EVENTS.CARD_LABELS_UPDATED,
-    );
-    expect(registerCall).toBeDefined();
-
-    const handler = registerCall![1];
-    handler({ boardId: "b1", cardId: "c1" });
-
-    expect(useBoardCardStore.getState().cardLabelsUpdatedEvent).toEqual({ cardId: "c1" });
-  });
-
-  it("ignores the event when boardId does not match", () => {
-    render(<TestHarness boardId="b1" />);
-
-    const registerCall = mockSocket.on.mock.calls.find(
-      (call) => call[0] === REALTIME_EVENTS.CARD_LABELS_UPDATED,
-    );
-    expect(registerCall).toBeDefined();
-
-    const handler = registerCall![1];
-    handler({ boardId: "b2", cardId: "c1" });
-
-    expect(useBoardCardStore.getState().cardLabelsUpdatedEvent).toBeNull();
   });
 });

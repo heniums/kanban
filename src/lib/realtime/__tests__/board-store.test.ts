@@ -14,7 +14,6 @@ beforeEach(() => {
     cardsNeedingCommentsRefresh: new Set(),
     labelUpdatedEvent: null,
     labelDeletedEvent: null,
-    cardLabelsUpdatedEvent: null,
     cardToOpen: null,
   });
 });
@@ -168,21 +167,13 @@ describe("useBoardCardStore label events", () => {
     expect(useBoardCardStore.getState().labelDeletedEvent).toEqual({ labelId: "l1" });
   });
 
-  it("sets card labels updated event", () => {
-    const store = useBoardCardStore.getState();
-    store.setCardLabelsUpdatedEvent("c1");
-    expect(useBoardCardStore.getState().cardLabelsUpdatedEvent).toEqual({ cardId: "c1" });
-  });
-
   it("clears all label events", () => {
     const store = useBoardCardStore.getState();
     store.setLabelUpdatedEvent({ id: "l1", name: "Bug", color: "#ff0000" });
     store.setLabelDeletedEvent("l2");
-    store.setCardLabelsUpdatedEvent("c1");
     store.clearLabelEvents();
     expect(useBoardCardStore.getState().labelUpdatedEvent).toBeNull();
     expect(useBoardCardStore.getState().labelDeletedEvent).toBeNull();
-    expect(useBoardCardStore.getState().cardLabelsUpdatedEvent).toBeNull();
   });
 });
 
