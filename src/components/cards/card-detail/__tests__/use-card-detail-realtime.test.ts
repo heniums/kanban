@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, act } from "@testing-library/react";
+import { renderHook, waitFor, act } from "@testing-library/react";
 import { useBoardCardStore } from "@/lib/realtime/board-store";
+import { useCardDetail } from "@/components/cards/card-detail/use-card-detail";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
@@ -81,7 +82,6 @@ describe("useCardDetail real-time updates", () => {
   });
 
   it("updates card data when CARD_UPDATED event is received for the open card", async () => {
-    const { useCardDetail } = await import("@/components/cards/card-detail/use-card-detail");
     const { result } = renderHook(() =>
       useCardDetail({ boardId: "b1", lists: [{ id: "l1", title: "To Do" }] }),
     );
@@ -94,10 +94,10 @@ describe("useCardDetail real-time updates", () => {
         [{ ...baseCardDetail.card, title: "Test Card" }],
       );
 
-    await act(async () => {
+    act(() => {
       useBoardCardStore.getState().openCard("c1");
-      await new Promise((resolve) => setTimeout(resolve, 0));
     });
+    await waitFor(() => expect(result.current.data).not.toBeNull());
 
     expect(result.current.data?.card.title).toBe("Test Card");
 
@@ -108,19 +108,18 @@ describe("useCardDetail real-time updates", () => {
       });
     });
 
-    expect(result.current.data?.card.title).toBe("Updated Title");
+    await waitFor(() => expect(result.current.data?.card.title).toBe("Updated Title"));
   });
 
   it("preserves dirty draft fields when remote update arrives", async () => {
-    const { useCardDetail } = await import("@/components/cards/card-detail/use-card-detail");
     const { result } = renderHook(() =>
       useCardDetail({ boardId: "b1", lists: [{ id: "l1", title: "To Do" }] }),
     );
 
-    await act(async () => {
+    act(() => {
       useBoardCardStore.getState().openCard("c1");
-      await new Promise((resolve) => setTimeout(resolve, 0));
     });
+    await waitFor(() => expect(result.current.data).not.toBeNull());
 
     act(() => {
       result.current.setDraft({
@@ -132,7 +131,7 @@ describe("useCardDetail real-time updates", () => {
       });
     });
 
-    expect(result.current.isDirty).toBe(true);
+    await waitFor(() => expect(result.current.isDirty).toBe(true));
 
     act(() => {
       useBoardCardStore.getState().updateCard({
@@ -142,12 +141,11 @@ describe("useCardDetail real-time updates", () => {
       });
     });
 
-    expect(result.current.draft?.title).toBe("User's draft title");
+    await waitFor(() => expect(result.current.draft?.title).toBe("User's draft title"));
     expect(result.current.draft?.description).toBe("User's draft description");
   });
 
   it("updates clean fields when remote update arrives", async () => {
-    const { useCardDetail } = await import("@/components/cards/card-detail/use-card-detail");
     const { result } = renderHook(() =>
       useCardDetail({ boardId: "b1", lists: [{ id: "l1", title: "To Do" }] }),
     );
@@ -160,10 +158,10 @@ describe("useCardDetail real-time updates", () => {
         [{ ...baseCardDetail.card, dueDate: null }],
       );
 
-    await act(async () => {
+    act(() => {
       useBoardCardStore.getState().openCard("c1");
-      await new Promise((resolve) => setTimeout(resolve, 0));
     });
+    await waitFor(() => expect(result.current.data).not.toBeNull());
 
     expect(result.current.data?.card.dueDate).toBeNull();
 
@@ -174,19 +172,18 @@ describe("useCardDetail real-time updates", () => {
       });
     });
 
-    expect(result.current.data?.card.dueDate).toEqual(new Date("2026-12-31"));
+    await waitFor(() => expect(result.current.data?.card.dueDate).toEqual(new Date("2026-12-31")));
   });
 
   it("does not update when a different card is updated", async () => {
-    const { useCardDetail } = await import("@/components/cards/card-detail/use-card-detail");
     const { result } = renderHook(() =>
       useCardDetail({ boardId: "b1", lists: [{ id: "l1", title: "To Do" }] }),
     );
 
-    await act(async () => {
+    act(() => {
       useBoardCardStore.getState().openCard("c1");
-      await new Promise((resolve) => setTimeout(resolve, 0));
     });
+    await waitFor(() => expect(result.current.data).not.toBeNull());
 
     const originalTitle = result.current.data?.card.title;
 
@@ -198,19 +195,18 @@ describe("useCardDetail real-time updates", () => {
       });
     });
 
-    expect(result.current.data?.card.title).toBe(originalTitle);
+    await waitFor(() => expect(result.current.data?.card.title).toBe(originalTitle));
   });
 
   it("does not crash when update arrives after card is closed", async () => {
-    const { useCardDetail } = await import("@/components/cards/card-detail/use-card-detail");
     const { result } = renderHook(() =>
       useCardDetail({ boardId: "b1", lists: [{ id: "l1", title: "To Do" }] }),
     );
 
-    await act(async () => {
+    act(() => {
       useBoardCardStore.getState().openCard("c1");
-      await new Promise((resolve) => setTimeout(resolve, 0));
     });
+    await waitFor(() => expect(result.current.data).not.toBeNull());
 
     expect(result.current.data?.card.title).toBe("Test Card");
 
@@ -218,8 +214,7 @@ describe("useCardDetail real-time updates", () => {
     act(() => {
       result.current.close();
     });
-
-    expect(result.current.open).toBe(false);
+    await waitFor(() => expect(result.current.open).toBe(false));
     expect(result.current.data).toBeNull();
 
     // Update should not crash when card is closed
@@ -231,12 +226,11 @@ describe("useCardDetail real-time updates", () => {
     });
 
     // Modal should remain closed and data null
-    expect(result.current.open).toBe(false);
+    await waitFor(() => expect(result.current.open).toBe(false));
     expect(result.current.data).toBeNull();
   });
 
   it("handles multiple rapid updates correctly", async () => {
-    const { useCardDetail } = await import("@/components/cards/card-detail/use-card-detail");
     const { result } = renderHook(() =>
       useCardDetail({ boardId: "b1", lists: [{ id: "l1", title: "To Do" }] }),
     );
@@ -249,10 +243,10 @@ describe("useCardDetail real-time updates", () => {
         [{ ...baseCardDetail.card, title: "Initial Title" }],
       );
 
-    await act(async () => {
+    act(() => {
       useBoardCardStore.getState().openCard("c1");
-      await new Promise((resolve) => setTimeout(resolve, 0));
     });
+    await waitFor(() => expect(result.current.data).not.toBeNull());
 
     // After opening, fetch returns baseCardDetail which has title "Test Card"
     expect(result.current.data?.card.title).toBe("Test Card");
@@ -280,11 +274,10 @@ describe("useCardDetail real-time updates", () => {
     });
 
     // Should have the latest update
-    expect(result.current.data?.card.title).toBe("Update 3");
+    await waitFor(() => expect(result.current.data?.card.title).toBe("Update 3"));
   });
 
   it("updates labels when remote update includes new labels", async () => {
-    const { useCardDetail } = await import("@/components/cards/card-detail/use-card-detail");
     const { result } = renderHook(() =>
       useCardDetail({ boardId: "b1", lists: [{ id: "l1", title: "To Do" }] }),
     );
@@ -297,10 +290,10 @@ describe("useCardDetail real-time updates", () => {
         [{ ...baseCardDetail.card, labels: [] }],
       );
 
-    await act(async () => {
+    act(() => {
       useBoardCardStore.getState().openCard("c1");
-      await new Promise((resolve) => setTimeout(resolve, 0));
     });
+    await waitFor(() => expect(result.current.data).not.toBeNull());
 
     expect(result.current.data?.labels).toEqual([]);
 
@@ -311,6 +304,8 @@ describe("useCardDetail real-time updates", () => {
       });
     });
 
-    expect(result.current.data?.labels).toEqual([{ id: "lbl1", name: "Bug", color: "#ff0000" }]);
+    await waitFor(() =>
+      expect(result.current.data?.labels).toEqual([{ id: "lbl1", name: "Bug", color: "#ff0000" }]),
+    );
   });
 });

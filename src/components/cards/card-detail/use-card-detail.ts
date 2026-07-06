@@ -10,6 +10,12 @@ import { useCardLabels } from "./use-card-labels";
 import { useCardMove } from "./use-card-move";
 import { useCardDelete } from "./use-card-delete";
 import { useCardCopy } from "./use-card-copy";
+import {
+  mergeCardUpdate,
+  mergeLabelDeletion,
+  mergeLabelUpdate,
+  mergeRefreshedSections,
+} from "./merge-card-detail";
 
 export interface DraftState {
   title: string;
@@ -115,15 +121,7 @@ export function useCardDetail({
       const res = await fetch(`/api/cards/${cardId}`);
       if (!res.ok) return;
       const body = (await res.json()) as CardDetailData;
-      setData((prev) =>
-        prev
-          ? {
-              ...prev,
-              checklists: body.checklists,
-              comments: body.comments,
-            }
-          : prev,
-      );
+      setData((prev) => (prev ? mergeRefreshedSections(prev, body) : prev));
     } catch {
       // ignore
     }
@@ -152,30 +150,7 @@ export function useCardDetail({
       const updatedCard = state.cardsByList[d.card.listId]?.find((c) => c.id === cardId);
       const prevCard = prevState.cardsByList[d.card.listId]?.find((c) => c.id === cardId);
       if (updatedCard && updatedCard !== prevCard) {
-        setData((prev) => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            card: {
-              ...prev.card,
-              title: updatedCard.title,
-              description: updatedCard.description,
-              dueDate: updatedCard.dueDate,
-              updatedAt: updatedCard.updatedAt,
-              checklistProgress:
-                (updatedCard as { checklistProgress?: { total: number; completed: number } | null })
-                  .checklistProgress ??
-                (prev.card as { checklistProgress?: { total: number; completed: number } | null })
-                  .checklistProgress,
-              commentCount:
-                (updatedCard as { commentCount?: number }).commentCount ??
-                (prev.card as { commentCount?: number }).commentCount,
-            },
-            labels:
-              (updatedCard as { labels?: { id: string; name: string; color: string }[] }).labels ??
-              prev.labels,
-          };
-        });
+        setData((prev) => (prev ? mergeCardUpdate(prev, updatedCard) : prev));
       }
     });
 
@@ -188,31 +163,13 @@ export function useCardDetail({
     const unsubscribe = useBoardCardStore.subscribe((state, prevState) => {
       if (state.labelUpdatedEvent && state.labelUpdatedEvent !== prevState.labelUpdatedEvent) {
         const label = state.labelUpdatedEvent.label;
-        setData((prev) => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            boardLabels: prev.boardLabels.map((l) =>
-              l.id === label.id ? { ...l, name: label.name, color: label.color } : l,
-            ),
-            labels: prev.labels.map((l) =>
-              l.id === label.id ? { ...l, name: label.name, color: label.color } : l,
-            ),
-          };
-        });
+        setData((prev) => (prev ? mergeLabelUpdate(prev, label) : prev));
         useBoardCardStore.getState().clearLabelEvents();
       }
 
       if (state.labelDeletedEvent && state.labelDeletedEvent !== prevState.labelDeletedEvent) {
         const labelId = state.labelDeletedEvent.labelId;
-        setData((prev) => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            boardLabels: prev.boardLabels.filter((l) => l.id !== labelId),
-            labels: prev.labels.filter((l) => l.id !== labelId),
-          };
-        });
+        setData((prev) => (prev ? mergeLabelDeletion(prev, labelId) : prev));
         setDraft((prev) =>
           prev ? { ...prev, labelIds: prev.labelIds.filter((id) => id !== labelId) } : prev,
         );
