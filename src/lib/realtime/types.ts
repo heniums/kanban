@@ -1,7 +1,7 @@
-import type { Card } from "@/lib/db/schema/cards";
+import type { CardSummary } from "@/components/cards/card-item";
 
-export type CardCreatedPayload = { card: Card };
-export type CardUpdatedPayload = { card: Card };
+export type CardCreatedPayload = { card: CardSummary };
+export type CardUpdatedPayload = { card: CardSummary };
 export type CardDeletedPayload = { cardId: string; listId: string; boardId: string };
 export type CardMovedPayload = {
   cardId: string;

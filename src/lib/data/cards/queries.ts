@@ -5,6 +5,7 @@ import { cardLabels } from "@/lib/db/schema/card-labels";
 import { labels, type Label } from "@/lib/db/schema/labels";
 import { cardAssignees } from "@/lib/db/schema/card-assignees";
 import { users } from "@/lib/db/schema/users";
+import type { CardSummary } from "@/components/cards/card-item";
 
 export async function getCardById(cardId: string): Promise<Card | null> {
   const db = createDbClient();
@@ -13,6 +14,33 @@ export async function getCardById(cardId: string): Promise<Card | null> {
     .from(cards)
     .where(sql`${cards.id} = ${cardId}`);
   return card?.card ?? null;
+}
+
+export async function getCardSummaryById(cardId: string): Promise<CardSummary | null> {
+  const db = createDbClient();
+  const card = await getCardById(cardId);
+  if (!card) return null;
+
+  const [labelRows, assigneeRows] = await Promise.all([
+    db
+      .select({ id: labels.id, name: labels.name, color: labels.color })
+      .from(cardLabels)
+      .innerJoin(labels, eq(labels.id, cardLabels.labelId))
+      .where(sql`${cardLabels.cardId} = ${cardId}`),
+    db
+      .select({ id: users.id, name: users.name })
+      .from(cardAssignees)
+      .innerJoin(users, eq(users.id, cardAssignees.userId))
+      .where(sql`${cardAssignees.cardId} = ${cardId}`),
+  ]);
+
+  return {
+    ...card,
+    labels: labelRows,
+    assignees: assigneeRows,
+    checklistProgress: null,
+    commentCount: 0,
+  };
 }
 
 export async function getCardsByBoardId(boardId: string): Promise<Card[]> {

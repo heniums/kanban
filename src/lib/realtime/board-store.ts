@@ -1,9 +1,9 @@
 "use client";
 
 import { create } from "zustand";
-import type { Card } from "@/lib/db/schema/cards";
+import type { CardSummary } from "@/components/cards/card-item";
 
-type RealtimeCard = Card;
+type RealtimeCard = CardSummary;
 
 interface BoardCardState {
   boardId: string | null;
@@ -13,6 +13,7 @@ interface BoardCardState {
   cardsNeedingCommentsRefresh: Set<string>;
   labelUpdatedEvent: { label: { id: string; name: string; color: string } } | null;
   labelDeletedEvent: { labelId: string } | null;
+  cardLabelsUpdatedEvent: { cardId: string } | null;
   cardToOpen: string | null;
   setInitial: (boardId: string, lists: BoardCardState["lists"], cards: RealtimeCard[]) => void;
   addCard: (card: RealtimeCard) => void;
@@ -20,12 +21,14 @@ interface BoardCardState {
   deleteCard: (cardId: string, listId: string) => void;
   moveCard: (cardId: string, targetListId: string, targetPosition: number) => void;
   reorderLists: (orderedListIds: string[]) => void;
+  setLists: (lists: BoardCardState["lists"]) => void;
   markChecklistRefresh: (cardId: string) => void;
-  markCommentsRefresh: (cardId: string) => void;
   clearChecklistRefresh: (cardId: string) => void;
+  markCommentsRefresh: (cardId: string) => void;
   clearCommentsRefresh: (cardId: string) => void;
   setLabelUpdatedEvent: (label: { id: string; name: string; color: string }) => void;
   setLabelDeletedEvent: (labelId: string) => void;
+  setCardLabelsUpdatedEvent: (cardId: string) => void;
   clearLabelEvents: () => void;
   openCard: (cardId: string) => void;
   clearCardToOpen: () => void;
@@ -39,6 +42,7 @@ export const useBoardCardStore = create<BoardCardState>((set) => ({
   cardsNeedingCommentsRefresh: new Set(),
   labelUpdatedEvent: null,
   labelDeletedEvent: null,
+  cardLabelsUpdatedEvent: null,
   cardToOpen: null,
   setInitial: (boardId, lists, cards) =>
     set(() => {
@@ -70,19 +74,12 @@ export const useBoardCardStore = create<BoardCardState>((set) => ({
           const existingCard = list[listId][idx];
           const next = [...list[listId]];
           next[idx] = {
+            ...existingCard,
             ...card,
-            labels:
-              (card as { labels?: unknown }).labels ??
-              (existingCard as { labels?: unknown }).labels,
-            assignees:
-              (card as { assignees?: unknown }).assignees ??
-              (existingCard as { assignees?: unknown }).assignees,
-            checklistProgress:
-              (card as { checklistProgress?: unknown }).checklistProgress ??
-              (existingCard as { checklistProgress?: unknown }).checklistProgress,
-            commentCount:
-              (card as { commentCount?: unknown }).commentCount ??
-              (existingCard as { commentCount?: unknown }).commentCount,
+            labels: card.labels ?? existingCard.labels,
+            assignees: card.assignees ?? existingCard.assignees,
+            checklistProgress: card.checklistProgress ?? existingCard.checklistProgress,
+            commentCount: card.commentCount ?? existingCard.commentCount,
           } as RealtimeCard;
           list[listId] = next.sort((a, b) => a.position - b.position);
           return { cardsByList: list };
@@ -102,22 +99,24 @@ export const useBoardCardStore = create<BoardCardState>((set) => ({
     set((s) => {
       const list = { ...s.cardsByList };
       let movedCard: RealtimeCard | null = null;
-      for (const listId of Object.keys(list)) {
-        const idx = list[listId].findIndex((c) => c.id === cardId);
+      let sourceListId: string | null = null;
+      for (const lid of Object.keys(list)) {
+        const idx = list[lid].findIndex((c) => c.id === cardId);
         if (idx >= 0) {
-          movedCard = { ...list[listId][idx], listId: targetListId, position: targetPosition };
-          list[listId] = list[listId].filter((c) => c.id !== cardId);
+          movedCard = { ...list[lid][idx], listId: targetListId, position: targetPosition };
+          sourceListId = lid;
+          list[lid] = list[lid].filter((c) => c.id !== cardId);
           break;
         }
       }
-      if (!movedCard) return s;
+      if (!movedCard || !sourceListId) return s;
       if (!list[targetListId]) list[targetListId] = [];
       const arr = [...list[targetListId]];
       arr.splice(targetPosition, 0, movedCard);
       arr.forEach((c, i) => (c.position = i));
       list[targetListId] = arr;
-      for (const listId of Object.keys(list)) {
-        list[listId].forEach((c, i) => (c.position = i));
+      for (const lid of Object.keys(list)) {
+        list[lid].forEach((c, i) => (c.position = i));
       }
       return { cardsByList: list };
     }),
@@ -129,10 +128,17 @@ export const useBoardCardStore = create<BoardCardState>((set) => ({
         .map((id, index) => ({ ...listMap.get(id)!, position: index }));
       return { lists: next };
     }),
+  setLists: (lists) => set(() => ({ lists })),
   markChecklistRefresh: (cardId) =>
     set((s) => {
       const next = new Set(s.cardsNeedingChecklistRefresh);
       next.add(cardId);
+      return { cardsNeedingChecklistRefresh: next };
+    }),
+  clearChecklistRefresh: (cardId) =>
+    set((s) => {
+      const next = new Set(s.cardsNeedingChecklistRefresh);
+      next.delete(cardId);
       return { cardsNeedingChecklistRefresh: next };
     }),
   markCommentsRefresh: (cardId) =>
@@ -140,12 +146,6 @@ export const useBoardCardStore = create<BoardCardState>((set) => ({
       const next = new Set(s.cardsNeedingCommentsRefresh);
       next.add(cardId);
       return { cardsNeedingCommentsRefresh: next };
-    }),
-  clearChecklistRefresh: (cardId) =>
-    set((s) => {
-      const next = new Set(s.cardsNeedingChecklistRefresh);
-      next.delete(cardId);
-      return { cardsNeedingChecklistRefresh: next };
     }),
   clearCommentsRefresh: (cardId) =>
     set((s) => {
@@ -155,10 +155,12 @@ export const useBoardCardStore = create<BoardCardState>((set) => ({
     }),
   setLabelUpdatedEvent: (label) => set(() => ({ labelUpdatedEvent: { label } })),
   setLabelDeletedEvent: (labelId) => set(() => ({ labelDeletedEvent: { labelId } })),
+  setCardLabelsUpdatedEvent: (cardId) => set(() => ({ cardLabelsUpdatedEvent: { cardId } })),
   clearLabelEvents: () =>
     set(() => ({
       labelUpdatedEvent: null,
       labelDeletedEvent: null,
+      cardLabelsUpdatedEvent: null,
     })),
   openCard: (cardId) => set(() => ({ cardToOpen: cardId })),
   clearCardToOpen: () => set(() => ({ cardToOpen: null })),

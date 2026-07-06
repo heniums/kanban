@@ -269,8 +269,10 @@ export function useCardDetail({
         assignees: data.boardMembers
           .filter((m) => draft.assigneeIds.includes(m.id))
           .map((m) => ({ id: m.id, name: m.name })),
-        checklistProgress: (existingCard as { checklistProgress?: unknown })?.checklistProgress,
-        commentCount: (existingCard as { commentCount?: number })?.commentCount,
+        checklistProgress:
+          (existingCard as { checklistProgress?: { total: number; completed: number } | null })
+            ?.checklistProgress ?? null,
+        commentCount: (existingCard as { commentCount?: number })?.commentCount ?? 0,
       };
       useBoardCardStore.getState().updateCard(updatedCard);
       toast.success("Card saved");
