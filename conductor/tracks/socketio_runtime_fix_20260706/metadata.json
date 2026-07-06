@@ -1,0 +1,8 @@
+{
+  "track_id": "socketio_runtime_fix_20260706",
+  "type": "bug",
+  "status": "new",
+  "created_at": "2026-07-06T00:00:00Z",
+  "updated_at": "2026-07-06T00:00:00Z",
+  "description": "Socket.io real-time events not working due to runtime isolation between custom server and Server Actions"
+}

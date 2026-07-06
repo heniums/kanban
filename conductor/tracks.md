@@ -4,7 +4,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-All tracks are complete. See `conductor/archive/` for historical track folders.
+See `conductor/archive/` for historical completed track folders.
 
 ---
 
@@ -40,3 +40,8 @@ All tracks are complete. See `conductor/archive/` for historical track folders.
 
 - [x] **Track: Board member management - allow board owners to invite registered users to collaborate on their boards with Owner + Member role model**
       _Link: [../archive/board_member_mgmt_20260705/](../archive/board_member_mgmt_20260705/)_
+
+---
+
+- [ ] **Track: Socket.io real-time events not working due to runtime isolation between custom server and Server Actions**
+      _Link: [./tracks/socketio_runtime_fix_20260706/](./tracks/socketio_runtime_fix_20260706/)_
