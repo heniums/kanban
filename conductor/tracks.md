@@ -53,5 +53,5 @@ See `conductor/archive/` for historical completed track folders.
 
 ---
 
-- [ ] **Track: Card detail assignees lists all users instead of board members only**
-      _Link: [./tracks/card_assignees_scope_20260707/](./tracks/card_assignees_scope_20260707/)_
+- [~] **Track: Card detail assignees lists all users instead of board members only**
+  _Link: [./tracks/card_assignees_scope_20260707/](./tracks/card_assignees_scope_20260707/)_

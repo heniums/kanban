@@ -12,6 +12,7 @@ import { checklists } from "@/lib/db/schema/checklists";
 import { checklistItems } from "@/lib/db/schema/checklist-items";
 import { comments } from "@/lib/db/schema/comments";
 import { users } from "@/lib/db/schema/users";
+import { getBoardMembers } from "@/lib/data/members/list";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ cardId: string }> }) {
   const { userId } = await verifySession();
@@ -68,10 +69,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ car
       .from(comments)
       .where(eq(comments.cardId, cardId))
       .orderBy(sql`${comments.createdAt} ASC`),
-    db
-      .select({ id: users.id, name: users.name, email: users.email })
-      .from(users)
-      .orderBy(sql`${users.name} ASC`),
+    getBoardMembers(card.boardId),
   ]);
 
   const itemsByChecklist = new Map<string, typeof cardItemRows>();
@@ -88,6 +86,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ car
     assignees: cardAssigneeRows,
     checklists: cardChecklistRows.map((c) => ({ ...c, items: itemsByChecklist.get(c.id) ?? [] })),
     comments: cardCommentRows,
-    boardMembers: boardMembersList,
+    boardMembers: boardMembersList.map((m) => ({
+      id: m.user.id,
+      name: m.user.name,
+      email: m.user.email,
+    })),
   });
 }
