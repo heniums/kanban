@@ -2,26 +2,28 @@ import { describe, expect, it } from "vitest";
 import { eq, and } from "drizzle-orm";
 // @vitest-environment node
 import { createDbClient } from "@/lib/db/client";
+import { users } from "@/lib/db/schema/users";
+import { boards } from "@/lib/db/schema/boards";
 import { boardMembers } from "@/lib/db/schema/board-members";
-import { TestDataFactory } from "@/__tests__/test-factory";
 import { createBoard } from "@/lib/data/boards/create";
 
 const db = createDbClient();
-const factory = new TestDataFactory();
-factory.registerCleanup();
 
-async function createTestUser(label: string) {
-  return factory.createUser({
-    email: `test-owner-${label}-${Date.now()}-${Math.random()
-      .toString(36)
-      .slice(2, 8)}@kanban.local`,
-    name: `Test User ${label}`,
-  });
+async function createTestUser() {
+  const [user] = await db
+    .insert(users)
+    .values({
+      email: `owner-test-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@kanban.local`,
+      passwordHash: "test-hash",
+      name: "Owner Test User",
+    })
+    .returning();
+  return user;
 }
 
 describe("createBoard adds creator as owner", () => {
   it("automatically adds board creator as 'owner' in board_members", async () => {
-    const user = await createTestUser("owner");
+    const user = await createTestUser();
 
     const board = await createBoard({
       title: "Owner Test Board",
@@ -29,7 +31,6 @@ describe("createBoard adds creator as owner", () => {
       background: "#1a1a2e",
       ownerId: user.id,
     });
-    factory.trackBoard(board.id);
 
     const membership = await db
       .select()
@@ -44,7 +45,7 @@ describe("createBoard adds creator as owner", () => {
   });
 
   it("creates board and membership atomically in a transaction", async () => {
-    const user = await createTestUser("atomic");
+    const user = await createTestUser();
 
     const board = await createBoard({
       title: "Atomic Board",
@@ -52,7 +53,6 @@ describe("createBoard adds creator as owner", () => {
       background: "#000000",
       ownerId: user.id,
     });
-    factory.trackBoard(board.id);
 
     // Verify both board and membership exist
     const membership = await db
@@ -65,7 +65,7 @@ describe("createBoard adds creator as owner", () => {
   });
 
   it("sets joinedAt timestamp when adding owner", async () => {
-    const user = await createTestUser("timestamp");
+    const user = await createTestUser();
     const beforeCreate = new Date();
 
     const board = await createBoard({
@@ -74,7 +74,6 @@ describe("createBoard adds creator as owner", () => {
       background: "#ffffff",
       ownerId: user.id,
     });
-    factory.trackBoard(board.id);
 
     const membership = await db
       .select()

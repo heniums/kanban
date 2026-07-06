@@ -2,26 +2,29 @@ import { describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
 // @vitest-environment node
 import { createDbClient } from "@/lib/db/client";
+import { users } from "@/lib/db/schema/users";
+import { boards } from "@/lib/db/schema/boards";
+import { boardMembers } from "@/lib/db/schema/board-members";
 import { lists } from "@/lib/db/schema/lists";
-import { TestDataFactory } from "@/__tests__/test-factory";
 import { createBoard } from "@/lib/data/boards/create";
 
 const db = createDbClient();
-const factory = new TestDataFactory();
-factory.registerCleanup();
 
-async function createTestUser(label: string) {
-  return factory.createUser({
-    email: `test-list-side-effect-${label}-${Date.now()}-${Math.random()
-      .toString(36)
-      .slice(2, 8)}@kanban.local`,
-    name: `Test User ${label}`,
-  });
+async function createTestUser() {
+  const [user] = await db
+    .insert(users)
+    .values({
+      email: `default-list-test-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@kanban.local`,
+      passwordHash: "test-hash",
+      name: "Default List Test User",
+    })
+    .returning();
+  return user;
 }
 
 describe("createBoard default list side effect", () => {
   it("creates a default 'To Do' list with position 0 atomically", async () => {
-    const user = await createTestUser("atomic");
+    const user = await createTestUser();
 
     const board = await createBoard({
       title: "My New Board",
@@ -29,7 +32,6 @@ describe("createBoard default list side effect", () => {
       background: "#1a1a2e",
       ownerId: user.id,
     });
-    factory.trackBoard(board.id);
 
     const boardLists = await db.select().from(lists).where(eq(lists.boardId, board.id));
 
@@ -40,7 +42,7 @@ describe("createBoard default list side effect", () => {
   });
 
   it("creates the default list even when the board has a description", async () => {
-    const user = await createTestUser("with-desc");
+    const user = await createTestUser();
 
     const board = await createBoard({
       title: "Described Board",
@@ -48,7 +50,6 @@ describe("createBoard default list side effect", () => {
       background: "linear-gradient(135deg, #000, #fff)",
       ownerId: user.id,
     });
-    factory.trackBoard(board.id);
 
     const boardLists = await db.select().from(lists).where(eq(lists.boardId, board.id));
 

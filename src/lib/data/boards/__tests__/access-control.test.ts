@@ -1,34 +1,62 @@
 import { describe, it, expect, beforeEach } from "vitest";
+// @vitest-environment node
 import { createDbClient } from "@/lib/db/client";
+import { users } from "@/lib/db/schema/users";
+import { boards } from "@/lib/db/schema/boards";
 import { boardMembers } from "@/lib/db/schema/board-members";
 import { eq } from "drizzle-orm";
-import { TestDataFactory } from "@/__tests__/test-factory";
 import { getBoardById } from "../get";
 import { listBoardsByMember } from "../list";
 
-describe("Board access control (membership-based)", () => {
-  const factory = new TestDataFactory();
-  factory.registerCleanup();
+const db = createDbClient();
 
+async function createTestUser(name: string) {
+  const [user] = await db
+    .insert(users)
+    .values({
+      email: `access-test-${name}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@kanban.local`,
+      passwordHash: "test-hash",
+      name,
+    })
+    .returning();
+  return user;
+}
+
+async function createTestBoard(ownerId: string, title: string) {
+  const [board] = await db
+    .insert(boards)
+    .values({
+      title,
+      background: "#000000",
+      ownerId,
+    })
+    .returning();
+  await db.insert(boardMembers).values({
+    boardId: board.id,
+    userId: ownerId,
+    role: "owner",
+  });
+  return board;
+}
+
+describe("Board access control (membership-based)", () => {
   let userId1: string;
   let userId2: string;
   let boardId1: string;
   let boardId2: string;
 
   beforeEach(async () => {
-    const user1 = await factory.createUser();
+    const user1 = await createTestUser("User 1");
     userId1 = user1.id;
 
-    const user2 = await factory.createUser();
+    const user2 = await createTestUser("User 2");
     userId2 = user2.id;
 
-    const board1 = await factory.createBoard({ ownerId: userId1, title: "Board 1" });
+    const board1 = await createTestBoard(userId1, "Board 1");
     boardId1 = board1.id;
 
-    const board2 = await factory.createBoard({ ownerId: userId2, title: "Board 2" });
+    const board2 = await createTestBoard(userId2, "Board 2");
     boardId2 = board2.id;
-
-    const db = createDbClient();
 
     await db.insert(boardMembers).values({
       boardId: boardId1,
@@ -81,7 +109,6 @@ describe("Board access control (membership-based)", () => {
     });
 
     it("returns empty array when user has no memberships", async () => {
-      const db = createDbClient();
       await db.delete(boardMembers).where(eq(boardMembers.userId, userId1));
       const userBoards = await listBoardsByMember(userId1);
       expect(userBoards).toHaveLength(0);

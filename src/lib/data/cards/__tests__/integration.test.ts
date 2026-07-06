@@ -2,65 +2,73 @@ import { describe, expect, it } from "vitest";
 import { asc, eq } from "drizzle-orm";
 // @vitest-environment node
 import { createDbClient } from "@/lib/db/client";
+import { users } from "@/lib/db/schema/users";
+import { boards } from "@/lib/db/schema/boards";
+import { boardMembers } from "@/lib/db/schema/board-members";
 import { lists } from "@/lib/db/schema/lists";
 import { cards } from "@/lib/db/schema/cards";
 import { cardLabels } from "@/lib/db/schema/card-labels";
 import { cardAssignees } from "@/lib/db/schema/card-assignees";
 import { labels } from "@/lib/db/schema/labels";
-import type { User } from "@/lib/db/schema/users";
-import { TestDataFactory } from "@/__tests__/test-factory";
-import { getListsByBoardId } from "@/lib/data/lists";
 import { createCard, moveCard, reorderCards, updateCard, deleteCard } from "..";
 
 const db = createDbClient();
-const factory = new TestDataFactory();
-factory.registerCleanup();
 
-let testBoardId: string | null = null;
-let testOwnerId: string | null = null;
-let testOwner: User | null = null;
+async function createTestUser() {
+  const [user] = await db
+    .insert(users)
+    .values({
+      email: `card-test-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@kanban.local`,
+      passwordHash: "test-hash",
+      name: "Card Test User",
+    })
+    .returning();
+  return user;
+}
 
-async function ensureTestBoard() {
-  if (testBoardId && testOwnerId && testOwner)
-    return { boardId: testBoardId, ownerId: testOwnerId, owner: testOwner };
-  const user = await factory.createUser();
-  const board = await factory.createBoard({ ownerId: user.id, title: "Cards Test Board" });
-  testBoardId = board.id;
-  testOwnerId = user.id;
-  testOwner = user;
-  return { boardId: board.id, ownerId: user.id, owner: user };
+async function createTestBoard(ownerId: string) {
+  const [board] = await db
+    .insert(boards)
+    .values({
+      title: "Cards Test Board",
+      background: "#000000",
+      ownerId,
+    })
+    .returning();
+  await db.insert(boardMembers).values({
+    boardId: board.id,
+    userId: ownerId,
+    role: "owner",
+  });
+  return board;
+}
+
+async function createTestLists(boardId: string) {
+  const [l0] = await db.insert(lists).values({ boardId, title: "To Do", position: 0 }).returning();
+  const [l1] = await db.insert(lists).values({ boardId, title: "Doing", position: 1 }).returning();
+  return { l0, l1 };
 }
 
 async function getCardsByListIdDirect(listId: string) {
   return db.select().from(cards).where(eq(cards.listId, listId)).orderBy(asc(cards.position));
 }
 
-async function resetList(boardId: string) {
-  await db.delete(cards).where(eq(cards.boardId, boardId));
-  const remaining = await getListsByBoardId(boardId);
-  for (const l of remaining) {
-    await db.delete(lists).where(eq(lists.id, l.id));
-  }
-  const l0 = await db.insert(lists).values({ boardId, title: "To Do", position: 0 }).returning();
-  const l1 = await db.insert(lists).values({ boardId, title: "Doing", position: 1 }).returning();
-  return { l0: l0[0], l1: l1[0] };
-}
-
 describe("createCard (integration)", () => {
   it("auto-assigns the next position and links label/assignee ids", async () => {
-    const { boardId, owner } = await ensureTestBoard();
-    const { l0 } = await resetList(boardId);
+    const user = await createTestUser();
+    const board = await createTestBoard(user.id);
+    const { l0 } = await createTestLists(board.id);
 
     const [lbl] = await db
       .insert(labels)
-      .values({ boardId, name: "Bug", color: "#ff0000" })
+      .values({ boardId: board.id, name: "Bug", color: "#ff0000" })
       .returning();
 
     const card = await createCard({
       listId: l0.id,
       title: "Card A",
       labelIds: [lbl.id],
-      assigneeIds: [owner.id],
+      assigneeIds: [user.id],
     });
 
     expect(card.position).toBe(0);
@@ -75,14 +83,15 @@ describe("createCard (integration)", () => {
       .from(cardAssignees)
       .where(eq(cardAssignees.cardId, card.id));
     expect(linkedAssignees).toHaveLength(1);
-    expect(linkedAssignees[0].userId).toBe(owner.id);
+    expect(linkedAssignees[0].userId).toBe(user.id);
   });
 });
 
 describe("getCardsByListId (integration)", () => {
   it("returns cards in position order", async () => {
-    const { boardId } = await ensureTestBoard();
-    const { l0 } = await resetList(boardId);
+    const user = await createTestUser();
+    const board = await createTestBoard(user.id);
+    const { l0 } = await createTestLists(board.id);
 
     await createCard({ listId: l0.id, title: "A" });
     await createCard({ listId: l0.id, title: "B" });
@@ -96,16 +105,17 @@ describe("getCardsByListId (integration)", () => {
 
 describe("updateCard (integration)", () => {
   it("updates title and replaces label links", async () => {
-    const { boardId } = await ensureTestBoard();
-    const { l0 } = await resetList(boardId);
+    const user = await createTestUser();
+    const board = await createTestBoard(user.id);
+    const { l0 } = await createTestLists(board.id);
 
     const [lbl1] = await db
       .insert(labels)
-      .values({ boardId, name: "L1", color: "#ff0000" })
+      .values({ boardId: board.id, name: "L1", color: "#ff0000" })
       .returning();
     const [lbl2] = await db
       .insert(labels)
-      .values({ boardId, name: "L2", color: "#00ff00" })
+      .values({ boardId: board.id, name: "L2", color: "#00ff00" })
       .returning();
 
     const created = await createCard({ listId: l0.id, title: "Initial", labelIds: [lbl1.id] });
@@ -118,12 +128,13 @@ describe("updateCard (integration)", () => {
   });
 
   it("replaces labels without changing scalar fields", async () => {
-    const { boardId } = await ensureTestBoard();
-    const { l0 } = await resetList(boardId);
+    const user = await createTestUser();
+    const board = await createTestBoard(user.id);
+    const { l0 } = await createTestLists(board.id);
 
     const [lbl] = await db
       .insert(labels)
-      .values({ boardId, name: "Tag A", color: "#0000ff" })
+      .values({ boardId: board.id, name: "Tag A", color: "#0000ff" })
       .returning();
 
     const created = await createCard({ listId: l0.id, title: "Card" });
@@ -138,11 +149,12 @@ describe("updateCard (integration)", () => {
   });
 
   it("replaces assignees without changing scalar fields", async () => {
-    const { boardId, owner } = await ensureTestBoard();
-    const { l0 } = await resetList(boardId);
+    const user = await createTestUser();
+    const board = await createTestBoard(user.id);
+    const { l0 } = await createTestLists(board.id);
 
     const created = await createCard({ listId: l0.id, title: "Card" });
-    const updated = await updateCard(created.id, { assigneeIds: [owner.id] });
+    const updated = await updateCard(created.id, { assigneeIds: [user.id] });
 
     expect(updated?.id).toBe(created.id);
 
@@ -151,14 +163,15 @@ describe("updateCard (integration)", () => {
       .from(cardAssignees)
       .where(eq(cardAssignees.cardId, created.id));
     expect(linked).toHaveLength(1);
-    expect(linked[0].userId).toBe(owner.id);
+    expect(linked[0].userId).toBe(user.id);
   });
 });
 
 describe("deleteCard (integration) — position recompaction", () => {
   it("recompacts positions within the same list", async () => {
-    const { boardId } = await ensureTestBoard();
-    const { l0 } = await resetList(boardId);
+    const user = await createTestUser();
+    const board = await createTestBoard(user.id);
+    const { l0 } = await createTestLists(board.id);
 
     const c0 = await createCard({ listId: l0.id, title: "C0" });
     const c1 = await createCard({ listId: l0.id, title: "C1" });
@@ -177,8 +190,9 @@ describe("deleteCard (integration) — position recompaction", () => {
 
 describe("moveCard (integration)", () => {
   it("moves a card across lists and recompacts both", async () => {
-    const { boardId } = await ensureTestBoard();
-    const { l0, l1 } = await resetList(boardId);
+    const user = await createTestUser();
+    const board = await createTestBoard(user.id);
+    const { l0, l1 } = await createTestLists(board.id);
 
     const c0 = await createCard({ listId: l0.id, title: "C0" });
     const c1 = await createCard({ listId: l0.id, title: "C1" });
@@ -201,8 +215,9 @@ describe("moveCard (integration)", () => {
 
 describe("reorderCards (integration)", () => {
   it("reorders cards to match the new positions", async () => {
-    const { boardId } = await ensureTestBoard();
-    const { l0 } = await resetList(boardId);
+    const user = await createTestUser();
+    const board = await createTestBoard(user.id);
+    const { l0 } = await createTestLists(board.id);
 
     const a = await createCard({ listId: l0.id, title: "A" });
     const b = await createCard({ listId: l0.id, title: "B" });
