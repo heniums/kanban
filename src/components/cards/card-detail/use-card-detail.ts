@@ -110,23 +110,20 @@ export function useCardDetail({
     dataRef.current = data;
   }, [data]);
 
-  async function refreshChecklists(cardId: string) {
+  async function refreshCardDetail(cardId: string) {
     try {
       const res = await fetch(`/api/cards/${cardId}`);
       if (!res.ok) return;
       const body = (await res.json()) as CardDetailData;
-      setData((prev) => (prev ? { ...prev, checklists: body.checklists } : prev));
-    } catch {
-      // ignore
-    }
-  }
-
-  async function refreshComments(cardId: string) {
-    try {
-      const res = await fetch(`/api/cards/${cardId}`);
-      if (!res.ok) return;
-      const body = (await res.json()) as CardDetailData;
-      setData((prev) => (prev ? { ...prev, comments: body.comments } : prev));
+      setData((prev) =>
+        prev
+          ? {
+              ...prev,
+              checklists: body.checklists,
+              comments: body.comments,
+            }
+          : prev,
+      );
     } catch {
       // ignore
     }
@@ -139,19 +136,16 @@ export function useCardDetail({
 
       const cardId = d.card.id;
 
-      if (
+      const needsChecklistRefresh =
         state.cardsNeedingChecklistRefresh.has(cardId) &&
-        !prevState.cardsNeedingChecklistRefresh.has(cardId)
-      ) {
-        void refreshChecklists(cardId);
-        useBoardCardStore.getState().clearChecklistRefresh(cardId);
-      }
-
-      if (
+        !prevState.cardsNeedingChecklistRefresh.has(cardId);
+      const needsCommentsRefresh =
         state.cardsNeedingCommentsRefresh.has(cardId) &&
-        !prevState.cardsNeedingCommentsRefresh.has(cardId)
-      ) {
-        void refreshComments(cardId);
+        !prevState.cardsNeedingCommentsRefresh.has(cardId);
+
+      if (needsChecklistRefresh || needsCommentsRefresh) {
+        void refreshCardDetail(cardId);
+        useBoardCardStore.getState().clearChecklistRefresh(cardId);
         useBoardCardStore.getState().clearCommentsRefresh(cardId);
       }
 
