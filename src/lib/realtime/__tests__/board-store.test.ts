@@ -10,6 +10,12 @@ beforeEach(() => {
     boardId: null,
     cardsByList: {},
     lists: [],
+    cardsNeedingChecklistRefresh: new Set(),
+    cardsNeedingCommentsRefresh: new Set(),
+    labelUpdatedEvent: null,
+    labelDeletedEvent: null,
+    cardLabelsUpdatedEvent: null,
+    cardToOpen: null,
   });
 });
 
@@ -108,5 +114,96 @@ describe("useBoardCardStore.setInitial", () => {
     expect(useBoardCardStore.getState().cardsByList["l1"]).toHaveLength(2);
     expect(useBoardCardStore.getState().cardsByList["l1"][0].id).toBe("c2");
     expect(useBoardCardStore.getState().cardsByList["l1"][1].id).toBe("c1");
+  });
+});
+
+describe("useBoardCardStore checklist and comment refresh", () => {
+  it("marks a card for checklist refresh", () => {
+    const store = useBoardCardStore.getState();
+    store.markChecklistRefresh("c1");
+    expect(useBoardCardStore.getState().cardsNeedingChecklistRefresh.has("c1")).toBe(true);
+  });
+
+  it("clears a card from checklist refresh", () => {
+    const store = useBoardCardStore.getState();
+    store.markChecklistRefresh("c1");
+    store.clearChecklistRefresh("c1");
+    expect(useBoardCardStore.getState().cardsNeedingChecklistRefresh.has("c1")).toBe(false);
+  });
+
+  it("marks a card for comments refresh", () => {
+    const store = useBoardCardStore.getState();
+    store.markCommentsRefresh("c1");
+    expect(useBoardCardStore.getState().cardsNeedingCommentsRefresh.has("c1")).toBe(true);
+  });
+
+  it("clears a card from comments refresh", () => {
+    const store = useBoardCardStore.getState();
+    store.markCommentsRefresh("c1");
+    store.clearCommentsRefresh("c1");
+    expect(useBoardCardStore.getState().cardsNeedingCommentsRefresh.has("c1")).toBe(false);
+  });
+
+  it("handles multiple cards in refresh sets", () => {
+    const store = useBoardCardStore.getState();
+    store.markChecklistRefresh("c1");
+    store.markChecklistRefresh("c2");
+    store.markCommentsRefresh("c3");
+    expect(useBoardCardStore.getState().cardsNeedingChecklistRefresh.size).toBe(2);
+    expect(useBoardCardStore.getState().cardsNeedingCommentsRefresh.size).toBe(1);
+  });
+});
+
+describe("useBoardCardStore label events", () => {
+  it("sets label updated event", () => {
+    const store = useBoardCardStore.getState();
+    const label = { id: "l1", name: "Bug", color: "#ff0000" };
+    store.setLabelUpdatedEvent(label);
+    expect(useBoardCardStore.getState().labelUpdatedEvent).toEqual({ label });
+  });
+
+  it("sets label deleted event", () => {
+    const store = useBoardCardStore.getState();
+    store.setLabelDeletedEvent("l1");
+    expect(useBoardCardStore.getState().labelDeletedEvent).toEqual({ labelId: "l1" });
+  });
+
+  it("sets card labels updated event", () => {
+    const store = useBoardCardStore.getState();
+    store.setCardLabelsUpdatedEvent("c1");
+    expect(useBoardCardStore.getState().cardLabelsUpdatedEvent).toEqual({ cardId: "c1" });
+  });
+
+  it("clears all label events", () => {
+    const store = useBoardCardStore.getState();
+    store.setLabelUpdatedEvent({ id: "l1", name: "Bug", color: "#ff0000" });
+    store.setLabelDeletedEvent("l2");
+    store.setCardLabelsUpdatedEvent("c1");
+    store.clearLabelEvents();
+    expect(useBoardCardStore.getState().labelUpdatedEvent).toBeNull();
+    expect(useBoardCardStore.getState().labelDeletedEvent).toBeNull();
+    expect(useBoardCardStore.getState().cardLabelsUpdatedEvent).toBeNull();
+  });
+});
+
+describe("useBoardCardStore card open", () => {
+  it("opens a card by id", () => {
+    const store = useBoardCardStore.getState();
+    store.openCard("c1");
+    expect(useBoardCardStore.getState().cardToOpen).toBe("c1");
+  });
+
+  it("clears the card to open", () => {
+    const store = useBoardCardStore.getState();
+    store.openCard("c1");
+    store.clearCardToOpen();
+    expect(useBoardCardStore.getState().cardToOpen).toBeNull();
+  });
+
+  it("overwrites previous cardToOpen when opening a new card", () => {
+    const store = useBoardCardStore.getState();
+    store.openCard("c1");
+    store.openCard("c2");
+    expect(useBoardCardStore.getState().cardToOpen).toBe("c2");
   });
 });
