@@ -1,0 +1,8 @@
+{
+  "track_id": "test_tx_rollback_20260707",
+  "type": "chore",
+  "status": "completed",
+  "created_at": "2026-07-07T00:00:00Z",
+  "updated_at": "2026-07-07T00:00:00Z",
+  "description": "Integration tests pollute the database with leftover test data. Replace manual cleanup with automatic transaction rollback for all integration tests."
+}

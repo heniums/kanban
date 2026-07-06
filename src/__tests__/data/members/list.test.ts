@@ -1,22 +1,50 @@
 import { describe, expect, it } from "vitest";
+import { eq } from "drizzle-orm";
 // @vitest-environment node
-import { TestDataFactory } from "../../test-factory";
 import { getBoardMembers } from "@/lib/data/members/list";
 import { createDbClient } from "@/lib/db/client";
+import { users } from "@/lib/db/schema/users";
+import { boards } from "@/lib/db/schema/boards";
 import { boardMembers } from "@/lib/db/schema/board-members";
 
+const db = createDbClient();
+
+async function createTestUser(name: string) {
+  const [user] = await db
+    .insert(users)
+    .values({
+      email: `member-test-${name}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@kanban.local`,
+      passwordHash: "test-hash",
+      name,
+    })
+    .returning();
+  return user;
+}
+
+async function createTestBoard(ownerId: string, title: string) {
+  const [board] = await db
+    .insert(boards)
+    .values({
+      title,
+      background: "#000000",
+      ownerId,
+    })
+    .returning();
+  await db.insert(boardMembers).values({
+    boardId: board.id,
+    userId: ownerId,
+    role: "owner",
+  });
+  return board;
+}
+
 describe("getBoardMembers", () => {
-  const factory = new TestDataFactory();
-  factory.registerCleanup();
-
   it("returns only board members for a given boardId", async () => {
-    const owner = await factory.createUser({ name: "Owner" });
-    const member = await factory.createUser({ name: "Member" });
-    const nonMember = await factory.createUser({ name: "Non-Member" });
+    const owner = await createTestUser("Owner");
+    const member = await createTestUser("Member");
+    const nonMember = await createTestUser("Non-Member");
 
-    const board = await factory.createBoard({ ownerId: owner.id, title: "Test Board" });
-
-    const db = createDbClient();
+    const board = await createTestBoard(owner.id, "Test Board");
     await db.insert(boardMembers).values({
       boardId: board.id,
       userId: member.id,
@@ -33,9 +61,9 @@ describe("getBoardMembers", () => {
   });
 
   it("excludes users not on the board", async () => {
-    const owner = await factory.createUser({ name: "Owner" });
-    const board = await factory.createBoard({ ownerId: owner.id, title: "Solo Board" });
-    await factory.createUser({ name: "Outsider" });
+    const owner = await createTestUser("Owner");
+    const board = await createTestBoard(owner.id, "Solo Board");
+    await createTestUser("Outsider");
 
     const result = await getBoardMembers(board.id);
 
@@ -44,8 +72,10 @@ describe("getBoardMembers", () => {
   });
 
   it("returns the expected data shape for each member", async () => {
-    const owner = await factory.createUser({ name: "Alice", email: "alice@kanban.local" });
-    const board = await factory.createBoard({ ownerId: owner.id });
+    const owner = await createTestUser("Alice");
+    // Override email for this specific test
+    await db.update(users).set({ email: "alice@kanban.local" }).where(eq(users.id, owner.id));
+    const board = await createTestBoard(owner.id, "Alice's Board");
 
     const result = await getBoardMembers(board.id);
 

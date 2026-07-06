@@ -2,80 +2,95 @@ import { describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
 // @vitest-environment node
 import { createDbClient } from "@/lib/db/client";
+import { users } from "@/lib/db/schema/users";
+import { boards } from "@/lib/db/schema/boards";
+import { boardMembers } from "@/lib/db/schema/board-members";
 import { lists } from "@/lib/db/schema/lists";
-import { TestDataFactory } from "@/__tests__/test-factory";
 import { getListsByBoardId, renameList, deleteList, reorderLists } from "@/lib/data/lists";
 import { createList } from "@/lib/data/lists/create";
 
 const db = createDbClient();
-const factory = new TestDataFactory();
-factory.registerCleanup();
 
-let testBoardId: string | null = null;
-let testOwnerId: string | null = null;
+async function createTestUser() {
+  const [user] = await db
+    .insert(users)
+    .values({
+      email: `list-test-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@kanban.local`,
+      passwordHash: "test-hash",
+      name: "List Test User",
+    })
+    .returning();
+  return user;
+}
 
-async function ensureTestBoard() {
-  if (testBoardId && testOwnerId) return { boardId: testBoardId, ownerId: testOwnerId };
-  const user = await factory.createUser();
-  const board = await factory.createBoard({ ownerId: user.id });
-  testBoardId = board.id;
-  testOwnerId = user.id;
-  return { boardId: board.id, ownerId: user.id };
+async function createTestBoard(ownerId: string) {
+  const [board] = await db
+    .insert(boards)
+    .values({
+      title: "Test Board",
+      background: "#000000",
+      ownerId,
+    })
+    .returning();
+  await db.insert(boardMembers).values({
+    boardId: board.id,
+    userId: ownerId,
+    role: "owner",
+  });
+  return board;
 }
 
 describe("getListsByBoardId (integration)", () => {
   it("returns lists in position order for the owner", async () => {
-    const { boardId } = await ensureTestBoard();
-    await createList({ boardId, title: "A" });
-    await createList({ boardId, title: "B" });
-    await createList({ boardId, title: "C" });
+    const user = await createTestUser();
+    const board = await createTestBoard(user.id);
+    await createList({ boardId: board.id, title: "A" });
+    await createList({ boardId: board.id, title: "B" });
+    await createList({ boardId: board.id, title: "C" });
 
-    const result = await getListsByBoardId(boardId);
+    const result = await getListsByBoardId(board.id);
 
     expect(result.map((l) => l.title)).toEqual(["A", "B", "C"]);
     expect(result.map((l) => l.position)).toEqual([0, 1, 2]);
-
-    await db.delete(lists).where(eq(lists.boardId, boardId));
   });
 });
 
 describe("createList (integration)", () => {
   it("auto-assigns the next position based on existing lists", async () => {
-    const { boardId } = await ensureTestBoard();
-    const l0 = await createList({ boardId, title: "Zero" });
-    const l1 = await createList({ boardId, title: "One" });
+    const user = await createTestUser();
+    const board = await createTestBoard(user.id);
+    const l0 = await createList({ boardId: board.id, title: "Zero" });
+    const l1 = await createList({ boardId: board.id, title: "One" });
     expect(l0.position).toBe(0);
     expect(l1.position).toBe(1);
-
-    await db.delete(lists).where(eq(lists.boardId, boardId));
   });
 });
 
 describe("renameList (integration)", () => {
   it("updates the list title", async () => {
-    const { boardId } = await ensureTestBoard();
-    const list = await createList({ boardId, title: "Original" });
+    const user = await createTestUser();
+    const board = await createTestBoard(user.id);
+    const list = await createList({ boardId: board.id, title: "Original" });
 
     const updated = await renameList(list.id, { title: "Renamed" });
 
     expect(updated?.title).toBe("Renamed");
-
-    await db.delete(lists).where(eq(lists.boardId, boardId));
   });
 });
 
 describe("deleteList (integration) — position recompaction", () => {
   it("recompacts positions after deletion", async () => {
-    const { boardId } = await ensureTestBoard();
-    const l0 = await createList({ boardId, title: "L0" });
-    const l1 = await createList({ boardId, title: "L1" });
-    const l2 = await createList({ boardId, title: "L2" });
-    const l3 = await createList({ boardId, title: "L3" });
+    const user = await createTestUser();
+    const board = await createTestBoard(user.id);
+    const l0 = await createList({ boardId: board.id, title: "L0" });
+    const l1 = await createList({ boardId: board.id, title: "L1" });
+    const l2 = await createList({ boardId: board.id, title: "L2" });
+    const l3 = await createList({ boardId: board.id, title: "L3" });
 
     const result = await deleteList(l1.id);
     expect(result?.id).toBe(l1.id);
 
-    const after = await getListsByBoardId(boardId);
+    const after = await getListsByBoardId(board.id);
     const positions = after
       .sort((a, b) => a.position - b.position)
       .map((l) => ({ title: l.title, position: l.position }));
@@ -88,25 +103,24 @@ describe("deleteList (integration) — position recompaction", () => {
     void l0;
     void l2;
     void l3;
-    await db.delete(lists).where(eq(lists.boardId, boardId));
   });
 });
 
 describe("reorderLists (integration)", () => {
   it("reorders lists to match the new positions", async () => {
-    const { boardId } = await ensureTestBoard();
-    const a = await createList({ boardId, title: "A" });
-    const b = await createList({ boardId, title: "B" });
-    const c = await createList({ boardId, title: "C" });
+    const user = await createTestUser();
+    const board = await createTestBoard(user.id);
+    const a = await createList({ boardId: board.id, title: "A" });
+    const b = await createList({ boardId: board.id, title: "B" });
+    const c = await createList({ boardId: board.id, title: "C" });
 
-    await reorderLists(boardId, [c.id, a.id, b.id]);
+    await reorderLists(board.id, [c.id, a.id, b.id]);
 
-    const after = await getListsByBoardId(boardId);
+    const after = await getListsByBoardId(board.id);
     expect(after.map((l) => l.title)).toEqual(["C", "A", "B"]);
     expect(after.map((l) => l.position)).toEqual([0, 1, 2]);
 
     void a;
     void b;
-    await db.delete(lists).where(eq(lists.boardId, boardId));
   });
 });
