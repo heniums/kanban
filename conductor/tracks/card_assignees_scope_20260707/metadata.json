@@ -1,0 +1,8 @@
+{
+  "track_id": "card_assignees_scope_20260707",
+  "type": "bug",
+  "status": "new",
+  "created_at": "2026-07-07T00:00:00Z",
+  "updated_at": "2026-07-07T00:00:00Z",
+  "description": "Card detail assignees list shows all users instead of board members only"
+}

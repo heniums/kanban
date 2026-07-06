@@ -50,3 +50,8 @@ See `conductor/archive/` for historical completed track folders.
 
 - [x] **Track: Card detail modal does not receive real-time updates when another user updates the same card**
       _Link: [./tracks/card_detail_realtime_20260706/](./tracks/card_detail_realtime_20260706/)_
+
+---
+
+- [ ] **Track: Card detail assignees lists all users instead of board members only**
+      _Link: [./tracks/card_assignees_scope_20260707/](./tracks/card_assignees_scope_20260707/)_
