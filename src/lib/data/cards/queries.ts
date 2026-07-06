@@ -21,10 +21,12 @@ export async function getCardById(cardId: string): Promise<Card | null> {
 
 export async function getCardSummaryById(cardId: string): Promise<CardSummary | null> {
   const db = createDbClient();
-  const card = await getCardById(cardId);
-  if (!card) return null;
 
-  const [labelRows, assigneeRows, checklistItemsRows, commentRows] = await Promise.all([
+  const [cardRows, labelRows, assigneeRows, checklistItemsRows, commentRows] = await Promise.all([
+    db
+      .select({ card: cards })
+      .from(cards)
+      .where(sql`${cards.id} = ${cardId}`),
     db
       .select({ id: labels.id, name: labels.name, color: labels.color })
       .from(cardLabels)
@@ -45,6 +47,9 @@ export async function getCardSummaryById(cardId: string): Promise<CardSummary | 
       .from(comments)
       .where(eq(comments.cardId, cardId)),
   ]);
+
+  const card = cardRows[0]?.card ?? null;
+  if (!card) return null;
 
   const checklistProgress =
     checklistItemsRows.length > 0
