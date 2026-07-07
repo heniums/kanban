@@ -18,6 +18,8 @@ function makeBoard(id: string, title: string, updatedAt: Date): Board {
     title,
     description: null,
     background: "#000",
+    backgroundImageUrl: null,
+    backgroundImagePublicId: null,
     ownerId: "user-1",
     createdAt: updatedAt,
     updatedAt,

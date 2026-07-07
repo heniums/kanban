@@ -4,10 +4,12 @@ import { BoardCard, BoardCardSkeleton } from "@/components/boards/board-card";
 import type { Board } from "@/lib/db/schema/boards";
 
 const baseBoard: Board = {
-  id: "test-id",
-  title: "My Test Board",
-  description: "A description",
+  id: "board-1",
+  title: "Test Board",
+  description: "Test Description",
   background: "#1a1a2e",
+  backgroundImageUrl: null,
+  backgroundImagePublicId: null,
   ownerId: "user-1",
   createdAt: new Date(),
   updatedAt: new Date(),

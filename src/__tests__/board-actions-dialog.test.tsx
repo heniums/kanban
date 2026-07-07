@@ -31,6 +31,8 @@ const baseBoard: Board = {
   title: "Test Board",
   description: null,
   background: "#1a1a2e",
+  backgroundImageUrl: null,
+  backgroundImagePublicId: null,
   ownerId: "user-1",
   createdAt: new Date(),
   updatedAt: new Date(),

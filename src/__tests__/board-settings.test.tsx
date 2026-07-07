@@ -19,10 +19,12 @@ import { updateBoardAction } from "@/lib/actions/boards";
 import { BoardSettings } from "@/components/boards/board-settings";
 
 const baseBoard: Board = {
-  id: "test-id",
-  title: "Original Title",
-  description: "Original description",
+  id: "board-1",
+  title: "Test Board",
+  description: "A test board description",
   background: "#1a1a2e",
+  backgroundImageUrl: null,
+  backgroundImagePublicId: null,
   ownerId: "user-1",
   createdAt: new Date(),
   updatedAt: new Date(),
