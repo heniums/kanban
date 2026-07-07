@@ -97,8 +97,8 @@ describe("CardItem", () => {
         card={{
           ...baseCard,
           assignees: [
-            { id: "u1", name: "Alice" },
-            { id: "u2", name: "Bob" },
+            { id: "u1", name: "Alice", avatarUrl: null },
+            { id: "u2", name: "Bob", avatarUrl: null },
           ],
         }}
       />,

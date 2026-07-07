@@ -51,7 +51,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ car
       .where(eq(cardLabels.cardId, cardId)),
     db.select().from(labels).where(eq(labels.boardId, card.boardId)),
     db
-      .select({ id: users.id, name: users.name, email: users.email })
+      .select({ id: users.id, name: users.name, email: users.email, avatarUrl: users.avatarUrl })
       .from(cardAssignees)
       .innerJoin(users, eq(users.id, cardAssignees.userId))
       .where(eq(cardAssignees.cardId, cardId)),
@@ -113,6 +113,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ car
       id: m.user.id,
       name: m.user.name,
       email: m.user.email,
+      avatarUrl: m.user.avatarUrl,
     })),
     attachments: attachmentRows,
   });

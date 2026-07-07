@@ -22,7 +22,7 @@ export interface CardDetailData {
   labels: { id: string; name: string; color: string }[];
   boardId: string;
   boardLabels: Label[];
-  assignees: { id: string; name: string; email: string }[];
+  assignees: { id: string; name: string; email: string; avatarUrl?: string | null }[];
   checklists: Array<{
     id: string;
     cardId: string;
@@ -44,6 +44,6 @@ export interface CardDetailData {
     createdAt: Date | string;
     updatedAt: Date | string;
   }>;
-  boardMembers: { id: string; name: string; email: string }[];
+  boardMembers: { id: string; name: string; email: string; avatarUrl?: string | null }[];
   attachments: CardAttachment[];
 }

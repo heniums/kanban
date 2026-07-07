@@ -53,7 +53,7 @@ export function CommentsSection({
   cardId: string;
   boardId: string;
   comments: CardDetailData["comments"];
-  boardMembers: { id: string; name: string; email: string }[];
+  boardMembers: { id: string; name: string; email: string; avatarUrl?: string | null }[];
   onChange: Dispatch<SetStateAction<CardDetailData["comments"]>>;
 }) {
   return (
@@ -78,7 +78,7 @@ function CommentItem({
   onChange,
 }: {
   comment: CardDetailData["comments"][number];
-  boardMembers: { id: string; name: string; email: string }[];
+  boardMembers: { id: string; name: string; email: string; avatarUrl?: string | null }[];
   onChange: Dispatch<SetStateAction<CardDetailData["comments"]>>;
 }) {
   const [editing, setEditing] = useState(false);
@@ -87,6 +87,23 @@ function CommentItem({
   const [viewerUrl, setViewerUrl] = useState("");
   const author = boardMembers.find((m) => m.id === comment.userId);
   const authorName = author?.name ?? "Unknown";
+
+  const renderAuthorAvatar = () => {
+    if (author?.avatarUrl) {
+      return (
+        <img
+          src={author.avatarUrl}
+          alt={authorName}
+          className="inline-flex size-5 items-center justify-center rounded-full object-cover"
+        />
+      );
+    }
+    return (
+      <span className="bg-muted text-foreground inline-flex size-5 items-center justify-center rounded-full text-[10px] font-semibold">
+        {authorName.charAt(0).toUpperCase()}
+      </span>
+    );
+  };
 
   const handleSave = async () => {
     const next = draft.trim();
@@ -122,9 +139,7 @@ function CommentItem({
     <div className="group/comment flex flex-col gap-1 rounded-md border p-2">
       <div className="flex items-center justify-between gap-2 text-xs">
         <div className="flex items-center gap-2">
-          <span className="bg-muted text-foreground inline-flex size-5 items-center justify-center rounded-full text-[10px] font-semibold">
-            {authorName.charAt(0).toUpperCase()}
-          </span>
+          {renderAuthorAvatar()}
           <span className="font-medium">{authorName}</span>
           <span className="text-muted-foreground">{createdStr}</span>
         </div>

@@ -13,6 +13,7 @@ const {
   mockGetLabelsByBoardId,
   mockGetChecklistProgressByBoardId,
   mockGetCommentCountsByBoardId,
+  mockGetCardAttachmentPreviewsByBoardId,
   mockGetBoardCapabilities,
 } = vi.hoisted(() => ({
   mockVerifySession: vi.fn(),
@@ -24,6 +25,7 @@ const {
   mockGetLabelsByBoardId: vi.fn(),
   mockGetChecklistProgressByBoardId: vi.fn(),
   mockGetCommentCountsByBoardId: vi.fn(),
+  mockGetCardAttachmentPreviewsByBoardId: vi.fn(),
   mockGetBoardCapabilities: vi.fn(),
 }));
 
@@ -52,6 +54,7 @@ vi.mock("@/lib/data/cards", () => ({
   getCardsByBoardId: mockGetCardsByBoardId,
   getCardLabelsByBoardId: mockGetCardLabelsByBoardId,
   getCardAssigneesByBoardId: mockGetCardAssigneesByBoardId,
+  getCardAttachmentPreviewsByBoardId: mockGetCardAttachmentPreviewsByBoardId,
 }));
 
 vi.mock("@/lib/data/labels", () => ({
@@ -115,6 +118,7 @@ describe("BoardPage text color", () => {
     mockGetCardAssigneesByBoardId.mockResolvedValue({});
     mockGetChecklistProgressByBoardId.mockResolvedValue({});
     mockGetCommentCountsByBoardId.mockResolvedValue({});
+    mockGetCardAttachmentPreviewsByBoardId.mockResolvedValue({});
     mockGetLabelsByBoardId.mockResolvedValue([]);
   });
 
@@ -171,6 +175,7 @@ describe("BoardPage hero section", () => {
     mockGetCardAssigneesByBoardId.mockResolvedValue({});
     mockGetChecklistProgressByBoardId.mockResolvedValue({});
     mockGetCommentCountsByBoardId.mockResolvedValue({});
+    mockGetCardAttachmentPreviewsByBoardId.mockResolvedValue({});
     mockGetLabelsByBoardId.mockResolvedValue([]);
   });
 

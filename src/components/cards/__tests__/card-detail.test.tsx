@@ -79,8 +79,8 @@ const baseCardDetail: CardDetailData = {
   checklists: [],
   comments: [],
   boardMembers: [
-    { id: "u1", name: "Alice", email: "alice@example.com" },
-    { id: "u2", name: "Bob", email: "bob@example.com" },
+    { id: "u1", name: "Alice", email: "alice@example.com", avatarUrl: null },
+    { id: "u2", name: "Bob", email: "bob@example.com", avatarUrl: null },
   ],
   attachments: [],
 };

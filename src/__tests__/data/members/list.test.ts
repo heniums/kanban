@@ -87,6 +87,7 @@ describe("getBoardMembers", () => {
       id: owner.id,
       name: "Alice",
       email: "alice@kanban.local",
+      avatarUrl: null,
     });
     expect(member.joinedAt).toBeDefined();
   });

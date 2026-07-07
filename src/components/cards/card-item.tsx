@@ -10,9 +10,10 @@ import { updateCardAction } from "@/lib/actions/cards";
 
 export type CardSummary = Card & {
   labels?: { id: string; name: string; color: string }[];
-  assignees?: { id: string; name: string }[];
+  assignees?: { id: string; name: string; avatarUrl?: string | null }[];
   checklistProgress?: { total: number; completed: number } | null;
   commentCount?: number;
+  attachmentPreviewUrl?: string | null;
 };
 
 interface CardItemProps {
@@ -56,6 +57,7 @@ export function CardItem({ card, onOpen, isDragging = false }: CardItemProps) {
   const progress = card.checklistProgress;
   const commentCount = card.commentCount ?? 0;
   const hasDescription = !!(card.description && card.description.trim().length > 0);
+  const attachmentPreviewUrl = card.attachmentPreviewUrl;
 
   const beginRename = (e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -113,6 +115,17 @@ export function CardItem({ card, onOpen, isDragging = false }: CardItemProps) {
       >
         <Pencil className="size-3.5" />
       </button>
+
+      {attachmentPreviewUrl && (
+        <div className="overflow-hidden rounded-md">
+          <img
+            src={attachmentPreviewUrl}
+            alt=""
+            className="h-24 w-full object-cover"
+            loading="lazy"
+          />
+        </div>
+      )}
 
       {labels.length > 0 && (
         <div className="flex flex-wrap gap-1 pr-6">
@@ -228,15 +241,25 @@ export function CardItem({ card, onOpen, isDragging = false }: CardItemProps) {
         )}
         {assignees.length > 0 && (
           <div className="ml-auto flex -space-x-1.5">
-            {assignees.slice(0, 3).map((a) => (
-              <span
-                key={a.id}
-                className="bg-muted text-foreground inline-flex size-5 items-center justify-center rounded-full border text-[10px] font-semibold"
-                title={a.name}
-              >
-                {a.name.charAt(0).toUpperCase()}
-              </span>
-            ))}
+            {assignees.slice(0, 3).map((a) =>
+              a.avatarUrl ? (
+                <img
+                  key={a.id}
+                  src={a.avatarUrl}
+                  alt={a.name}
+                  className="inline-flex size-5 items-center justify-center rounded-full border object-cover"
+                  title={a.name}
+                />
+              ) : (
+                <span
+                  key={a.id}
+                  className="bg-muted text-foreground inline-flex size-5 items-center justify-center rounded-full border text-[10px] font-semibold"
+                  title={a.name}
+                >
+                  {a.name.charAt(0).toUpperCase()}
+                </span>
+              ),
+            )}
             {assignees.length > 3 && (
               <span className="bg-muted text-foreground inline-flex size-5 items-center justify-center rounded-full border text-[10px] font-semibold">
                 +{assignees.length - 3}

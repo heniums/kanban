@@ -234,7 +234,7 @@ export function useCardDetail({
           .map((l) => ({ id: l.id, name: l.name, color: l.color })),
         assignees: data.boardMembers
           .filter((m) => draft.assigneeIds.includes(m.id))
-          .map((m) => ({ id: m.id, name: m.name })),
+          .map((m) => ({ id: m.id, name: m.name, avatarUrl: m.avatarUrl })),
         checklistProgress:
           (existingCard as { checklistProgress?: { total: number; completed: number } | null })
             ?.checklistProgress ?? null,

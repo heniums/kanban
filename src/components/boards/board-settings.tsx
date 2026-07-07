@@ -70,8 +70,8 @@ export function BoardSettings({ board, onClose }: BoardSettingsProps) {
     const meta = mapUploadResultToAttachment(result);
     const res = await updateBoardBackgroundImageAction({
       boardId: board.id,
-      publicId: meta.publicId,
-      url: meta.url,
+      backgroundImagePublicId: meta.publicId,
+      backgroundImageUrl: meta.url,
     });
 
     if ("error" in res) {
