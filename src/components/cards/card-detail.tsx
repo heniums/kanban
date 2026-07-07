@@ -22,6 +22,7 @@ import { MetadataBar, MetadataField } from "./card-detail/card-detail-metadata";
 import { DescriptionEditor } from "./card-detail/card-detail-description";
 import { AddChecklistButton, ChecklistsSection } from "./card-detail/card-detail-checklists";
 import { CommentsSection } from "./card-detail/card-detail-comments";
+import { CardDetailAttachments } from "./card-detail/card-detail-attachments";
 import { useCardDetail } from "./card-detail/use-card-detail";
 
 export type { CardDetailData } from "./card-detail/types";
@@ -151,6 +152,14 @@ export function CardDetail({ boardId, lists }: CardDetailProps) {
             <DescriptionEditor
               value={draft.description}
               onChange={(description) => setDraft({ ...draft, description })}
+              disabled={isPending}
+            />
+
+            <CardDetailAttachments
+              cardId={data.card.id}
+              boardId={boardId}
+              attachments={data.attachments}
+              onChange={(next) => setData((prev) => (prev ? { ...prev, attachments: next } : prev))}
               disabled={isPending}
             />
 

@@ -38,6 +38,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.id = user.id;
         token.name = user.name;
         token.email = user.email;
+        (token as unknown as Record<string, unknown>).avatarUrl = (
+          user as unknown as Record<string, unknown>
+        ).avatarUrl;
       }
       return token;
     },
@@ -46,6 +49,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.id = token.id as string;
         session.user.name = token.name ?? "";
         session.user.email = token.email ?? "";
+        (session.user as unknown as Record<string, unknown>).avatarUrl = (
+          token as unknown as Record<string, unknown>
+        ).avatarUrl;
       }
       return session;
     },

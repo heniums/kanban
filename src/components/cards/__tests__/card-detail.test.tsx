@@ -44,6 +44,18 @@ vi.mock("@/lib/realtime/use-board-socket", () => ({
   useBoardSocket: () => ({ current: null }),
 }));
 
+vi.mock("@/lib/actions/attachments", () => ({
+  createAttachmentAction: vi
+    .fn()
+    .mockResolvedValue({ attachment: { id: "a1", createdBy: "u1", createdAt: new Date() } }),
+  deleteAttachmentAction: vi.fn().mockResolvedValue({ success: true }),
+  listCardAttachmentsAction: vi.fn().mockResolvedValue({ attachments: [] }),
+}));
+
+vi.mock("@/components/upload/image-upload", () => ({
+  ImageUpload: () => null,
+}));
+
 const baseCardDetail: CardDetailData = {
   card: {
     id: "c1",
@@ -70,6 +82,7 @@ const baseCardDetail: CardDetailData = {
     { id: "u1", name: "Alice", email: "alice@example.com" },
     { id: "u2", name: "Bob", email: "bob@example.com" },
   ],
+  attachments: [],
 };
 
 async function openModal() {
@@ -85,6 +98,7 @@ beforeEach(() => {
     cardToOpen: null,
     cardsNeedingChecklistRefresh: new Set(),
     cardsNeedingCommentsRefresh: new Set(),
+    attachmentsNeedingRefresh: new Set(),
     labelUpdatedEvent: null,
     labelDeletedEvent: null,
   });

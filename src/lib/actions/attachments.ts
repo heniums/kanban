@@ -15,6 +15,8 @@ import {
   deleteAttachmentSchema,
   listCardAttachmentsSchema,
 } from "@/lib/schemas/attachment";
+import { emitToBoard } from "@/lib/realtime/events";
+import { REALTIME_EVENTS } from "@/lib/realtime/types";
 
 export async function createAttachmentAction(input: unknown) {
   const { userId: currentUserId } = await verifySession();
@@ -51,6 +53,18 @@ export async function createAttachmentAction(input: unknown) {
 
   await attachImageToCard(parsed.data.cardId, attachment.id, currentCount);
 
+  emitToBoard(parsed.data.boardId, REALTIME_EVENTS.ATTACHMENT_CREATED, {
+    boardId: parsed.data.boardId,
+    cardId: parsed.data.cardId,
+    attachment: {
+      id: attachment.id,
+      url: attachment.url,
+      publicId: attachment.publicId,
+      width: attachment.width,
+      height: attachment.height,
+    },
+  });
+
   return { attachment };
 }
 
@@ -77,6 +91,12 @@ export async function deleteAttachmentAction(input: unknown) {
   }
 
   await deleteCloudinaryAsset(attachment.publicId);
+
+  emitToBoard(parsed.data.boardId, REALTIME_EVENTS.ATTACHMENT_DELETED, {
+    boardId: parsed.data.boardId,
+    cardId: parsed.data.cardId,
+    attachmentId: parsed.data.attachmentId,
+  });
 
   return { success: true };
 }

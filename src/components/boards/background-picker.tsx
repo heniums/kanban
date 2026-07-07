@@ -1,6 +1,9 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { ImagePlus, X } from "lucide-react";
+import type { CloudinaryUploadResult } from "@/lib/cloudinary";
+import { Button } from "@/components/ui/button";
 
 export interface BackgroundOption {
   label: string;
@@ -31,8 +34,12 @@ export const BACKGROUNDS: BackgroundOption[] = [
 interface BackgroundPickerProps {
   value: string;
   onChange: (value: string) => void;
+  onImageUpload?: (result: CloudinaryUploadResult) => void;
+  imageUrl?: string | null;
+  onClearImage?: () => void;
   onBlur?: () => void;
   name?: string;
+  disabled?: boolean;
   "aria-invalid"?: boolean;
   "aria-describedby"?: string;
 }
@@ -40,10 +47,16 @@ interface BackgroundPickerProps {
 export function BackgroundPicker({
   value,
   onChange,
+  onImageUpload,
+  imageUrl,
+  onClearImage,
   onBlur,
   name,
+  disabled,
   ...ariaProps
 }: BackgroundPickerProps) {
+  const [showUpload, setShowUpload] = useState(false);
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent, index: number) => {
       const lastIndex = BACKGROUNDS.length - 1;
@@ -66,35 +79,122 @@ export function BackgroundPicker({
     [onChange],
   );
 
-  return (
-    <div
-      role="radiogroup"
-      aria-label="Board background"
-      className="flex flex-wrap gap-3"
-      onBlur={onBlur}
-      {...ariaProps}
-    >
-      {BACKGROUNDS.map((option, index) => {
-        const isSelected = option.value === value;
+  const isImageSelected = !!imageUrl;
 
-        return (
-          <button
-            key={option.value}
+  return (
+    <div className="space-y-3">
+      <div
+        role="radiogroup"
+        aria-label="Board background"
+        className="flex flex-wrap gap-3"
+        onBlur={onBlur}
+        {...ariaProps}
+      >
+        {BACKGROUNDS.map((option, index) => {
+          const isSelected = !isImageSelected && option.value === value;
+
+          return (
+            <button
+              key={option.value}
+              type="button"
+              role="radio"
+              aria-checked={isSelected}
+              aria-label={option.label}
+              tabIndex={isSelected ? 0 : -1}
+              name={name}
+              onClick={() => {
+                onChange(option.value);
+                onClearImage?.();
+              }}
+              onKeyDown={(e) => handleKeyDown(e, index)}
+              disabled={disabled}
+              className={`focus-visible:ring-ring h-12 w-12 rounded-lg border-2 transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
+                isSelected ? "border-primary ring-primary ring-2 ring-offset-2" : "border-border"
+              }`}
+              style={{ background: option.value }}
+            />
+          );
+        })}
+
+        <button
+          type="button"
+          onClick={() => setShowUpload((v) => !v)}
+          disabled={disabled}
+          className={`focus-visible:ring-ring flex h-12 w-12 items-center justify-center rounded-lg border-2 transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
+            isImageSelected
+              ? "border-primary ring-primary ring-2 ring-offset-2"
+              : "border-border hover:border-primary/50"
+          }`}
+          aria-label="Upload background image"
+          title="Upload background image"
+        >
+          {isImageSelected ? (
+            <img src={imageUrl!} alt="" className="h-full w-full rounded-lg object-cover" />
+          ) : (
+            <ImagePlus className="text-muted-foreground size-5" />
+          )}
+        </button>
+      </div>
+
+      {isImageSelected && onClearImage && (
+        <div className="flex items-center gap-2">
+          <Button
             type="button"
-            role="radio"
-            aria-checked={isSelected}
-            aria-label={option.label}
-            tabIndex={isSelected ? 0 : -1}
-            name={name}
-            onClick={() => onChange(option.value)}
-            onKeyDown={(e) => handleKeyDown(e, index)}
-            className={`focus-visible:ring-ring h-12 w-12 rounded-lg border-2 transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
-              isSelected ? "border-primary ring-primary ring-2 ring-offset-2" : "border-border"
-            }`}
-            style={{ background: option.value }}
+            variant="ghost"
+            size="sm"
+            onClick={onClearImage}
+            disabled={disabled}
+          >
+            <X className="size-4" />
+            Remove image
+          </Button>
+        </div>
+      )}
+
+      {showUpload && onImageUpload && (
+        <div className="rounded-lg border p-3">
+          {/* Lazy import to avoid loading server actions in test environments */}
+          <LazyImageUpload
+            onUpload={(result) => {
+              onImageUpload(result);
+              setShowUpload(false);
+            }}
+            onError={() => setShowUpload(false)}
+            disabled={disabled}
+            maxFiles={1}
           />
-        );
-      })}
+        </div>
+      )}
     </div>
   );
+}
+
+// Lazy wrapper to avoid eagerly importing the server-action chain in tests
+function LazyImageUpload(props: {
+  onUpload: (result: CloudinaryUploadResult) => void;
+  onError?: () => void;
+  disabled?: boolean;
+  maxFiles?: number;
+}) {
+  const [Component, setComponent] = useState<React.ComponentType<typeof props> | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    import("@/components/upload/image-upload").then((mod) => {
+      if (mounted) setComponent(() => mod.ImageUpload);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (!Component) {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <div className="border-primary size-5 animate-spin rounded-full border-2 border-t-transparent" />
+      </div>
+    );
+  }
+
+  return <Component {...props} />;
 }

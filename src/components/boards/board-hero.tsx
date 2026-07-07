@@ -21,6 +21,7 @@ const VARIANT_CLASSES: Record<BoardHeroVariant, string> = {
 export function BoardHero({ board, variant, className, children, breadcrumb }: BoardHeroProps) {
   const textColor = getTextColor(board.background);
   const isFull = variant === "full";
+  const hasImage = !!board.backgroundImageUrl;
 
   return (
     <section
@@ -30,11 +31,24 @@ export function BoardHero({ board, variant, className, children, breadcrumb }: B
         VARIANT_CLASSES[variant],
         className,
       )}
-      style={{ background: board.background, color: textColor }}
+      style={{
+        background: hasImage ? board.background : board.background,
+        color: textColor,
+        ...(hasImage
+          ? {
+              backgroundImage: `url(${board.backgroundImageUrl})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }
+          : {}),
+      }}
     >
+      {hasImage && (
+        <div className="absolute inset-0" style={{ background: board.background, opacity: 0.6 }} />
+      )}
       <div
         className={cn(
-          "mx-auto flex h-full w-full max-w-7xl px-4 sm:px-6 lg:px-8",
+          "relative mx-auto flex h-full w-full max-w-7xl px-4 sm:px-6 lg:px-8",
           isFull ? "flex-col justify-between gap-3 py-2" : "items-end justify-between gap-2 pb-2",
         )}
       >

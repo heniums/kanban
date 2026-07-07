@@ -1,6 +1,22 @@
 import type { Card } from "@/lib/db/schema/cards";
 import type { Label } from "@/lib/db/schema/labels";
 
+export interface CardAttachment {
+  id: string;
+  cardId: string;
+  attachmentId: string;
+  displayOrder: number;
+  url: string;
+  publicId: string;
+  format: string | null;
+  width: number | null;
+  height: number | null;
+  bytes: number | null;
+  resourceType: string | null;
+  createdBy: string;
+  createdAt: Date | string;
+}
+
 export interface CardDetailData {
   card: Card;
   labels: { id: string; name: string; color: string }[];
@@ -29,4 +45,5 @@ export interface CardDetailData {
     updatedAt: Date | string;
   }>;
   boardMembers: { id: string; name: string; email: string }[];
+  attachments: CardAttachment[];
 }

@@ -140,11 +140,15 @@ export function useCardDetail({
       const needsCommentsRefresh =
         state.cardsNeedingCommentsRefresh.has(cardId) &&
         !prevState.cardsNeedingCommentsRefresh.has(cardId);
+      const needsAttachmentRefresh =
+        state.attachmentsNeedingRefresh.has(cardId) &&
+        !prevState.attachmentsNeedingRefresh.has(cardId);
 
-      if (needsChecklistRefresh || needsCommentsRefresh) {
+      if (needsChecklistRefresh || needsCommentsRefresh || needsAttachmentRefresh) {
         void refreshCardDetail(cardId);
         useBoardCardStore.getState().clearChecklistRefresh(cardId);
         useBoardCardStore.getState().clearCommentsRefresh(cardId);
+        useBoardCardStore.getState().clearAttachmentRefresh(cardId);
       }
 
       const updatedCard = state.cardsByList[d.card.listId]?.find((c) => c.id === cardId);
