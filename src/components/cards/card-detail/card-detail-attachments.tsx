@@ -29,6 +29,8 @@ interface CardDetailAttachmentsProps {
   disabled?: boolean;
 }
 
+const PREVIEW_LIMIT = 6;
+
 export function CardDetailAttachments({
   cardId,
   boardId,
@@ -41,6 +43,7 @@ export function CardDetailAttachments({
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerImage, setViewerImage] = useState<CardAttachment | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
 
   const openViewer = useCallback((att: CardAttachment) => {
     setViewerImage(att);
@@ -128,7 +131,7 @@ export function CardDetailAttachments({
 
       {attachments.length > 0 && (
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {attachments.map((att) => (
+          {(expanded ? attachments : attachments.slice(0, PREVIEW_LIMIT)).map((att) => (
             <div key={att.id} className="group relative">
               <button
                 type="button"
@@ -159,6 +162,17 @@ export function CardDetailAttachments({
               </Button>
             </div>
           ))}
+          {!expanded && attachments.length > PREVIEW_LIMIT && (
+            <button
+              type="button"
+              onClick={() => setExpanded(true)}
+              className="bg-muted hover:bg-muted/80 flex h-24 items-center justify-center rounded-lg transition-colors"
+            >
+              <span className="text-muted-foreground text-lg font-semibold">
+                +{attachments.length - PREVIEW_LIMIT}
+              </span>
+            </button>
+          )}
         </div>
       )}
 

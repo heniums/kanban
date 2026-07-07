@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { ImagePlus, X } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
+import { ImagePlus, X, Loader2 } from "lucide-react";
 import type { CloudinaryUploadResult } from "@/lib/cloudinary/client-safe";
+import { uploadImageFile } from "@/lib/cloudinary/upload-file";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export interface BackgroundOption {
   label: string;
@@ -55,7 +57,8 @@ export function BackgroundPicker({
   disabled,
   ...ariaProps
 }: BackgroundPickerProps) {
-  const [showUpload, setShowUpload] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent, index: number) => {
@@ -78,6 +81,32 @@ export function BackgroundPicker({
     },
     [onChange],
   );
+
+  const handleFileSelect = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file || !onImageUpload) return;
+
+      setUploading(true);
+      try {
+        const result = await uploadImageFile(file);
+        onImageUpload(result);
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Upload failed");
+      } finally {
+        setUploading(false);
+        // Reset input so the same file can be selected again
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      }
+    },
+    [onImageUpload],
+  );
+
+  const handleUploadButtonClick = () => {
+    fileInputRef.current?.click();
+  };
 
   const isImageSelected = !!imageUrl;
 
@@ -118,8 +147,8 @@ export function BackgroundPicker({
 
         <button
           type="button"
-          onClick={() => setShowUpload((v) => !v)}
-          disabled={disabled}
+          onClick={handleUploadButtonClick}
+          disabled={disabled || uploading}
           className={`focus-visible:ring-ring flex h-12 w-12 items-center justify-center rounded-lg border-2 transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
             isImageSelected
               ? "border-primary ring-primary ring-2 ring-offset-2"
@@ -128,7 +157,9 @@ export function BackgroundPicker({
           aria-label="Upload background image"
           title="Upload background image"
         >
-          {isImageSelected ? (
+          {uploading ? (
+            <Loader2 className="text-muted-foreground size-5 animate-spin" />
+          ) : isImageSelected ? (
             <img src={imageUrl!} alt="" className="h-full w-full rounded-lg object-cover" />
           ) : (
             <ImagePlus className="text-muted-foreground size-5" />
@@ -151,54 +182,13 @@ export function BackgroundPicker({
         </div>
       )}
 
-      {showUpload && onImageUpload && (
-        <div className="rounded-lg border p-3">
-          {/* Lazy import to avoid loading server actions in test environments */}
-          <LazyImageUpload
-            autoOpen
-            onUpload={(result) => {
-              onImageUpload(result);
-              setShowUpload(false);
-            }}
-            onError={() => setShowUpload(false)}
-            onCancel={() => setShowUpload(false)}
-            disabled={disabled}
-            maxFiles={1}
-          />
-        </div>
-      )}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileSelect}
+        className="hidden"
+      />
     </div>
   );
-}
-
-// Lazy wrapper to avoid eagerly importing the server-action chain in tests
-function LazyImageUpload(props: {
-  onUpload: (result: CloudinaryUploadResult) => void;
-  onError?: () => void;
-  onCancel?: () => void;
-  disabled?: boolean;
-  maxFiles?: number;
-  autoOpen?: boolean;
-}) {
-  const [Component, setComponent] = useState<React.ComponentType<typeof props> | null>(null);
-
-  useEffect(() => {
-    let mounted = true;
-    import("@/components/upload/image-upload").then((mod) => {
-      if (mounted) setComponent(() => mod.ImageUpload);
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  if (!Component) {
-    return (
-      <div className="flex items-center justify-center p-4">
-        <div className="border-primary size-5 animate-spin rounded-full border-2 border-t-transparent" />
-      </div>
-    );
-  }
-
-  return <Component {...props} />;
 }

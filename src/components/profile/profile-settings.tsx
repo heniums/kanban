@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { User, Camera, Lock } from "lucide-react";
+import { User, Camera, Lock, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -142,7 +142,7 @@ function AvatarTab({ user }: { user: PublicUser }) {
     <div className="space-y-6">
       <div className="flex flex-col items-center gap-4">
         {avatarUrl ? (
-          <div className="relative">
+          <div className="flex flex-col items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={avatarUrl}
@@ -151,12 +151,13 @@ function AvatarTab({ user }: { user: PublicUser }) {
             />
             <Button
               type="button"
-              variant="destructive"
+              variant="outline"
               size="sm"
-              className="absolute -right-2 -bottom-2"
+              className="text-destructive hover:bg-destructive hover:text-destructive-foreground border-destructive/30"
               onClick={handleDelete}
             >
-              Remove
+              <Trash2 className="mr-1 size-3.5" />
+              Remove avatar
             </Button>
           </div>
         ) : (

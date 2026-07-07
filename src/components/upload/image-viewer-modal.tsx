@@ -85,12 +85,13 @@ export function ImageViewerModal({
               {onDelete && (
                 <Button
                   type="button"
-                  variant="ghost"
-                  size="icon-sm"
+                  variant="default"
+                  size="sm"
                   onClick={() => setDeleteConfirmOpen(true)}
-                  className="text-red-400 hover:bg-white/20 hover:text-red-300"
+                  className="gap-1 bg-red-600 text-white hover:bg-red-700"
                 >
                   <Trash2 className="size-4" />
+                  Delete
                 </Button>
               )}
               <Button

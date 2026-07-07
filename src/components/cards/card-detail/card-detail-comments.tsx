@@ -201,6 +201,35 @@ function CommentItem({
   );
 }
 
+function InlineImage({ url, alt, onClick }: { url: string; alt: string; onClick: () => void }) {
+  const [broken, setBroken] = useState(false);
+
+  if (broken) {
+    return (
+      <span className="bg-muted text-muted-foreground my-1 inline-block rounded-md border px-3 py-2 text-xs italic">
+        [deleted image]
+      </span>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="my-1 inline-block overflow-hidden rounded-md border hover:opacity-90"
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={url}
+        alt={alt}
+        className="max-h-40 max-w-full object-contain"
+        loading="lazy"
+        onError={() => setBroken(true)}
+      />
+    </button>
+  );
+}
+
 function CommentContent({
   content,
   onImageClick,
@@ -220,20 +249,12 @@ function CommentContent({
         part.type === "text" ? (
           <span key={i}>{part.value}</span>
         ) : (
-          <button
+          <InlineImage
             key={i}
-            type="button"
+            url={part.url}
+            alt={part.alt}
             onClick={() => onImageClick(part.url)}
-            className="my-1 inline-block overflow-hidden rounded-md border hover:opacity-90"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={part.url}
-              alt={part.alt}
-              className="max-h-40 max-w-full object-contain"
-              loading="lazy"
-            />
-          </button>
+          />
         ),
       )}
     </div>
