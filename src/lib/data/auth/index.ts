@@ -49,3 +49,30 @@ export async function createUser(input: {
   void removed;
   return publicUser;
 }
+
+export async function updateUserAvatar(
+  userId: string,
+  avatarUrl: string | null,
+  avatarPublicId: string | null,
+): Promise<PublicUser | null> {
+  const db = createDbClient();
+  const [user] = await db
+    .update(users)
+    .set({ avatarUrl, avatarPublicId })
+    .where(eq(users.id, userId))
+    .returning();
+
+  if (!user) return null;
+  const { passwordHash: removed, ...publicUser } = user;
+  void removed;
+  return publicUser;
+}
+
+export async function getUserById(userId: string): Promise<PublicUser | null> {
+  const db = createDbClient();
+  const [user] = await db.select().from(users).where(eq(users.id, userId));
+  if (!user) return null;
+  const { passwordHash: removed, ...publicUser } = user;
+  void removed;
+  return publicUser;
+}
