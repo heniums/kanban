@@ -17,8 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BackgroundPicker } from "@/components/boards/background-picker";
-import { mapUploadResultToAttachment } from "@/lib/cloudinary";
-import type { CloudinaryUploadResult } from "@/lib/cloudinary";
+import { mapUploadResultToAttachment } from "@/lib/cloudinary/client-safe";
+import type { CloudinaryUploadResult } from "@/lib/cloudinary/client-safe";
 import { toast } from "sonner";
 
 interface BoardSettingsProps {

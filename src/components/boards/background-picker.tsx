@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ImagePlus, X } from "lucide-react";
-import type { CloudinaryUploadResult } from "@/lib/cloudinary";
+import type { CloudinaryUploadResult } from "@/lib/cloudinary/client-safe";
 import { Button } from "@/components/ui/button";
 
 export interface BackgroundOption {

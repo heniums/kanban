@@ -3,7 +3,7 @@
 import { useCallback, useState, useRef } from "react";
 import { ImagePlus, Loader2 } from "lucide-react";
 import { getUploadSignatureAction } from "@/lib/actions/upload-signature";
-import type { CloudinaryUploadResult } from "@/lib/cloudinary";
+import type { CloudinaryUploadResult } from "@/lib/cloudinary/client-safe";
 
 interface ImageUploadProps {
   onUpload: (result: CloudinaryUploadResult) => void;

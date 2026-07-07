@@ -5,8 +5,8 @@ import { ImagePlus, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ImageUpload } from "@/components/upload/image-upload";
 import { createAttachmentAction, deleteAttachmentAction } from "@/lib/actions/attachments";
-import { mapUploadResultToAttachment } from "@/lib/cloudinary";
-import type { CloudinaryUploadResult } from "@/lib/cloudinary";
+import { mapUploadResultToAttachment } from "@/lib/cloudinary/client-safe";
+import type { CloudinaryUploadResult } from "@/lib/cloudinary/client-safe";
 import type { CardAttachment } from "./types";
 import { toast } from "sonner";
 

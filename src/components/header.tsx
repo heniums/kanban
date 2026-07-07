@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { ImageUpload } from "@/components/upload/image-upload";
 import { updateUserAvatarAction, deleteUserAvatarAction } from "@/lib/actions/avatar";
-import { mapUploadResultToAttachment } from "@/lib/cloudinary";
-import type { CloudinaryUploadResult } from "@/lib/cloudinary";
+import { mapUploadResultToAttachment } from "@/lib/cloudinary/client-safe";
+import type { CloudinaryUploadResult } from "@/lib/cloudinary/client-safe";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
