@@ -86,7 +86,7 @@ describe("createAttachmentAction", () => {
     });
 
     expect(result).toHaveProperty("attachment");
-    expect(result.attachment.id).toBe(ATTACHMENT_ID);
+    expect(result.attachment!.id).toBe(ATTACHMENT_ID);
     expect(mockCreateAttachment).toHaveBeenCalledWith(
       expect.objectContaining({
         publicId: "cloud_public_id",

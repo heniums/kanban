@@ -20,17 +20,17 @@ const baseBoard: Board = {
 describe("BoardHero", () => {
   it("renders the board title as a heading in the full variant", () => {
     render(<BoardHero board={baseBoard} variant="full" />);
-    expect(screen.getByRole("heading", { level: 1, name: "Hero Board" })).toBeDefined();
+    expect(screen.getByRole("heading", { level: 1, name: "Test Board" })).toBeDefined();
   });
 
   it("renders the board description when present in the full variant", () => {
     render(<BoardHero board={baseBoard} variant="full" />);
-    expect(screen.getByText("Board description")).toBeDefined();
+    expect(screen.getByText("A test board description")).toBeDefined();
   });
 
   it("renders the board title in the compact variant", () => {
     render(<BoardHero board={baseBoard} variant="compact" />);
-    expect(screen.getByText("Hero Board")).toBeDefined();
+    expect(screen.getByText("Test Board")).toBeDefined();
   });
 
   it("applies the board background as inline style (solid color)", () => {
@@ -73,7 +73,7 @@ describe("BoardHero", () => {
         variant="compact"
       />,
     );
-    const title = screen.getByText("Hero Board");
+    const title = screen.getByText("Test Board");
     expect(title.style.color).toBe("white");
   });
 
@@ -110,12 +110,12 @@ describe("BoardHero", () => {
     const hero = container.firstElementChild as HTMLElement;
     // The hero should be a region with an aria-label derived from the board title
     expect(hero.tagName).toBe("SECTION");
-    expect(hero.getAttribute("aria-label")).toBe("Hero Board board header");
+    expect(hero.getAttribute("aria-label")).toBe("Test Board board header");
   });
 
   it("does not render the description in the compact variant", () => {
     render(<BoardHero board={baseBoard} variant="compact" />);
-    expect(screen.queryByText("Board description")).toBeNull();
+    expect(screen.queryByText("A test board description")).toBeNull();
   });
 });
 
