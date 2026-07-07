@@ -28,6 +28,7 @@ describe("Users table", () => {
       { name: "avatar_url", type: "text", nullable: "YES" },
       { name: "created_at", type: "timestamp without time zone", nullable: "NO" },
       { name: "updated_at", type: "timestamp without time zone", nullable: "NO" },
+      { name: "avatar_public_id", type: "text", nullable: "YES" },
     ]);
   });
 });

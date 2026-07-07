@@ -43,5 +43,5 @@ See `conductor/archive/` for historical completed track folders.
 
 ---
 
-- [ ] **Track: Image attachment support for cards, user avatars, board backgrounds, and inline comment references using Cloudinary**
-      _Link: [./tracks/image_attachments_20260707/](./tracks/image_attachments_20260707/)_
+- [~] **Track: Image attachment support for cards, user avatars, board backgrounds, and inline comment references using Cloudinary**
+  _Link: [./tracks/image_attachments_20260707/](./tracks/image_attachments_20260707/)_

@@ -30,6 +30,8 @@ describe("Boards table", () => {
       { name: "created_at", type: "timestamp without time zone", nullable: "NO" },
       { name: "updated_at", type: "timestamp without time zone", nullable: "NO" },
       { name: "deleted_at", type: "timestamp without time zone", nullable: "YES" },
+      { name: "background_image_url", type: "text", nullable: "YES" },
+      { name: "background_image_public_id", type: "text", nullable: "YES" },
     ]);
   });
 
