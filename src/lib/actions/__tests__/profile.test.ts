@@ -19,12 +19,11 @@ describe("profile actions", () => {
 
   describe("updateProfileAction", () => {
     it("updates the user's name", async () => {
-      vi.mocked(verifySession).mockResolvedValue({ userId: "u1", role: "user" });
+      vi.mocked(verifySession).mockResolvedValue({ userId: "u1" });
       vi.mocked(updateUserProfile).mockResolvedValue({
         id: "u1",
         name: "New Name",
         email: "a@b.com",
-        role: "user",
         avatarUrl: null,
         avatarPublicId: null,
         createdAt: new Date(),
@@ -39,7 +38,7 @@ describe("profile actions", () => {
     });
 
     it("returns error for invalid input", async () => {
-      vi.mocked(verifySession).mockResolvedValue({ userId: "u1", role: "user" });
+      vi.mocked(verifySession).mockResolvedValue({ userId: "u1" });
 
       const result = await updateProfileAction({ name: "" });
 
@@ -49,7 +48,7 @@ describe("profile actions", () => {
 
   describe("updatePasswordAction", () => {
     it("updates password when inputs are valid", async () => {
-      vi.mocked(verifySession).mockResolvedValue({ userId: "u1", role: "user" });
+      vi.mocked(verifySession).mockResolvedValue({ userId: "u1" });
       vi.mocked(updateUserPassword).mockResolvedValue({ success: true });
 
       const result = await updatePasswordAction({
@@ -64,7 +63,7 @@ describe("profile actions", () => {
     });
 
     it("returns error when passwords do not match", async () => {
-      vi.mocked(verifySession).mockResolvedValue({ userId: "u1", role: "user" });
+      vi.mocked(verifySession).mockResolvedValue({ userId: "u1" });
 
       const result = await updatePasswordAction({
         currentPassword: "oldpass",
@@ -77,7 +76,7 @@ describe("profile actions", () => {
     });
 
     it("returns error when current password is wrong", async () => {
-      vi.mocked(verifySession).mockResolvedValue({ userId: "u1", role: "user" });
+      vi.mocked(verifySession).mockResolvedValue({ userId: "u1" });
       vi.mocked(updateUserPassword).mockResolvedValue({ error: "Current password is incorrect" });
 
       const result = await updatePasswordAction({

@@ -104,8 +104,8 @@ function AvatarTab({ user }: { user: PublicUser }) {
     try {
       const meta = mapUploadResultToAttachment(result);
       const res = await updateUserAvatarAction({
-        imageUrl: meta.url,
-        imagePublicId: meta.publicId,
+        avatarUrl: meta.url,
+        avatarPublicId: meta.publicId,
       });
 
       if ("error" in res) {

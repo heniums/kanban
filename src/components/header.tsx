@@ -3,22 +3,15 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { Camera, Trash2, User } from "lucide-react";
+import { User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { ImageUpload } from "@/components/upload/image-upload";
-import { updateUserAvatarAction, deleteUserAvatarAction } from "@/lib/actions/avatar";
-import { mapUploadResultToAttachment } from "@/lib/cloudinary/client-safe";
-import type { CloudinaryUploadResult } from "@/lib/cloudinary/client-safe";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
 export function Header() {
-  const { data: session, status, update } = useSession();
+  const { data: session, status } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [avatarUploading, setAvatarUploading] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -32,50 +25,6 @@ export function Header() {
 
   const isLoading = status === "loading";
   const isAuthenticated = status === "authenticated";
-
-  const handleAvatarUpload = async (result: CloudinaryUploadResult) => {
-    if (!session?.user?.id) return;
-    setAvatarUploading(true);
-    try {
-      const meta = mapUploadResultToAttachment(result);
-      const res = await updateUserAvatarAction({
-        avatarUrl: meta.url,
-        avatarPublicId: meta.publicId,
-      });
-
-      if ("error" in res) {
-        toast.error(res.error);
-        return;
-      }
-
-      await update({});
-      router.refresh();
-      toast.success("Avatar updated");
-    } catch {
-      toast.error("Failed to update avatar");
-    } finally {
-      setAvatarUploading(false);
-      setMenuOpen(false);
-    }
-  };
-
-  const handleAvatarDelete = async () => {
-    if (!session?.user?.id) return;
-    try {
-      const res = await deleteUserAvatarAction();
-      if ("error" in res) {
-        toast.error(res.error);
-        return;
-      }
-      await update();
-      router.refresh();
-      toast.success("Avatar removed");
-    } catch {
-      toast.error("Failed to remove avatar");
-    } finally {
-      setMenuOpen(false);
-    }
-  };
 
   const avatarUrl = (session?.user as Record<string, unknown> | undefined)?.avatarUrl as
     string | undefined;
@@ -114,43 +63,27 @@ export function Header() {
 
               {menuOpen && (
                 <div className="bg-popover absolute right-0 mt-2 w-56 rounded-md border p-2 shadow-md">
-                  <div className="text-muted-foreground px-2 py-1.5 text-sm">
-                    {session.user.email}
-                  </div>
-                  <div className="bg-border my-1 h-px" />
-
-                  <div className="space-y-2 px-2 py-1">
-                    <div className="flex items-center gap-2">
-                      {avatarUrl ? (
-                        <div className="relative">
-                          <img
-                            src={avatarUrl}
-                            alt="Avatar"
-                            className="h-10 w-10 rounded-full object-cover"
-                          />
-                          <button
-                            onClick={handleAvatarDelete}
-                            className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-red-500 text-white"
-                            title="Remove avatar"
-                          >
-                            <Trash2 className="size-2.5" />
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="bg-muted inline-flex h-10 w-10 items-center justify-center rounded-full">
-                          <Camera className="text-muted-foreground size-4" />
-                        </div>
-                      )}
-                      <span className="text-sm">{avatarUrl ? "Change avatar" : "Add avatar"}</span>
+                  <div className="flex items-center gap-3 px-2 py-1.5">
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt="Avatar"
+                        className="h-10 w-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="bg-primary text-primary-foreground inline-flex h-10 w-10 items-center justify-center rounded-full text-xs font-bold">
+                        {session.user.name?.charAt(0).toUpperCase() ||
+                          session.user.email?.charAt(0).toUpperCase() ||
+                          "U"}
+                      </div>
+                    )}
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">
+                        {session.user.name || session.user.email}
+                      </span>
+                      <span className="text-muted-foreground text-xs">{session.user.email}</span>
                     </div>
-                    <ImageUpload
-                      onUpload={handleAvatarUpload}
-                      onError={(err) => toast.error(err)}
-                      disabled={avatarUploading}
-                      maxFiles={1}
-                    />
                   </div>
-
                   <div className="bg-border my-1 h-px" />
                   <a
                     href="/profile"

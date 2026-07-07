@@ -263,6 +263,11 @@ function AddComment({
       const file = imageItem.getAsFile();
       if (!file) return;
 
+      // Capture cursor position synchronously before async work
+      const target = e.currentTarget;
+      const start = target.selectionStart ?? content.length;
+      const end = target.selectionEnd ?? content.length;
+
       setIsPastingImage(true);
       try {
         const result = await uploadImageFile(file);
@@ -282,8 +287,8 @@ function AddComment({
 
         const imageRef = `![Pasted image](${meta.url})`;
         setContent((prev) => {
-          const before = prev.slice(0, e.currentTarget.selectionStart);
-          const after = prev.slice(e.currentTarget.selectionEnd);
+          const before = prev.slice(0, start);
+          const after = prev.slice(end);
           return `${before}\n${imageRef}\n${after}`;
         });
         toast.success("Image pasted into comment");
