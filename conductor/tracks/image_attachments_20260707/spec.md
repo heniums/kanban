@@ -9,30 +9,36 @@ Add image upload and management capabilities across the kanban application using
 ### In Scope
 
 1. **Card Image Attachments**
-   - Upload images to cards via Cloudinary Upload Widget (direct browser upload)
+   - Upload images to cards via drag-and-drop or click-to-upload
    - Display uploaded images in a gallery/grid within the card detail modal
-   - Delete individual attachments (removes from Cloudinary + DB)
+   - Click attachment image to open modal viewer with zoom controls
+   - Delete individual attachments with confirmation dialog (removes from Cloudinary + DB)
    - Maximum 10 images per card, 5MB per image
    - Supported formats: JPEG, PNG, WebP, GIF
 
-2. **User Avatar Upload**
+2. **User Avatar Upload & Profile Settings**
    - Upload profile picture via Cloudinary Upload Widget
    - Display avatar in user dropdown, board member list, card assignees, and comments
    - Replace existing avatar (delete old from Cloudinary)
    - Fallback to initials-based avatar when no image uploaded
+   - Dedicated `/profile` settings page with tabs:
+     - Profile Info tab: update display name (email read-only)
+     - Avatar tab: upload/remove avatar with preview
+     - Password tab: update password via old/new password mechanic
    - Maximum 2MB, image formats only
 
 3. **Board Background Images**
-   - Upload a cover/background image for the board hero section
+   - Upload a cover/background image for the board hero section via direct file picker
    - Display as background behind the board title/description on both board page and dashboard card
    - Falls back to existing color-based `background` field when no image set
    - Replace/delete background image
    - Maximum 5MB, recommended 16:9 aspect ratio
 
 4. **Comment Inline Image References**
-   - Support markdown-like syntax `![image](attachment_id)` in comment text
+   - Paste images directly into comment composer (auto-upload to Cloudinary + create attachment)
+   - Support markdown-like syntax `![image](url)` in comment text
    - Render referenced card attachment images inline when displaying comments
-   - Show attachment picker/selector when writing comments (lists card's attachments)
+   - Click inline images to open image viewer modal
    - Gracefully handle invalid or deleted attachment references
 
 ### Data Model Changes

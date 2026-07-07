@@ -155,11 +155,13 @@ export function BackgroundPicker({
         <div className="rounded-lg border p-3">
           {/* Lazy import to avoid loading server actions in test environments */}
           <LazyImageUpload
+            autoOpen
             onUpload={(result) => {
               onImageUpload(result);
               setShowUpload(false);
             }}
             onError={() => setShowUpload(false)}
+            onCancel={() => setShowUpload(false)}
             disabled={disabled}
             maxFiles={1}
           />
@@ -173,8 +175,10 @@ export function BackgroundPicker({
 function LazyImageUpload(props: {
   onUpload: (result: CloudinaryUploadResult) => void;
   onError?: () => void;
+  onCancel?: () => void;
   disabled?: boolean;
   maxFiles?: number;
+  autoOpen?: boolean;
 }) {
   const [Component, setComponent] = useState<React.ComponentType<typeof props> | null>(null);
 

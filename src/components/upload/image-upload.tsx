@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useRef } from "react";
+import { useCallback, useState, useRef, useEffect } from "react";
 import { ImagePlus, Loader2 } from "lucide-react";
 import { getUploadSignatureAction } from "@/lib/actions/upload-signature";
 import type { CloudinaryUploadResult } from "@/lib/cloudinary/client-safe";
@@ -8,14 +8,53 @@ import type { CloudinaryUploadResult } from "@/lib/cloudinary/client-safe";
 interface ImageUploadProps {
   onUpload: (result: CloudinaryUploadResult) => void;
   onError?: (error: string) => void;
+  onCancel?: () => void;
   disabled?: boolean;
   maxFiles?: number;
+  autoOpen?: boolean;
 }
 
-export function ImageUpload({ onUpload, onError, disabled, maxFiles = 1 }: ImageUploadProps) {
+export function ImageUpload({
+  onUpload,
+  onError,
+  onCancel,
+  disabled,
+  maxFiles = 1,
+  autoOpen,
+}: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
+  const [hasUploaded, setHasUploaded] = useState(false);
   const [previews, setPreviews] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-open file dialog on mount
+  useEffect(() => {
+    if (autoOpen && inputRef.current && !disabled && !isUploading) {
+      inputRef.current.click();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOpen, disabled]);
+
+  // Detect dialog cancellation via window focus
+  useEffect(() => {
+    if (!autoOpen) return;
+    let timeout: ReturnType<typeof setTimeout>;
+
+    const handleWindowFocus = () => {
+      // Give onChange time to fire if a file was selected
+      timeout = setTimeout(() => {
+        if (!hasUploaded && !isUploading) {
+          onCancel?.();
+        }
+      }, 300);
+    };
+
+    window.addEventListener("focus", handleWindowFocus);
+    return () => {
+      window.removeEventListener("focus", handleWindowFocus);
+      clearTimeout(timeout);
+    };
+  }, [autoOpen, hasUploaded, isUploading, onCancel]);
 
   const uploadToCloudinary = useCallback(
     async (file: File) => {
@@ -41,6 +80,7 @@ export function ImageUpload({ onUpload, onError, disabled, maxFiles = 1 }: Image
         }
 
         const result = (await res.json()) as CloudinaryUploadResult;
+        setHasUploaded(true);
         onUpload(result);
         return result;
       } catch (err) {

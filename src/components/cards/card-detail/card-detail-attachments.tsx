@@ -4,6 +4,17 @@ import { useState, useCallback } from "react";
 import { ImagePlus, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ImageUpload } from "@/components/upload/image-upload";
+import { ImageViewerModal } from "@/components/upload/image-viewer-modal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { createAttachmentAction, deleteAttachmentAction } from "@/lib/actions/attachments";
 import { mapUploadResultToAttachment } from "@/lib/cloudinary/client-safe";
 import type { CloudinaryUploadResult } from "@/lib/cloudinary/client-safe";
@@ -27,6 +38,14 @@ export function CardDetailAttachments({
 }: CardDetailAttachmentsProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerImage, setViewerImage] = useState<CardAttachment | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const openViewer = useCallback((att: CardAttachment) => {
+    setViewerImage(att);
+    setViewerOpen(true);
+  }, []);
 
   const handleUpload = useCallback(
     async (result: CloudinaryUploadResult) => {
@@ -72,7 +91,7 @@ export function CardDetailAttachments({
     [cardId, boardId, attachments, onChange],
   );
 
-  const handleDelete = useCallback(
+  const doDelete = useCallback(
     async (attachmentId: string) => {
       setDeletingId(attachmentId);
       try {
@@ -93,6 +112,7 @@ export function CardDetailAttachments({
         toast.error("Failed to remove image");
       } finally {
         setDeletingId(null);
+        setConfirmDeleteId(null);
       }
     },
     [cardId, boardId, attachments, onChange],
@@ -110,25 +130,25 @@ export function CardDetailAttachments({
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {attachments.map((att) => (
             <div key={att.id} className="group relative">
-              <a
-                href={att.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block overflow-hidden rounded-lg"
+              <button
+                type="button"
+                onClick={() => openViewer(att)}
+                className="block w-full overflow-hidden rounded-lg"
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={att.url}
                   alt="Attachment"
                   className="h-24 w-full object-cover transition-transform group-hover:scale-105"
                   loading="lazy"
                 />
-              </a>
+              </button>
               <Button
                 type="button"
                 variant="destructive"
                 size="icon-sm"
                 className="absolute top-1 right-1 size-6 opacity-0 transition-opacity group-hover:opacity-100"
-                onClick={() => handleDelete(att.attachmentId)}
+                onClick={() => setConfirmDeleteId(att.attachmentId)}
                 disabled={disabled || deletingId === att.attachmentId}
               >
                 {deletingId === att.attachmentId ? (
@@ -150,6 +170,34 @@ export function CardDetailAttachments({
           maxFiles={Math.min(10 - attachments.length, 5)}
         />
       )}
+
+      <ImageViewerModal
+        open={viewerOpen}
+        onOpenChange={setViewerOpen}
+        imageUrl={viewerImage?.url ?? ""}
+        imageId={viewerImage?.attachmentId ?? ""}
+        onDelete={(id) => doDelete(id)}
+      />
+
+      <AlertDialog open={!!confirmDeleteId} onOpenChange={() => setConfirmDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this image?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. The image will be permanently removed from this card.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setConfirmDeleteId(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => confirmDeleteId && doDelete(confirmDeleteId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

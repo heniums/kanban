@@ -189,6 +189,7 @@ export function CardDetail({ boardId, lists }: CardDetailProps) {
 
             <CommentsSection
               cardId={data.card.id}
+              boardId={boardId}
               comments={data.comments}
               boardMembers={data.boardMembers}
               onChange={(next) =>

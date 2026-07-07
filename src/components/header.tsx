@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { Camera, Trash2 } from "lucide-react";
+import { Camera, Trash2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { ImageUpload } from "@/components/upload/image-upload";
@@ -150,6 +150,16 @@ export function Header() {
                       maxFiles={1}
                     />
                   </div>
+
+                  <div className="bg-border my-1 h-px" />
+                  <a
+                    href="/profile"
+                    className="hover:bg-accent flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <User className="size-4" />
+                    Profile Settings
+                  </a>
 
                   <div className="bg-border my-1 h-px" />
                   <button
