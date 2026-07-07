@@ -65,7 +65,7 @@ describe("BoardSettings background picker", () => {
 
     expect(updateBoardAction).toHaveBeenCalledTimes(1);
     const callArgs = vi.mocked(updateBoardAction).mock.calls[0];
-    expect(callArgs[0]).toBe("test-id");
+    expect(callArgs[0]).toBe("board-1");
     const formData = callArgs[1] as FormData;
     expect(formData.get("background")).toBe(BACKGROUNDS[3].value);
   });

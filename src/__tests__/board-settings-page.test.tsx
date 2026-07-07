@@ -83,7 +83,7 @@ describe("BoardSettingsPage", () => {
     });
     render(jsx);
 
-    expect(screen.getByRole("heading", { level: 1, name: /my test board/i })).toBeDefined();
+    expect(screen.getByRole("heading", { level: 1, name: /test board/i })).toBeDefined();
   });
 
   it("renders tab navigation with General and Members tabs", async () => {
