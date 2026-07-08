@@ -78,6 +78,12 @@ vi.mock("@/lib/db/schema/lists", () => ({
 vi.mock("@/lib/db/schema/boards", () => ({
   boards: { _table: "boards" },
 }));
+vi.mock("@/lib/cloudinary", () => ({
+  deleteCloudinaryAsset: vi.fn(),
+}));
+vi.mock("@/lib/data/attachments", () => ({
+  listAttachmentsByCardId: vi.fn(() => Promise.resolve([])),
+}));
 
 import { createCard, deleteCard, reorderCards } from "..";
 

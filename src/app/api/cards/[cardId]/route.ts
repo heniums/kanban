@@ -12,6 +12,8 @@ import { checklists } from "@/lib/db/schema/checklists";
 import { checklistItems } from "@/lib/db/schema/checklist-items";
 import { comments } from "@/lib/db/schema/comments";
 import { users } from "@/lib/db/schema/users";
+import { attachments } from "@/lib/db/schema/attachments";
+import { cardAttachments } from "@/lib/db/schema/card-attachments";
 import { getBoardMembers } from "@/lib/data/members/list";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ cardId: string }> }) {
@@ -40,6 +42,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ car
     cardItemRows,
     cardCommentRows,
     boardMembersList,
+    attachmentRows,
   ] = await Promise.all([
     db
       .select({ id: labels.id, name: labels.name, color: labels.color })
@@ -48,7 +51,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ car
       .where(eq(cardLabels.cardId, cardId)),
     db.select().from(labels).where(eq(labels.boardId, card.boardId)),
     db
-      .select({ id: users.id, name: users.name, email: users.email })
+      .select({ id: users.id, name: users.name, email: users.email, avatarUrl: users.avatarUrl })
       .from(cardAssignees)
       .innerJoin(users, eq(users.id, cardAssignees.userId))
       .where(eq(cardAssignees.cardId, cardId)),
@@ -70,6 +73,26 @@ export async function GET(_request: Request, { params }: { params: Promise<{ car
       .where(eq(comments.cardId, cardId))
       .orderBy(sql`${comments.createdAt} ASC`),
     getBoardMembers(card.boardId),
+    db
+      .select({
+        id: cardAttachments.id,
+        cardId: cardAttachments.cardId,
+        attachmentId: cardAttachments.attachmentId,
+        displayOrder: cardAttachments.displayOrder,
+        url: attachments.url,
+        publicId: attachments.publicId,
+        format: attachments.format,
+        width: attachments.width,
+        height: attachments.height,
+        bytes: attachments.bytes,
+        resourceType: attachments.resourceType,
+        createdBy: attachments.createdBy,
+        createdAt: attachments.createdAt,
+      })
+      .from(cardAttachments)
+      .innerJoin(attachments, eq(attachments.id, cardAttachments.attachmentId))
+      .where(eq(cardAttachments.cardId, cardId))
+      .orderBy(sql`${cardAttachments.displayOrder} ASC`),
   ]);
 
   const itemsByChecklist = new Map<string, typeof cardItemRows>();
@@ -90,6 +113,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ car
       id: m.user.id,
       name: m.user.name,
       email: m.user.email,
+      avatarUrl: m.user.avatarUrl,
     })),
+    attachments: attachmentRows,
   });
 }

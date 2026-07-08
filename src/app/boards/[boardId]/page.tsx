@@ -10,6 +10,7 @@ import {
   getCardsByBoardId,
   getCardLabelsByBoardId,
   getCardAssigneesByBoardId,
+  getCardAttachmentPreviewsByBoardId,
 } from "@/lib/data/cards";
 
 import { getChecklistProgressByBoardId } from "@/lib/data/checklists";
@@ -35,14 +36,21 @@ export default async function BoardPage({ params }: BoardPageProps) {
   const capabilities = await getBoardCapabilities(userId, boardId);
 
   const lists = await getListsByBoardId(boardId);
-  const [allCards, cardLabelsMap, cardAssigneesMap, checklistProgressMap, commentCountsMap] =
-    await Promise.all([
-      getCardsByBoardId(boardId),
-      getCardLabelsByBoardId(boardId),
-      getCardAssigneesByBoardId(boardId),
-      getChecklistProgressByBoardId(boardId),
-      getCommentCountsByBoardId(boardId),
-    ]);
+  const [
+    allCards,
+    cardLabelsMap,
+    cardAssigneesMap,
+    checklistProgressMap,
+    commentCountsMap,
+    attachmentPreviewMap,
+  ] = await Promise.all([
+    getCardsByBoardId(boardId),
+    getCardLabelsByBoardId(boardId),
+    getCardAssigneesByBoardId(boardId),
+    getChecklistProgressByBoardId(boardId),
+    getCommentCountsByBoardId(boardId),
+    getCardAttachmentPreviewsByBoardId(boardId),
+  ]);
 
   const cardsByList: Record<string, CardSummary[]> = {};
   for (const list of lists) {
@@ -56,6 +64,7 @@ export default async function BoardPage({ params }: BoardPageProps) {
       assignees: cardAssigneesMap[card.id] ?? [],
       checklistProgress: checklistProgressMap[card.id] ?? null,
       commentCount: commentCountsMap[card.id] ?? 0,
+      attachmentPreviewUrl: attachmentPreviewMap[card.id] ?? null,
     });
   }
 

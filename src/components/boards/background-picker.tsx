@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { Pipette } from "lucide-react";
 
 export interface BackgroundOption {
   label: string;
@@ -33,6 +34,7 @@ interface BackgroundPickerProps {
   onChange: (value: string) => void;
   onBlur?: () => void;
   name?: string;
+  disabled?: boolean;
   "aria-invalid"?: boolean;
   "aria-describedby"?: string;
 }
@@ -42,8 +44,11 @@ export function BackgroundPicker({
   onChange,
   onBlur,
   name,
+  disabled,
   ...ariaProps
 }: BackgroundPickerProps) {
+  const isCustomColor = !BACKGROUNDS.some((bg) => bg.value === value);
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent, index: number) => {
       const lastIndex = BACKGROUNDS.length - 1;
@@ -67,34 +72,60 @@ export function BackgroundPicker({
   );
 
   return (
-    <div
-      role="radiogroup"
-      aria-label="Board background"
-      className="flex flex-wrap gap-3"
-      onBlur={onBlur}
-      {...ariaProps}
-    >
-      {BACKGROUNDS.map((option, index) => {
-        const isSelected = option.value === value;
+    <div className="space-y-3">
+      <div
+        role="radiogroup"
+        aria-label="Board background"
+        className="flex flex-wrap gap-3"
+        onBlur={onBlur}
+        {...ariaProps}
+      >
+        {BACKGROUNDS.map((option, index) => {
+          const isSelected = !isCustomColor && option.value === value;
 
-        return (
-          <button
-            key={option.value}
-            type="button"
-            role="radio"
-            aria-checked={isSelected}
-            aria-label={option.label}
-            tabIndex={isSelected ? 0 : -1}
-            name={name}
-            onClick={() => onChange(option.value)}
-            onKeyDown={(e) => handleKeyDown(e, index)}
-            className={`focus-visible:ring-ring h-12 w-12 rounded-lg border-2 transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
-              isSelected ? "border-primary ring-primary ring-2 ring-offset-2" : "border-border"
-            }`}
-            style={{ background: option.value }}
+          return (
+            <button
+              key={option.value}
+              type="button"
+              role="radio"
+              aria-checked={isSelected}
+              aria-label={option.label}
+              tabIndex={isSelected ? 0 : -1}
+              name={name}
+              onClick={() => onChange(option.value)}
+              onKeyDown={(e) => handleKeyDown(e, index)}
+              disabled={disabled}
+              className={`focus-visible:ring-ring h-12 w-12 rounded-lg border-2 transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
+                isSelected ? "border-primary ring-primary ring-2 ring-offset-2" : "border-border"
+              }`}
+              style={{ background: option.value }}
+            />
+          );
+        })}
+
+        <label
+          className={`focus-visible:ring-ring flex h-12 w-12 cursor-pointer items-center justify-center rounded-lg border-2 transition-shadow focus-within:ring-2 focus-within:ring-offset-2 ${
+            isCustomColor
+              ? "border-primary ring-primary ring-2 ring-offset-2"
+              : "border-border hover:border-primary/50"
+          }`}
+          aria-label="Custom color"
+          title="Custom color"
+        >
+          <input
+            type="color"
+            value={isCustomColor ? value : "#000000"}
+            onChange={(e) => onChange(e.target.value)}
+            disabled={disabled}
+            className="sr-only"
           />
-        );
-      })}
+          {isCustomColor ? (
+            <div className="h-full w-full rounded-md" style={{ background: value }} />
+          ) : (
+            <Pipette className="text-muted-foreground size-5" />
+          )}
+        </label>
+      </div>
     </div>
   );
 }

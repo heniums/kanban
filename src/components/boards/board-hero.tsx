@@ -30,11 +30,14 @@ export function BoardHero({ board, variant, className, children, breadcrumb }: B
         VARIANT_CLASSES[variant],
         className,
       )}
-      style={{ background: board.background, color: textColor }}
+      style={{
+        background: board.background,
+        color: textColor,
+      }}
     >
       <div
         className={cn(
-          "mx-auto flex h-full w-full max-w-7xl px-4 sm:px-6 lg:px-8",
+          "relative mx-auto flex h-full w-full max-w-7xl px-4 sm:px-6 lg:px-8",
           isFull ? "flex-col justify-between gap-3 py-2" : "items-end justify-between gap-2 pb-2",
         )}
       >

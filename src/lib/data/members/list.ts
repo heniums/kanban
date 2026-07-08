@@ -15,6 +15,7 @@ export async function getBoardMembers(boardId: string) {
         id: users.id,
         email: users.email,
         name: users.name,
+        avatarUrl: users.avatarUrl,
       },
     })
     .from(boardMembers)

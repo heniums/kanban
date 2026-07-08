@@ -39,6 +39,24 @@ export type LabelDeletedPayload = {
   labelId: string;
 };
 
+export type AttachmentCreatedPayload = {
+  boardId: string;
+  cardId: string;
+  attachment: {
+    id: string;
+    url: string;
+    publicId: string;
+    width: number | null;
+    height: number | null;
+  };
+};
+
+export type AttachmentDeletedPayload = {
+  boardId: string;
+  cardId: string;
+  attachmentId: string;
+};
+
 export const REALTIME_EVENTS = {
   CARD_CREATED: "card:created",
   CARD_UPDATED: "card:updated",
@@ -51,6 +69,8 @@ export const REALTIME_EVENTS = {
   LIST_REORDERED: "list:reordered",
   LABEL_UPDATED: "label:updated",
   LABEL_DELETED: "label:deleted",
+  ATTACHMENT_CREATED: "attachment:created",
+  ATTACHMENT_DELETED: "attachment:deleted",
 } as const;
 
 export const REALTIME_JOIN_BOARD = "board:join" as const;

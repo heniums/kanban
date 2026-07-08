@@ -49,3 +49,69 @@ export async function createUser(input: {
   void removed;
   return publicUser;
 }
+
+export async function updateUserAvatar(
+  userId: string,
+  avatarUrl: string | null,
+  avatarPublicId: string | null,
+): Promise<PublicUser | null> {
+  const db = createDbClient();
+  const [user] = await db
+    .update(users)
+    .set({ avatarUrl, avatarPublicId })
+    .where(eq(users.id, userId))
+    .returning();
+
+  if (!user) return null;
+  const { passwordHash: removed, ...publicUser } = user;
+  void removed;
+  return publicUser;
+}
+
+export async function getUserById(userId: string): Promise<PublicUser | null> {
+  const db = createDbClient();
+  const [user] = await db.select().from(users).where(eq(users.id, userId));
+  if (!user) return null;
+  const { passwordHash: removed, ...publicUser } = user;
+  void removed;
+  return publicUser;
+}
+
+export async function updateUserProfile(
+  userId: string,
+  data: { name: string },
+): Promise<PublicUser | null> {
+  const db = createDbClient();
+  const [user] = await db
+    .update(users)
+    .set({ name: data.name })
+    .where(eq(users.id, userId))
+    .returning();
+
+  if (!user) return null;
+  const { passwordHash: removed, ...publicUser } = user;
+  void removed;
+  return publicUser;
+}
+
+export async function updateUserPassword(
+  userId: string,
+  oldPassword: string,
+  newPassword: string,
+): Promise<{ success: true } | { error: string }> {
+  const db = createDbClient();
+  const [user] = await db.select().from(users).where(eq(users.id, userId));
+  if (!user) {
+    return { error: "User not found" };
+  }
+
+  const valid = await compare(oldPassword, user.passwordHash);
+  if (!valid) {
+    return { error: "Current password is incorrect" };
+  }
+
+  const newHash = await hash(newPassword, 12);
+  await db.update(users).set({ passwordHash: newHash }).where(eq(users.id, userId));
+
+  return { success: true };
+}

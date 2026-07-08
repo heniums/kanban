@@ -2,9 +2,17 @@
 
 import { useState } from "react";
 import { Plus, X } from "lucide-react";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+interface Member {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl?: string | null;
+}
 
 export function AssigneesControl({
   boardMembers,
@@ -13,24 +21,23 @@ export function AssigneesControl({
   byId,
   disabled,
 }: {
-  boardMembers: { id: string; name: string; email: string }[];
+  boardMembers: Member[];
   selectedIds: string[];
   onToggle: (userId: string) => void;
-  byId: Record<string, { id: string; name: string; email: string }>;
+  byId: Record<string, Member>;
   disabled: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const selected = new Set(selectedIds);
-  const attached = selectedIds
-    .map((id) => byId[id])
-    .filter((u): u is { id: string; name: string; email: string } => !!u);
+  const attached = selectedIds.map((id) => byId[id]).filter((u): u is Member => !!u);
   const filtered = boardMembers.filter((m) => {
     if (selected.has(m.id)) return false;
     const q = search.trim().toLowerCase();
     if (!q) return true;
     return m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q);
   });
+
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {attached.length === 0 && (
@@ -42,6 +49,7 @@ export function AssigneesControl({
           data-testid="attached-assignee"
           className="bg-muted text-foreground inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs"
         >
+          <UserAvatar avatarUrl={u.avatarUrl} name={u.name} />
           {u.name}
           <button
             type="button"
@@ -95,9 +103,7 @@ export function AssigneesControl({
                   }}
                   className="hover:bg-muted flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs"
                 >
-                  <span className="bg-muted text-foreground inline-flex size-5 items-center justify-center rounded-full text-[10px] font-semibold">
-                    {m.name.charAt(0).toUpperCase()}
-                  </span>
+                  <UserAvatar avatarUrl={m.avatarUrl} name={m.name} />
                   <span className="flex-1 truncate">{m.name}</span>
                   <span className="text-muted-foreground truncate text-[10px]">{m.email}</span>
                 </button>

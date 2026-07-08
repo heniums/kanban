@@ -22,7 +22,6 @@ interface BoardSettingsProps {
 export function BoardSettings({ board, onClose }: BoardSettingsProps) {
   const router = useRouter();
   const [serverError, setServerError] = useState("");
-
   const {
     register,
     handleSubmit,
@@ -102,6 +101,7 @@ export function BoardSettings({ board, onClose }: BoardSettingsProps) {
               onChange={field.onChange}
               onBlur={field.onBlur}
               name={field.name}
+              disabled={isSubmitting}
               aria-invalid={errors.background ? true : undefined}
               aria-describedby={errors.background ? "edit-background-error" : undefined}
             />

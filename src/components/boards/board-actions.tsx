@@ -4,6 +4,8 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { getTextColor } from "@/lib/text-color";
 import type { Board } from "@/lib/db/schema/boards";
 import type { BoardCapabilities } from "@/lib/capabilities";
 
@@ -30,11 +32,6 @@ interface BoardActionsProps {
 
 const UNDO_DURATION_MS = 5000;
 
-const SETTINGS_OVERLAY_CLASS =
-  "border border-white/30 bg-black/20 text-white backdrop-blur-sm hover:bg-black/30";
-const DELETE_OVERLAY_CLASS =
-  "border border-red-300/40 bg-red-500/30 text-white backdrop-blur-sm hover:bg-red-500/40";
-
 export function BoardActions({ board, variant = "default", capabilities }: BoardActionsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -42,8 +39,24 @@ export function BoardActions({ board, variant = "default", capabilities }: Board
   const [inFlight, setInFlight] = useState(false);
 
   const isOverlay = variant === "overlay";
-  const settingsClass = isOverlay ? SETTINGS_OVERLAY_CLASS : undefined;
-  const deleteClass = isOverlay ? DELETE_OVERLAY_CLASS : undefined;
+  const isDarkBg = isOverlay && getTextColor(board.background) === "white";
+
+  const settingsClass = isOverlay
+    ? cn(
+        "border backdrop-blur-sm",
+        isDarkBg
+          ? "border-white/30 bg-black/20 text-white hover:bg-black/30"
+          : "border-black/20 bg-white/20 text-black hover:bg-white/30",
+      )
+    : undefined;
+  const deleteClass = isOverlay
+    ? cn(
+        "border backdrop-blur-sm",
+        isDarkBg
+          ? "border-red-300/40 bg-red-500/30 text-white hover:bg-red-500/40"
+          : "border-red-300/40 bg-red-100/60 text-red-800 hover:bg-red-100/80",
+      )
+    : undefined;
 
   const handleDelete = () => {
     if (inFlight) return;

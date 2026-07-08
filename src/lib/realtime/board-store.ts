@@ -18,6 +18,7 @@ interface BoardCardState {
   labelUpdatedEvent: { label: { id: string; name: string; color: string } } | null;
   labelDeletedEvent: { labelId: string } | null;
   cardToOpen: string | null;
+  attachmentsNeedingRefresh: Set<string>;
   setInitial: (boardId: string, lists: BoardCardState["lists"], cards: RealtimeCard[]) => void;
   addCard: (card: RealtimeCard) => void;
   updateCard: (card: RealtimeCard) => void;
@@ -32,6 +33,10 @@ interface BoardCardState {
   setLabelUpdatedEvent: (label: { id: string; name: string; color: string }) => void;
   setLabelDeletedEvent: (labelId: string) => void;
   clearLabelEvents: () => void;
+  markAttachmentRefresh: (cardId: string) => void;
+  clearAttachmentRefresh: (cardId: string) => void;
+  setCardAttachmentPreview: (cardId: string, url: string) => void;
+  clearCardAttachmentPreview: (cardId: string) => void;
   openCard: (cardId: string) => void;
   clearCardToOpen: () => void;
 }
@@ -43,6 +48,7 @@ export const useBoardCardStore = create<BoardCardState>()(
     lists: [],
     cardsNeedingChecklistRefresh: new Set(),
     cardsNeedingCommentsRefresh: new Set(),
+    attachmentsNeedingRefresh: new Set(),
     labelUpdatedEvent: null,
     labelDeletedEvent: null,
     cardToOpen: null,
@@ -159,6 +165,34 @@ export const useBoardCardStore = create<BoardCardState>()(
     setLabelUpdatedEvent: (label) => set({ labelUpdatedEvent: { label } }),
     setLabelDeletedEvent: (labelId) => set({ labelDeletedEvent: { labelId } }),
     clearLabelEvents: () => set({ labelUpdatedEvent: null, labelDeletedEvent: null }),
+    markAttachmentRefresh: (cardId) =>
+      set((draft) => {
+        draft.attachmentsNeedingRefresh.add(cardId);
+      }),
+    clearAttachmentRefresh: (cardId) =>
+      set((draft) => {
+        draft.attachmentsNeedingRefresh.delete(cardId);
+      }),
+    setCardAttachmentPreview: (cardId, url) =>
+      set((draft) => {
+        for (const list of Object.values(draft.cardsByList)) {
+          const card = list.find((c) => c.id === cardId);
+          if (card && !card.attachmentPreviewUrl) {
+            card.attachmentPreviewUrl = url;
+            return;
+          }
+        }
+      }),
+    clearCardAttachmentPreview: (cardId) =>
+      set((draft) => {
+        for (const list of Object.values(draft.cardsByList)) {
+          const card = list.find((c) => c.id === cardId);
+          if (card) {
+            card.attachmentPreviewUrl = null;
+            return;
+          }
+        }
+      }),
     openCard: (cardId) => set({ cardToOpen: cardId }),
     clearCardToOpen: () => set({ cardToOpen: null }),
   })),

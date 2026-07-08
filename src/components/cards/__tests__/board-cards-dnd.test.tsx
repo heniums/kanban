@@ -39,6 +39,18 @@ vi.mock("@/lib/actions/checklists", () => ({
   deleteChecklistItemAction: vi.fn().mockResolvedValue({ data: { id: "i1" } }),
 }));
 
+vi.mock("@/lib/actions/attachments", () => ({
+  createAttachmentAction: vi
+    .fn()
+    .mockResolvedValue({ attachment: { id: "a1", createdBy: "u1", createdAt: new Date() } }),
+  deleteAttachmentAction: vi.fn().mockResolvedValue({ success: true }),
+  listCardAttachmentsAction: vi.fn().mockResolvedValue({ attachments: [] }),
+}));
+
+vi.mock("@/components/upload/image-upload", () => ({
+  ImageUpload: () => null,
+}));
+
 vi.mock("@/lib/actions/comments", () => ({
   createCommentAction: vi.fn().mockResolvedValue({ data: { id: "cm1" } }),
   updateCommentAction: vi.fn().mockResolvedValue({ data: { id: "cm1" } }),

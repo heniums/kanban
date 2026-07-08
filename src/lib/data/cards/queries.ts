@@ -8,6 +8,8 @@ import { users } from "@/lib/db/schema/users";
 import { checklists } from "@/lib/db/schema/checklists";
 import { checklistItems } from "@/lib/db/schema/checklist-items";
 import { comments } from "@/lib/db/schema/comments";
+import { attachments } from "@/lib/db/schema/attachments";
+import { cardAttachments } from "@/lib/db/schema/card-attachments";
 import type { CardSummary } from "@/components/cards/card-item";
 
 export async function getCardById(cardId: string): Promise<Card | null> {
@@ -33,7 +35,7 @@ export async function getCardSummaryById(cardId: string): Promise<CardSummary | 
       .innerJoin(labels, eq(labels.id, cardLabels.labelId))
       .where(sql`${cardLabels.cardId} = ${cardId}`),
     db
-      .select({ id: users.id, name: users.name })
+      .select({ id: users.id, name: users.name, avatarUrl: users.avatarUrl })
       .from(cardAssignees)
       .innerJoin(users, eq(users.id, cardAssignees.userId))
       .where(sql`${cardAssignees.cardId} = ${cardId}`),
@@ -101,6 +103,28 @@ export async function getCardLabelsByBoardId(boardId: string): Promise<Record<st
   return out;
 }
 
+export async function getCardAttachmentPreviewsByBoardId(
+  boardId: string,
+): Promise<Record<string, string>> {
+  const db = createDbClient();
+  const rows = await db
+    .select({
+      cardId: cardAttachments.cardId,
+      url: attachments.url,
+    })
+    .from(cardAttachments)
+    .innerJoin(attachments, eq(attachments.id, cardAttachments.attachmentId))
+    .innerJoin(cards, eq(cards.id, cardAttachments.cardId))
+    .where(sql`${cards.boardId} = ${boardId}`)
+    .orderBy(sql`${cardAttachments.displayOrder} ASC`);
+
+  const out: Record<string, string> = {};
+  for (const r of rows) {
+    if (!out[r.cardId]) out[r.cardId] = r.url;
+  }
+  return out;
+}
+
 export async function getCardAssigneesByBoardId(
   boardId: string,
 ): Promise<Record<string, { id: string; name: string }[]>> {
@@ -114,19 +138,24 @@ export async function getCardAssigneesByBoardId(
     .innerJoin(cards, eq(cards.id, cardAssignees.cardId))
     .where(sql`${cards.boardId} = ${boardId}`);
   const ids = [...new Set(rows.map((r) => r.userId))];
-  const nameById = new Map<string, string>();
+  const userById = new Map<string, { name: string; avatarUrl: string | null }>();
   if (ids.length) {
     const { inArray } = await import("drizzle-orm");
     const userRows = await db
-      .select({ id: users.id, name: users.name })
+      .select({ id: users.id, name: users.name, avatarUrl: users.avatarUrl })
       .from(users)
       .where(inArray(users.id, ids));
-    for (const u of userRows) nameById.set(u.id, u.name);
+    for (const u of userRows) userById.set(u.id, { name: u.name, avatarUrl: u.avatarUrl });
   }
-  const out: Record<string, { id: string; name: string }[]> = {};
+  const out: Record<string, { id: string; name: string; avatarUrl: string | null }[]> = {};
   for (const r of rows) {
     if (!out[r.cardId]) out[r.cardId] = [];
-    out[r.cardId].push({ id: r.userId, name: nameById.get(r.userId) ?? "Unknown" });
+    const u = userById.get(r.userId);
+    out[r.cardId].push({
+      id: r.userId,
+      name: u?.name ?? "Unknown",
+      avatarUrl: u?.avatarUrl ?? null,
+    });
   }
   return out;
 }

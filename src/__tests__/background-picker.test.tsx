@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { BackgroundPicker, BACKGROUNDS } from "@/components/boards/background-picker";
 
@@ -62,5 +62,32 @@ describe("BackgroundPicker", () => {
     render(<BackgroundPicker value={BACKGROUNDS[0].value} onChange={vi.fn()} />);
 
     expect(screen.getByRole("radiogroup").getAttribute("aria-label")).toBe("Board background");
+  });
+
+  it("renders a custom color picker button", () => {
+    render(<BackgroundPicker value={BACKGROUNDS[0].value} onChange={vi.fn()} />);
+
+    expect(screen.getByLabelText("Custom color")).toBeTruthy();
+  });
+
+  it("calls onChange when a custom color is picked", async () => {
+    const onChange = vi.fn();
+    render(<BackgroundPicker value={BACKGROUNDS[0].value} onChange={onChange} />);
+
+    const colorInput = screen.getByLabelText("Custom color").querySelector("input")!;
+    // fireEvent.change triggers the onChange handler on the color input
+    fireEvent.change(colorInput, { target: { value: "#ff0000" } });
+
+    expect(onChange).toHaveBeenCalledWith("#ff0000");
+  });
+
+  it("renders custom color preview when value is not a preset", () => {
+    render(<BackgroundPicker value="#ff0000" onChange={vi.fn()} />);
+
+    // No radio should be checked since this is a custom color
+    const radios = screen.getAllByRole("radio");
+    radios.forEach((radio) => {
+      expect(radio.getAttribute("aria-checked")).toBe("false");
+    });
   });
 });

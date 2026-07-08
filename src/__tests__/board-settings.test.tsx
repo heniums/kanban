@@ -19,9 +19,9 @@ import { updateBoardAction } from "@/lib/actions/boards";
 import { BoardSettings } from "@/components/boards/board-settings";
 
 const baseBoard: Board = {
-  id: "test-id",
-  title: "Original Title",
-  description: "Original description",
+  id: "board-1",
+  title: "Test Board",
+  description: "A test board description",
   background: "#1a1a2e",
   ownerId: "user-1",
   createdAt: new Date(),
@@ -63,7 +63,7 @@ describe("BoardSettings background picker", () => {
 
     expect(updateBoardAction).toHaveBeenCalledTimes(1);
     const callArgs = vi.mocked(updateBoardAction).mock.calls[0];
-    expect(callArgs[0]).toBe("test-id");
+    expect(callArgs[0]).toBe("board-1");
     const formData = callArgs[1] as FormData;
     expect(formData.get("background")).toBe(BACKGROUNDS[3].value);
   });

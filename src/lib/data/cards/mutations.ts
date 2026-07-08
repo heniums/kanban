@@ -5,6 +5,8 @@ import { cardLabels } from "@/lib/db/schema/card-labels";
 import { cardAssignees } from "@/lib/db/schema/card-assignees";
 import { lists } from "@/lib/db/schema/lists";
 import { boards } from "@/lib/db/schema/boards";
+import { deleteCloudinaryAsset } from "@/lib/cloudinary";
+import { listAttachmentsByCardId } from "@/lib/data/attachments";
 import type { CreateCardInput, UpdateCardInput } from "./schemas";
 
 export async function createCard(data: CreateCardInput): Promise<Card> {
@@ -100,6 +102,16 @@ export async function updateCard(cardId: string, data: UpdateCardInput): Promise
 export async function deleteCard(cardId: string): Promise<Card | null> {
   const db = createDbClient();
   return db.transaction(async (tx) => {
+    // Clean up Cloudinary assets before DB cascade wipes attachment metadata
+    const attachments = await listAttachmentsByCardId(cardId);
+    for (const att of attachments) {
+      try {
+        await deleteCloudinaryAsset(att.publicId);
+      } catch {
+        // Best-effort cleanup — don't fail card deletion if Cloudinary errors
+      }
+    }
+
     const [deleted] = await tx
       .delete(cards)
       .where(sql`${cards.id} = ${cardId}`)

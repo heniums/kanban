@@ -56,9 +56,9 @@ vi.mock("@/lib/actions/boards", () => ({
 import BoardSettingsPage from "@/app/boards/[boardId]/settings/page";
 
 const baseBoard: Board = {
-  id: "test-id",
-  title: "My Test Board",
-  description: "A description",
+  id: "board-1",
+  title: "Test Board",
+  description: "A test board description",
   background: "#1a1a2e",
   ownerId: "user-1",
   createdAt: new Date(),
@@ -81,7 +81,7 @@ describe("BoardSettingsPage", () => {
     });
     render(jsx);
 
-    expect(screen.getByRole("heading", { level: 1, name: /my test board/i })).toBeDefined();
+    expect(screen.getByRole("heading", { level: 1, name: /test board/i })).toBeDefined();
   });
 
   it("renders tab navigation with General and Members tabs", async () => {

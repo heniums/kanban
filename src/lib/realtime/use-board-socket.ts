@@ -18,6 +18,8 @@ import {
   type ListsReorderedPayload,
   type LabelUpdatedPayload,
   type LabelDeletedPayload,
+  type AttachmentCreatedPayload,
+  type AttachmentDeletedPayload,
 } from "@/lib/realtime/types";
 
 export function useBoardSocket(boardId: string | null) {
@@ -90,6 +92,20 @@ export function useBoardSocket(boardId: string | null) {
     socket.on(REALTIME_EVENTS.LABEL_DELETED, (payload: LabelDeletedPayload) => {
       if (payload?.boardId === boardId) {
         useBoardCardStore.getState().setLabelDeletedEvent(payload.labelId);
+      }
+    });
+    socket.on(REALTIME_EVENTS.ATTACHMENT_CREATED, (payload: AttachmentCreatedPayload) => {
+      if (payload?.boardId === boardId) {
+        useBoardCardStore.getState().markAttachmentRefresh(payload.cardId);
+        useBoardCardStore
+          .getState()
+          .setCardAttachmentPreview(payload.cardId, payload.attachment.url);
+      }
+    });
+    socket.on(REALTIME_EVENTS.ATTACHMENT_DELETED, (payload: AttachmentDeletedPayload) => {
+      if (payload?.boardId === boardId) {
+        useBoardCardStore.getState().markAttachmentRefresh(payload.cardId);
+        useBoardCardStore.getState().clearCardAttachmentPreview(payload.cardId);
       }
     });
 

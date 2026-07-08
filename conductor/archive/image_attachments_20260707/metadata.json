@@ -1,0 +1,8 @@
+{
+  "track_id": "image_attachments_20260707",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-07-07T12:00:00Z",
+  "updated_at": "2026-07-07T12:00:00Z",
+  "description": "Image attachment support for cards, user avatars, board backgrounds, and inline comment references using Cloudinary"
+}

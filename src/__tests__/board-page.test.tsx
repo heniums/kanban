@@ -13,6 +13,7 @@ const {
   mockGetLabelsByBoardId,
   mockGetChecklistProgressByBoardId,
   mockGetCommentCountsByBoardId,
+  mockGetCardAttachmentPreviewsByBoardId,
   mockGetBoardCapabilities,
 } = vi.hoisted(() => ({
   mockVerifySession: vi.fn(),
@@ -24,6 +25,7 @@ const {
   mockGetLabelsByBoardId: vi.fn(),
   mockGetChecklistProgressByBoardId: vi.fn(),
   mockGetCommentCountsByBoardId: vi.fn(),
+  mockGetCardAttachmentPreviewsByBoardId: vi.fn(),
   mockGetBoardCapabilities: vi.fn(),
 }));
 
@@ -52,6 +54,7 @@ vi.mock("@/lib/data/cards", () => ({
   getCardsByBoardId: mockGetCardsByBoardId,
   getCardLabelsByBoardId: mockGetCardLabelsByBoardId,
   getCardAssigneesByBoardId: mockGetCardAssigneesByBoardId,
+  getCardAttachmentPreviewsByBoardId: mockGetCardAttachmentPreviewsByBoardId,
 }));
 
 vi.mock("@/lib/data/labels", () => ({
@@ -81,9 +84,9 @@ vi.mock("@/lib/actions/boards", () => ({
 import BoardPage from "@/app/boards/[boardId]/page";
 
 const baseBoard: Board = {
-  id: "test-id",
-  title: "My Test Board",
-  description: "A description",
+  id: "board-1",
+  title: "Test Board",
+  description: "A test board description",
   background: "#1a1a2e",
   ownerId: "user-1",
   createdAt: new Date(),
@@ -113,6 +116,7 @@ describe("BoardPage text color", () => {
     mockGetCardAssigneesByBoardId.mockResolvedValue({});
     mockGetChecklistProgressByBoardId.mockResolvedValue({});
     mockGetCommentCountsByBoardId.mockResolvedValue({});
+    mockGetCardAttachmentPreviewsByBoardId.mockResolvedValue({});
     mockGetLabelsByBoardId.mockResolvedValue([]);
   });
 
@@ -169,6 +173,7 @@ describe("BoardPage hero section", () => {
     mockGetCardAssigneesByBoardId.mockResolvedValue({});
     mockGetChecklistProgressByBoardId.mockResolvedValue({});
     mockGetCommentCountsByBoardId.mockResolvedValue({});
+    mockGetCardAttachmentPreviewsByBoardId.mockResolvedValue({});
     mockGetLabelsByBoardId.mockResolvedValue([]);
   });
 
@@ -178,7 +183,7 @@ describe("BoardPage hero section", () => {
       params: Promise.resolve({ boardId: "test-id" }),
     });
     render(jsx);
-    const hero = screen.getByRole("region", { name: /my test board board header/i });
+    const hero = screen.getByRole("region", { name: /test board board header/i });
     expect(hero).toBeDefined();
   });
 
@@ -188,7 +193,7 @@ describe("BoardPage hero section", () => {
       params: Promise.resolve({ boardId: "test-id" }),
     });
     const { container } = render(jsx);
-    const hero = screen.getByRole("region", { name: /my test board board header/i });
+    const hero = screen.getByRole("region", { name: /test board board header/i });
     const heroStyle = hero.getAttribute("style") ?? "";
     // The hero should carry the board background
     expect(heroStyle.includes("1a1a2e") || heroStyle.includes("26, 26, 46")).toBe(true);
@@ -208,8 +213,8 @@ describe("BoardPage hero section", () => {
       params: Promise.resolve({ boardId: "test-id" }),
     });
     render(jsx);
-    const hero = screen.getByRole("region", { name: /my test board board header/i });
-    const h1 = screen.getByRole("heading", { level: 1, name: "My Test Board" });
+    const hero = screen.getByRole("region", { name: /test board board header/i });
+    const h1 = screen.getByRole("heading", { level: 1, name: "Test Board" });
     expect(hero.contains(h1)).toBe(true);
   });
 
@@ -219,8 +224,8 @@ describe("BoardPage hero section", () => {
       params: Promise.resolve({ boardId: "test-id" }),
     });
     render(jsx);
-    const hero = screen.getByRole("region", { name: /my test board board header/i });
-    const desc = screen.getByText("A description");
+    const hero = screen.getByRole("region", { name: /test board board header/i });
+    const desc = screen.getByText("A test board description");
     expect(hero.contains(desc)).toBe(true);
   });
 
@@ -230,7 +235,7 @@ describe("BoardPage hero section", () => {
       params: Promise.resolve({ boardId: "test-id" }),
     });
     render(jsx);
-    const hero = screen.getByRole("region", { name: /my test board board header/i });
+    const hero = screen.getByRole("region", { name: /test board board header/i });
     const settings = screen.getByRole("link", { name: /^settings$/i });
     const del = screen.getByRole("button", { name: /^delete$/i });
     expect(hero.contains(settings)).toBe(true);
@@ -243,7 +248,7 @@ describe("BoardPage hero section", () => {
       params: Promise.resolve({ boardId: "test-id" }),
     });
     render(jsx);
-    const hero = screen.getByRole("region", { name: /my test board board header/i });
+    const hero = screen.getByRole("region", { name: /test board board header/i });
     const lists = screen.getByTestId("board-cards");
     expect(lists).toBeDefined();
     expect(hero.contains(lists)).toBe(false);
@@ -255,7 +260,7 @@ describe("BoardPage hero section", () => {
       params: Promise.resolve({ boardId: "test-id" }),
     });
     render(jsx);
-    const hero = screen.getByRole("region", { name: /my test board board header/i });
+    const hero = screen.getByRole("region", { name: /test board board header/i });
     const breadcrumb = screen.getByRole("link", { name: /all boards/i });
     // The breadcrumb lives inside the hero
     expect(hero.contains(breadcrumb)).toBe(true);
