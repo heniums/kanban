@@ -48,5 +48,5 @@ See `conductor/archive/` for historical completed track folders.
 
 ---
 
-- [ ] **Track: v1.0 Release & Landing Page Enhancement**
+- [x] **Track: v1.0 Release & Landing Page Enhancement**
       _Link: [./tracks/v1_release_20260708/](./tracks/v1_release_20260708/)_
