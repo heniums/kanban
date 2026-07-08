@@ -172,6 +172,7 @@ function AvatarTab({ user }: { user: PublicUser }) {
         onError={(err) => toast.error(err)}
         disabled={uploading}
         maxFiles={1}
+        maxFileSizeBytes={2 * 1024 * 1024}
       />
     </div>
   );

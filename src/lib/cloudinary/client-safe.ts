@@ -20,6 +20,11 @@ export type AttachmentMetadata = {
   resourceType: string | null;
 };
 
+export function getAvatarUrl(url: string | null | undefined, size = 40): string | null {
+  if (!url) return null;
+  return url.replace("/upload/", `/upload/w_${size},h_${size},c_fill/`);
+}
+
 export function mapUploadResultToAttachment(result: CloudinaryUploadResult): AttachmentMetadata {
   return {
     publicId: result.public_id,

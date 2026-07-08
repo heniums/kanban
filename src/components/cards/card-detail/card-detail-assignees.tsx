@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Plus, X } from "lucide-react";
+import { getAvatarUrl } from "@/lib/cloudinary/client-safe";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -41,7 +42,13 @@ export function AssigneesControl({
     const className =
       "inline-flex size-5 items-center justify-center rounded-full border text-[10px] font-semibold";
     if (u.avatarUrl) {
-      return <img src={u.avatarUrl} alt={u.name} className={`${className} object-cover`} />;
+      return (
+        <img
+          src={getAvatarUrl(u.avatarUrl) || u.avatarUrl}
+          alt={u.name}
+          className={`${className} object-cover`}
+        />
+      );
     }
     return (
       <span className={`bg-muted text-foreground ${className}`}>

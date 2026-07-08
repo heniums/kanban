@@ -182,6 +182,7 @@ export function CardDetailAttachments({
           onError={(err) => toast.error(err)}
           disabled={disabled || isUploading}
           maxFiles={Math.min(10 - attachments.length, 5)}
+          maxFileSizeBytes={5 * 1024 * 1024}
         />
       )}
 

@@ -12,7 +12,7 @@ import {
 } from "@/lib/actions/comments";
 import { createAttachmentAction } from "@/lib/actions/attachments";
 import { uploadImageFile } from "@/lib/cloudinary/upload-file";
-import { mapUploadResultToAttachment } from "@/lib/cloudinary/client-safe";
+import { getAvatarUrl, mapUploadResultToAttachment } from "@/lib/cloudinary/client-safe";
 import type { CardDetailData } from "./types";
 
 const IMAGE_MARKDOWN_RE = /!\[([^\]]*)\]\(([^)]+)\)/g;
@@ -92,7 +92,7 @@ function CommentItem({
     if (author?.avatarUrl) {
       return (
         <img
-          src={author.avatarUrl}
+          src={getAvatarUrl(author.avatarUrl) || author.avatarUrl}
           alt={authorName}
           className="inline-flex size-5 items-center justify-center rounded-full object-cover"
         />

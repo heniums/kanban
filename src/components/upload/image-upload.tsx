@@ -12,6 +12,7 @@ interface ImageUploadProps {
   disabled?: boolean;
   maxFiles?: number;
   autoOpen?: boolean;
+  maxFileSizeBytes?: number;
 }
 
 export function ImageUpload({
@@ -21,6 +22,7 @@ export function ImageUpload({
   disabled,
   maxFiles = 1,
   autoOpen,
+  maxFileSizeBytes,
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [hasUploaded, setHasUploaded] = useState(false);
@@ -58,6 +60,12 @@ export function ImageUpload({
 
   const uploadToCloudinary = useCallback(
     async (file: File) => {
+      if (maxFileSizeBytes && file.size > maxFileSizeBytes) {
+        const mb = Math.round(maxFileSizeBytes / 1024 / 1024);
+        const message = `File too large. Maximum size is ${mb}MB.`;
+        onError?.(message);
+        throw new Error(message);
+      }
       setIsUploading(true);
       try {
         const sig = await getUploadSignatureAction();
@@ -91,7 +99,7 @@ export function ImageUpload({
         setIsUploading(false);
       }
     },
-    [onUpload, onError],
+    [onUpload, onError, maxFileSizeBytes],
   );
 
   const handleFileSelect = useCallback(

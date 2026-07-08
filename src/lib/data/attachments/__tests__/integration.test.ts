@@ -7,7 +7,6 @@ import { boards } from "@/lib/db/schema/boards";
 import { boardMembers } from "@/lib/db/schema/board-members";
 import { lists } from "@/lib/db/schema/lists";
 import { cards } from "@/lib/db/schema/cards";
-import { attachments } from "@/lib/db/schema/attachments";
 import { cardAttachments } from "@/lib/db/schema/card-attachments";
 import {
   createAttachment,

@@ -6,6 +6,7 @@ import { useSession, signOut } from "next-auth/react";
 import { User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { getAvatarUrl } from "@/lib/cloudinary/client-safe";
 import { toast } from "sonner";
 
 export function Header() {
@@ -47,7 +48,7 @@ export function Header() {
               >
                 {avatarUrl ? (
                   <img
-                    src={avatarUrl}
+                    src={getAvatarUrl(avatarUrl) || avatarUrl}
                     alt=""
                     className="inline-flex h-8 w-8 items-center justify-center rounded-full object-cover"
                   />
@@ -66,7 +67,7 @@ export function Header() {
                   <div className="flex items-center gap-3 px-2 py-1.5">
                     {avatarUrl ? (
                       <img
-                        src={avatarUrl}
+                        src={getAvatarUrl(avatarUrl) || avatarUrl}
                         alt="Avatar"
                         className="h-10 w-10 rounded-full object-cover"
                       />
