@@ -24,7 +24,16 @@ export async function permanentDeleteBoardAction(id: string) {
 
   const publicIds = await getBoardAttachmentPublicIds(id);
 
-  await Promise.all(publicIds.map((publicId) => deleteCloudinaryAsset(publicId).catch(() => {})));
+  const results = await Promise.allSettled(
+    publicIds.map((publicId) => deleteCloudinaryAsset(publicId)),
+  );
+  const failures = results.filter((r): r is PromiseRejectedResult => r.status === "rejected");
+  if (failures.length > 0) {
+    console.error(
+      "Cloudinary cleanup failures:",
+      failures.map((f) => f.reason),
+    );
+  }
 
   await deleteAttachmentsByBoardId(id);
 
