@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import type { Board } from "@/lib/db/schema/boards";
 import { DeletedBoardCard } from "@/components/boards/deleted-board-card";
@@ -19,8 +19,24 @@ interface TrashBoardListProps {
   boards: Board[];
 }
 
+const COUNTDOWN_SECONDS = 5;
+
 export function TrashBoardList({ boards }: TrashBoardListProps) {
   const [deleteTarget, setDeleteTarget] = useState<Board | null>(null);
+  const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS);
+
+  useEffect(() => {
+    if (!deleteTarget || countdown <= 0) return;
+    const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [deleteTarget, countdown]);
+
+  const handleOpenChange = useCallback((open: boolean) => {
+    if (!open) {
+      setDeleteTarget(null);
+      setCountdown(COUNTDOWN_SECONDS);
+    }
+  }, []);
 
   if (boards.length === 0) {
     return (
@@ -48,7 +64,7 @@ export function TrashBoardList({ boards }: TrashBoardListProps) {
         ))}
       </div>
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+      <AlertDialog open={!!deleteTarget} onOpenChange={handleOpenChange}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this board permanently?</AlertDialogTitle>
@@ -59,8 +75,8 @@ export function TrashBoardList({ boards }: TrashBoardListProps) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <Button variant="destructive" disabled>
-              Delete permanently
+            <Button variant="destructive" disabled={countdown > 0}>
+              {countdown > 0 ? `Delete permanently (${countdown}s)` : "Delete permanently"}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
