@@ -209,6 +209,13 @@ export async function moveCard(
     const targetOrdered = targetCards.map((c) => c.id);
     targetOrdered.splice(safeTarget, 0, cardId);
 
+    // Move the card out of the source list with a temporary negative position
+    // so the source compaction never collides with its old position.
+    await tx
+      .update(cards)
+      .set({ listId: targetListId, position: -999 })
+      .where(sql`${cards.id} = ${cardId}`);
+
     for (let i = 0; i < sourceOrdered.length; i++) {
       await tx
         .update(cards)
@@ -237,7 +244,7 @@ export async function moveCard(
       const isMovedCard = targetOrdered[i] === cardId;
       const [row] = await tx
         .update(cards)
-        .set(isMovedCard ? { listId: targetListId, position: i } : { position: i })
+        .set({ position: i })
         .where(sql`${cards.id} = ${targetOrdered[i]}`)
         .returning();
       if (row && isMovedCard) moved = row;

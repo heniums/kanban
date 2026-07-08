@@ -10,6 +10,7 @@ import {
   useSensors,
   type DragEndEvent,
   type DragStartEvent,
+  type Over,
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { moveCardAction, reorderCardsAction } from "@/lib/actions/cards";
@@ -50,15 +51,14 @@ export function useBoardCardsDnd({ boardId }: { boardId: string }) {
     if (!over) return;
 
     const activeId = String(active.id);
-    const overId = String(over.id);
     const state = useBoardCardStore.getState();
 
     if (state.lists.some((l) => l.id === activeId)) {
-      handleListReorder({ activeId, overId, state, boardId, router });
+      handleListReorder({ activeId, over, state, boardId, router });
       return;
     }
 
-    handleCardDrop({ activeId, overId, state, router });
+    handleCardDrop({ activeId, over, state, router });
   };
 
   return {
@@ -72,17 +72,18 @@ export function useBoardCardsDnd({ boardId }: { boardId: string }) {
 
 function handleListReorder({
   activeId,
-  overId,
+  over,
   state,
   boardId,
   router,
 }: {
   activeId: string;
-  overId: string;
+  over: Over;
   state: ReturnType<typeof useBoardCardStore.getState>;
   boardId: string;
   router: ReturnType<typeof useRouter>;
 }) {
+  const overId = String(over.id);
   if (activeId === overId) return;
   const oldIndex = state.lists.findIndex((l) => l.id === activeId);
   if (oldIndex < 0) return;
@@ -91,6 +92,13 @@ function handleListReorder({
     newIndex = state.lists.length - 1;
   } else {
     newIndex = state.lists.findIndex((l) => l.id === overId);
+    if (newIndex < 0) {
+      // over may be a card; resolve to the card's parent list
+      const overListId = (over.data.current as { listId?: string } | undefined)?.listId;
+      if (overListId) {
+        newIndex = state.lists.findIndex((l) => l.id === overListId);
+      }
+    }
   }
   if (newIndex < 0) return;
   const next = arrayMove(state.lists, oldIndex, newIndex);
@@ -110,12 +118,12 @@ function handleListReorder({
 
 function handleCardDrop({
   activeId,
-  overId,
+  over,
   state,
   router,
 }: {
   activeId: string;
-  overId: string;
+  over: Over;
   state: ReturnType<typeof useBoardCardStore.getState>;
   router: ReturnType<typeof useRouter>;
 }) {
@@ -131,12 +139,24 @@ function handleCardDrop({
   }
   if (!sourceListId || !activeCardObj) return;
 
+  const overId = String(over.id);
+  const overData = over.data.current as { type?: string; listId?: string } | undefined;
+
   let targetListId: string | null = null;
   let targetIndex = 0;
 
   if (overId.startsWith("list-drop-")) {
     targetListId = overId.replace("list-drop-", "");
     targetIndex = state.cardsByList[targetListId]?.length ?? 0;
+  } else if (overData?.type === "list") {
+    targetListId = overId;
+    targetIndex = state.cardsByList[targetListId]?.length ?? 0;
+  } else if (overData?.type === "card" && overData.listId) {
+    targetListId = overData.listId;
+    targetIndex = state.cardsByList[targetListId]?.findIndex((c) => c.id === overId) ?? 0;
+    if (targetIndex < 0) {
+      targetIndex = state.cardsByList[targetListId]?.length ?? 0;
+    }
   } else {
     for (const listId of Object.keys(state.cardsByList)) {
       const idx = state.cardsByList[listId].findIndex((c) => c.id === overId);
@@ -154,7 +174,8 @@ function handleCardDrop({
   state.moveCard(activeId, targetListId, targetIndex);
 
   if (sourceListId === targetListId) {
-    const orderedIds = (state.cardsByList[targetListId] ?? []).map((c) => c.id);
+    const currentState = useBoardCardStore.getState();
+    const orderedIds = (currentState.cardsByList[targetListId] ?? []).map((c) => c.id);
     reorderCardsAction({ listId: targetListId, orderedCardIds: orderedIds })
       .then((result) => {
         if ("errors" in result) {

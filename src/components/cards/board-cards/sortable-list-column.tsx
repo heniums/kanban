@@ -19,6 +19,7 @@ export function SortableListColumn({
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: list.id,
+    data: { type: "list" },
   });
 
   const style: React.CSSProperties = {

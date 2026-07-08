@@ -271,6 +271,36 @@ describe("moveCard (integration)", () => {
     expect(inL1.map((c) => c.title)).toEqual(["Src", "T0", "T1"]);
     expect(inL1.map((c) => c.position)).toEqual([0, 1, 2]);
   });
+
+  it("moves the middle card from a 3-card source list without unique-constraint error", async () => {
+    const user = await createTestUser();
+    const board = await createTestBoard(user.id);
+    const { l0, l1 } = await createTestLists(board.id);
+
+    const c0 = await createCard({ listId: l0.id, title: "C0" });
+    const c1 = await createCard({ listId: l0.id, title: "C1" });
+    const c2 = await createCard({ listId: l0.id, title: "C2" });
+    const d0 = await createCard({ listId: l1.id, title: "D0" });
+    void c0;
+    void c2;
+    void d0;
+
+    // Move C1 (position 1) to list l1 at the end.
+    // The source compaction would try to place C2 at position 1 while
+    // C1 still has position 1 in the DB, which used to trigger a
+    // unique-constraint violation.
+    const moved = await moveCard(c1.id, l1.id, 1);
+    expect(moved?.listId).toBe(l1.id);
+    expect(moved?.position).toBe(1);
+
+    const inL0 = await getCardsByListIdDirect(l0.id);
+    expect(inL0.map((c) => c.title)).toEqual(["C0", "C2"]);
+    expect(inL0.map((c) => c.position)).toEqual([0, 1]);
+
+    const inL1 = await getCardsByListIdDirect(l1.id);
+    expect(inL1.map((c) => c.title)).toEqual(["D0", "C1"]);
+    expect(inL1.map((c) => c.position)).toEqual([0, 1]);
+  });
 });
 
 describe("reorderCards (integration)", () => {
