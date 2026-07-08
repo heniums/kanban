@@ -1,23 +1,43 @@
 import Link from "next/link";
-import { Zap, Layers, Share2 } from "lucide-react";
+import { Zap, Layers, Share2, MousePointerClick, Lock, Tag, Monitor } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/PageContainer";
 
 const features = [
   {
-    icon: Zap,
-    title: "Real-time collaboration",
-    body: "See board updates the moment they happen across every connected user.",
+    icon: Lock,
+    title: "Authentication & accounts",
+    body: "Register, sign in, and manage your profile with secure session-based auth.",
   },
   {
     icon: Layers,
-    title: "Kanban boards",
-    body: "Organize work into boards, lists, and cards that match your team's flow.",
+    title: "Board management",
+    body: "Create, edit, and organize boards with lists and cards that match your workflow.",
+  },
+  {
+    icon: MousePointerClick,
+    title: "Drag-and-drop",
+    body: "Reorder lists and move cards with accessible, keyboard-native drag-and-drop.",
+  },
+  {
+    icon: Zap,
+    title: "Real-time collaboration",
+    body: "See board updates the moment they happen across every connected user via WebSockets.",
   },
   {
     icon: Share2,
-    title: "Share with your team",
-    body: "Invite registered users to any board you own and collaborate together.",
+    title: "Board sharing",
+    body: "Invite registered users to collaborate on your boards with an owner + member model.",
+  },
+  {
+    icon: Tag,
+    title: "Labels & attachments",
+    body: "Organize cards with color-coded labels and attach images powered by Cloudinary.",
+  },
+  {
+    icon: Monitor,
+    title: "Responsive design",
+    body: "Works beautifully on desktop and tablet with a clean, accessible interface.",
   },
 ] as const;
 
@@ -53,12 +73,34 @@ export function MarketingLanding() {
       </section>
 
       <section className="mx-auto mt-20 flex max-w-3xl flex-col items-center text-center">
-        <h2 className="text-2xl font-semibold">Move work forward together</h2>
-        <p className="text-muted-foreground mt-2">Create your first board in under a minute.</p>
-        <Button asChild size="lg" className="mt-6">
-          <Link href="/register">Get started</Link>
-        </Button>
+        <h2 className="text-2xl font-semibold">Open source hobby project</h2>
+        <p className="text-muted-foreground mt-2 max-w-xl">
+          This is an open source project built as a portfolio showcase. Contributions, feedback, and
+          stars are always welcome.
+        </p>
       </section>
+
+      <footer className="mx-auto mt-20 flex max-w-3xl flex-col items-center gap-4 border-t pt-8 text-center text-sm">
+        <div className="flex gap-6">
+          <a
+            href={process.env.NEXT_PUBLIC_PORTFOLIO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Portfolio
+          </a>
+          <a
+            href={process.env.NEXT_PUBLIC_GITHUB_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            GitHub
+          </a>
+        </div>
+        <p className="text-muted-foreground">Built with Next.js, Socket.io, and PostgreSQL.</p>
+      </footer>
     </PageContainer>
   );
 }
