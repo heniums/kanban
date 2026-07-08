@@ -45,3 +45,8 @@ See `conductor/archive/` for historical completed track folders.
 
 - [x] **Track: Image attachment support for cards, user avatars, board backgrounds, and inline comment references using Cloudinary**
       _Link: [../archive/image_attachments_20260707/](../archive/image_attachments_20260707/)_
+
+---
+
+- [ ] **Track: Fix broken board deletion undo and implement trash view with restore, permanent delete, pagination, and search**
+      _Link: [./tracks/board_trash_20260708/](./tracks/board_trash_20260708/)_
