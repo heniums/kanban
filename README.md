@@ -2,8 +2,8 @@
 
 A real-time collaborative kanban board application for teams that want to move work forward.
 
-**Portfolio:** [henumus.vercel.app](https://henumus.vercel.app/)
-**Repository:** [github.com/henumus/kanban](https://github.com/henumus/kanban)
+**Portfolio:** [heniums.vercel.app](https://heniums.vercel.app/)
+**Repository:** [github.com/heniums/kanban](https://github.com/heniums/kanban)
 
 ## Features
 

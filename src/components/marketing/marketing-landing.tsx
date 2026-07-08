@@ -83,7 +83,7 @@ export function MarketingLanding() {
       <footer className="mx-auto mt-20 flex max-w-3xl flex-col items-center gap-4 border-t pt-8 text-center text-sm">
         <div className="flex gap-6">
           <a
-            href="https://heniums.vercel.app/"
+            href={process.env.NEXT_PUBLIC_PORTFOLIO_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="text-muted-foreground hover:text-foreground transition-colors"
@@ -91,7 +91,7 @@ export function MarketingLanding() {
             Portfolio
           </a>
           <a
-            href="https://github.com/heniums/kanban"
+            href={process.env.NEXT_PUBLIC_GITHUB_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="text-muted-foreground hover:text-foreground transition-colors"
