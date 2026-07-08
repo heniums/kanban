@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "sonner";
 import type { Board } from "@/lib/db/schema/boards";
 import { DeletedBoardCard } from "@/components/boards/deleted-board-card";
+import { permanentDeleteBoardAction } from "@/lib/actions/boards";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -22,8 +25,10 @@ interface TrashBoardListProps {
 const COUNTDOWN_SECONDS = 5;
 
 export function TrashBoardList({ boards }: TrashBoardListProps) {
+  const router = useRouter();
   const [deleteTarget, setDeleteTarget] = useState<Board | null>(null);
   const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS);
+  const [isDeleting, startDelete] = useTransition();
 
   useEffect(() => {
     if (!deleteTarget || countdown <= 0) return;
@@ -37,6 +42,26 @@ export function TrashBoardList({ boards }: TrashBoardListProps) {
       setCountdown(COUNTDOWN_SECONDS);
     }
   }, []);
+
+  const handlePermanentDelete = useCallback(() => {
+    if (!deleteTarget || countdown > 0) return;
+    const boardId = deleteTarget.id;
+    startDelete(async () => {
+      try {
+        const result = await permanentDeleteBoardAction(boardId);
+        if (result && "error" in result) {
+          toast.error("Failed to delete board.");
+          return;
+        }
+        toast("Board permanently deleted.");
+        setDeleteTarget(null);
+        setCountdown(COUNTDOWN_SECONDS);
+        router.refresh();
+      } catch {
+        toast.error("Failed to delete board.");
+      }
+    });
+  }, [deleteTarget, countdown, router]);
 
   if (boards.length === 0) {
     return (
@@ -74,9 +99,17 @@ export function TrashBoardList({ boards }: TrashBoardListProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <Button variant="destructive" disabled={countdown > 0}>
-              {countdown > 0 ? `Delete permanently (${countdown}s)` : "Delete permanently"}
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <Button
+              variant="destructive"
+              disabled={countdown > 0 || isDeleting}
+              onClick={handlePermanentDelete}
+            >
+              {isDeleting
+                ? "Deleting..."
+                : countdown > 0
+                  ? `Delete permanently (${countdown}s)`
+                  : "Delete permanently"}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
