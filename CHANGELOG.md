@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.1.0] - 2026-07-08
+
+### Added
+
+- **Trash view** — Dedicated page for deleted boards with restore and permanent delete actions
+- **Permanent deletion** — Permanently delete boards with Cloudinary asset cleanup
+- **Deleted boards search** — Filter deleted boards by title
+- **Deleted boards pagination** — Paginated view for managing multiple deleted boards
+- **Delete confirmation countdown** — 5-second countdown before enabling permanent delete button
+
+### Fixed
+
+- **Board deletion undo** — Restored broken undo functionality for soft-deleted boards
+
+### Changed
+
+- **Board query separation** — Separate queries for active and deleted boards
+
 ## [1.0.0] - 2026-07-08
 
 Initial release of the Kanban Collaboration Platform.
@@ -22,3 +43,6 @@ Initial release of the Kanban Collaboration Platform.
 - **Responsive design** — Desktop and tablet friendly interface with WCAG 2.1 AA accessibility targets
 - **Board hero** — Top hero section with background, title, description, and actions
 - **Component architecture** — Composable component patterns for card detail and board cards
+
+[1.1.0]: https://github.com/heniums/kanban/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/heniums/kanban/releases/tag/v1.0.0
