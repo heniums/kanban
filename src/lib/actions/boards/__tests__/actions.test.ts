@@ -235,6 +235,20 @@ describe("restoreBoardAction", () => {
     expect(mockRestoreBoard).toHaveBeenCalledWith("board-1");
   });
 
+  it("checks permission including deleted boards", async () => {
+    mockVerifySession.mockResolvedValue({ userId: "user-1" });
+    mockAssertBoardPermission.mockResolvedValue(true);
+    mockRestoreBoard.mockResolvedValue(SAMPLE_BOARD);
+
+    await restoreBoardAction("board-1");
+    expect(mockAssertBoardPermission).toHaveBeenCalledWith(
+      "board-1",
+      "user-1",
+      expect.any(String),
+      { includeDeleted: true },
+    );
+  });
+
   it("returns error when board not found", async () => {
     mockVerifySession.mockResolvedValue({ userId: "user-1" });
     mockAssertBoardPermission.mockResolvedValue(true);

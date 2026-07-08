@@ -10,18 +10,24 @@ import { labels } from "@/lib/db/schema/labels";
 import { lists } from "@/lib/db/schema/lists";
 import { hasPermissionForRole, BoardPermission } from "@/lib/permissions";
 
+interface AssertBoardPermissionOptions {
+  includeDeleted?: boolean;
+}
+
 export async function assertBoardPermission(
   boardId: string,
   userId: string,
   permission: BoardPermission,
+  options?: AssertBoardPermissionOptions,
 ): Promise<boolean> {
   const db = createDbClient();
+  const deletedFilter = options?.includeDeleted ? sql`1=1` : sql`${boards.deletedAt} IS NULL`;
   const [membership] = await db
     .select({ role: boardMembers.role })
     .from(boardMembers)
     .innerJoin(boards, sql`${boards.id} = ${boardMembers.boardId}`)
     .where(
-      sql`${boardMembers.boardId} = ${boardId} AND ${boardMembers.userId} = ${userId} AND ${boards.deletedAt} IS NULL`,
+      sql`${boardMembers.boardId} = ${boardId} AND ${boardMembers.userId} = ${userId} AND ${deletedFilter}`,
     );
   if (!membership) return false;
   return hasPermissionForRole(membership.role, permission);

@@ -4,6 +4,7 @@ import { listBoardsAction } from "@/lib/actions/boards";
 import { BoardCard } from "@/components/boards/board-card";
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { Trash2 } from "lucide-react";
 
 export default async function BoardsPage() {
   await verifySession();
@@ -17,9 +18,17 @@ export default async function BoardsPage() {
           <h1 className="text-2xl font-bold">Boards</h1>
           <p className="text-muted-foreground">Manage and organize your kanban boards.</p>
         </div>
-        <Button asChild>
-          <Link href="/boards/new">Create board</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline">
+            <Link href="/trash">
+              <Trash2 className="mr-2 size-4" />
+              Trash
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link href="/boards/new">Create board</Link>
+          </Button>
+        </div>
       </div>
 
       <section className="mb-10">

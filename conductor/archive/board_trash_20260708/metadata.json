@@ -1,0 +1,8 @@
+{
+  "track_id": "board_trash_20260708",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-07-08T00:00:00Z",
+  "updated_at": "2026-07-08T00:00:00Z",
+  "description": "Fix broken board deletion undo button, implement trash view for soft-deleted boards with restore, permanent delete, pagination, and search functionality."
+}
