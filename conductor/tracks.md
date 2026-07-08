@@ -53,5 +53,5 @@ See `conductor/archive/` for historical completed track folders.
 
 ---
 
-- [ ] **Track: Fix card drag-and-drop unique constraint violations in moveCard that cause every card reorder and cross-list move to fail when any list contains cards**
+- [x] **Track: Fix card drag-and-drop unique constraint violations in moveCard that cause every card reorder and cross-list move to fail when any list contains cards**
       _Link: [./tracks/card_dnd_fix_20260708/](./tracks/card_dnd_fix_20260708/)_
