@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { verifyCredentials } from "@/lib/data/auth";
+import { verifyCredentials, getUserById } from "@/lib/data/auth";
 
 const PROTECTED_PREFIXES = ["/boards"];
 
@@ -33,14 +33,26 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return true;
     },
-    jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.name = user.name;
         token.email = user.email;
-        (token as unknown as Record<string, unknown>).avatarUrl = (
-          user as unknown as Record<string, unknown>
-        ).avatarUrl;
+        const u = user as unknown as Record<string, unknown>;
+        (token as unknown as Record<string, unknown>).avatarUrl = u.avatarUrl;
+      }
+      if (trigger === "update" && session) {
+        const s = session as Record<string, unknown>;
+        if ("name" in s) token.name = s.name as string;
+        if ("avatarUrl" in s) {
+          (token as unknown as Record<string, unknown>).avatarUrl = s.avatarUrl;
+        }
+      }
+      if (token.sub) {
+        const dbUser = await getUserById(token.sub);
+        if (dbUser) {
+          (token as unknown as Record<string, unknown>).avatarUrl = dbUser.avatarUrl;
+        }
       }
       return token;
     },

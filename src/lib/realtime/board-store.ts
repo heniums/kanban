@@ -35,6 +35,8 @@ interface BoardCardState {
   clearLabelEvents: () => void;
   markAttachmentRefresh: (cardId: string) => void;
   clearAttachmentRefresh: (cardId: string) => void;
+  setCardAttachmentPreview: (cardId: string, url: string) => void;
+  clearCardAttachmentPreview: (cardId: string) => void;
   openCard: (cardId: string) => void;
   clearCardToOpen: () => void;
 }
@@ -170,6 +172,26 @@ export const useBoardCardStore = create<BoardCardState>()(
     clearAttachmentRefresh: (cardId) =>
       set((draft) => {
         draft.attachmentsNeedingRefresh.delete(cardId);
+      }),
+    setCardAttachmentPreview: (cardId, url) =>
+      set((draft) => {
+        for (const list of Object.values(draft.cardsByList)) {
+          const card = list.find((c) => c.id === cardId);
+          if (card && !card.attachmentPreviewUrl) {
+            card.attachmentPreviewUrl = url;
+            return;
+          }
+        }
+      }),
+    clearCardAttachmentPreview: (cardId) =>
+      set((draft) => {
+        for (const list of Object.values(draft.cardsByList)) {
+          const card = list.find((c) => c.id === cardId);
+          if (card) {
+            card.attachmentPreviewUrl = null;
+            return;
+          }
+        }
       }),
     openCard: (cardId) => set({ cardToOpen: cardId }),
     clearCardToOpen: () => set({ cardToOpen: null }),

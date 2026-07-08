@@ -15,11 +15,6 @@ vi.mock("@/lib/actions/boards", () => ({
   updateBoardAction: vi.fn(),
 }));
 
-vi.mock("@/lib/actions/board-background", () => ({
-  updateBoardBackgroundImageAction: vi.fn().mockResolvedValue({ success: true }),
-  deleteBoardBackgroundImageAction: vi.fn().mockResolvedValue({ success: true }),
-}));
-
 import { updateBoardAction } from "@/lib/actions/boards";
 import { BoardSettings } from "@/components/boards/board-settings";
 

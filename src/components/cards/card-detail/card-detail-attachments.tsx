@@ -150,7 +150,7 @@ export function CardDetailAttachments({
                 type="button"
                 variant="destructive"
                 size="icon-sm"
-                className="absolute top-1 right-1 size-6 opacity-0 transition-opacity group-hover:opacity-100"
+                className="absolute top-1 right-1 size-6 bg-white/60 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-white"
                 onClick={() => setConfirmDeleteId(att.attachmentId)}
                 disabled={disabled || deletingId === att.attachmentId}
               >

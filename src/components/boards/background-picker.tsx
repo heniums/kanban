@@ -1,11 +1,7 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
-import { ImagePlus, X, Loader2 } from "lucide-react";
-import type { CloudinaryUploadResult } from "@/lib/cloudinary/client-safe";
-import { uploadImageFile } from "@/lib/cloudinary/upload-file";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { useCallback } from "react";
+import { Pipette } from "lucide-react";
 
 export interface BackgroundOption {
   label: string;
@@ -36,9 +32,6 @@ export const BACKGROUNDS: BackgroundOption[] = [
 interface BackgroundPickerProps {
   value: string;
   onChange: (value: string) => void;
-  onImageUpload?: (result: CloudinaryUploadResult) => void;
-  imageUrl?: string | null;
-  onClearImage?: () => void;
   onBlur?: () => void;
   name?: string;
   disabled?: boolean;
@@ -49,16 +42,12 @@ interface BackgroundPickerProps {
 export function BackgroundPicker({
   value,
   onChange,
-  onImageUpload,
-  imageUrl,
-  onClearImage,
   onBlur,
   name,
   disabled,
   ...ariaProps
 }: BackgroundPickerProps) {
-  const [uploading, setUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const isCustomColor = !BACKGROUNDS.some((bg) => bg.value === value);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent, index: number) => {
@@ -82,34 +71,6 @@ export function BackgroundPicker({
     [onChange],
   );
 
-  const handleFileSelect = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file || !onImageUpload) return;
-
-      setUploading(true);
-      try {
-        const result = await uploadImageFile(file);
-        onImageUpload(result);
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Upload failed");
-      } finally {
-        setUploading(false);
-        // Reset input so the same file can be selected again
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
-      }
-    },
-    [onImageUpload],
-  );
-
-  const handleUploadButtonClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const isImageSelected = !!imageUrl;
-
   return (
     <div className="space-y-3">
       <div
@@ -120,7 +81,7 @@ export function BackgroundPicker({
         {...ariaProps}
       >
         {BACKGROUNDS.map((option, index) => {
-          const isSelected = !isImageSelected && option.value === value;
+          const isSelected = !isCustomColor && option.value === value;
 
           return (
             <button
@@ -131,10 +92,7 @@ export function BackgroundPicker({
               aria-label={option.label}
               tabIndex={isSelected ? 0 : -1}
               name={name}
-              onClick={() => {
-                onChange(option.value);
-                onClearImage?.();
-              }}
+              onClick={() => onChange(option.value)}
               onKeyDown={(e) => handleKeyDown(e, index)}
               disabled={disabled}
               className={`focus-visible:ring-ring h-12 w-12 rounded-lg border-2 transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
@@ -145,50 +103,29 @@ export function BackgroundPicker({
           );
         })}
 
-        <button
-          type="button"
-          onClick={handleUploadButtonClick}
-          disabled={disabled || uploading}
-          className={`focus-visible:ring-ring flex h-12 w-12 items-center justify-center rounded-lg border-2 transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
-            isImageSelected
+        <label
+          className={`focus-visible:ring-ring flex h-12 w-12 cursor-pointer items-center justify-center rounded-lg border-2 transition-shadow focus-within:ring-2 focus-within:ring-offset-2 ${
+            isCustomColor
               ? "border-primary ring-primary ring-2 ring-offset-2"
               : "border-border hover:border-primary/50"
           }`}
-          aria-label="Upload background image"
-          title="Upload background image"
+          aria-label="Custom color"
+          title="Custom color"
         >
-          {uploading ? (
-            <Loader2 className="text-muted-foreground size-5 animate-spin" />
-          ) : isImageSelected ? (
-            <img src={imageUrl!} alt="" className="h-full w-full rounded-lg object-cover" />
-          ) : (
-            <ImagePlus className="text-muted-foreground size-5" />
-          )}
-        </button>
-      </div>
-
-      {isImageSelected && onClearImage && (
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={onClearImage}
+          <input
+            type="color"
+            value={isCustomColor ? value : "#000000"}
+            onChange={(e) => onChange(e.target.value)}
             disabled={disabled}
-          >
-            <X className="size-4" />
-            Remove image
-          </Button>
-        </div>
-      )}
-
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFileSelect}
-        className="hidden"
-      />
+            className="sr-only"
+          />
+          {isCustomColor ? (
+            <div className="h-full w-full rounded-md" style={{ background: value }} />
+          ) : (
+            <Pipette className="text-muted-foreground size-5" />
+          )}
+        </label>
+      </div>
     </div>
   );
 }

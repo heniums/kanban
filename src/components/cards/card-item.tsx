@@ -111,13 +111,13 @@ export function CardItem({ card, onOpen, isDragging = false }: CardItemProps) {
         onClick={openModal}
         aria-label="Edit card"
         title="Edit card"
-        className="text-muted-foreground hover:text-foreground hover:bg-muted absolute top-1.5 right-1.5 inline-flex size-6 items-center justify-center rounded opacity-0 transition-opacity group-hover/card:opacity-100 focus-visible:opacity-100"
+        className="text-muted-foreground hover:text-foreground bg-muted/80 hover:bg-muted absolute top-1.5 right-1.5 inline-flex size-6 items-center justify-center rounded opacity-0 transition-opacity group-hover/card:opacity-100 focus-visible:opacity-100"
       >
         <Pencil className="size-3.5" />
       </button>
 
       {attachmentPreviewUrl && (
-        <div className="overflow-hidden rounded-md">
+        <div className="-mx-2 -mt-2 overflow-hidden rounded-t-md">
           <img
             src={attachmentPreviewUrl}
             alt=""

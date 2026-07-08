@@ -9,17 +9,10 @@ import type { UpdateBoardInput } from "@/lib/schemas/board";
 import type { Board } from "@/lib/db/schema/boards";
 
 import { updateBoardAction } from "@/lib/actions/boards";
-import {
-  updateBoardBackgroundImageAction,
-  deleteBoardBackgroundImageAction,
-} from "@/lib/actions/board-background";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BackgroundPicker } from "@/components/boards/background-picker";
-import { mapUploadResultToAttachment } from "@/lib/cloudinary/client-safe";
-import type { CloudinaryUploadResult } from "@/lib/cloudinary/client-safe";
-import { toast } from "sonner";
 
 interface BoardSettingsProps {
   board: Board;
@@ -29,14 +22,11 @@ interface BoardSettingsProps {
 export function BoardSettings({ board, onClose }: BoardSettingsProps) {
   const router = useRouter();
   const [serverError, setServerError] = useState("");
-  const [backgroundImageUrl, setBackgroundImageUrl] = useState(board.backgroundImageUrl);
-
   const {
     register,
     handleSubmit,
     control,
     formState: { errors, isSubmitting, isDirty },
-    setValue,
   } = useForm<UpdateBoardInput>({
     resolver: zodResolver(updateBoardSchema),
     defaultValues: {
@@ -64,42 +54,6 @@ export function BoardSettings({ board, onClose }: BoardSettingsProps) {
 
     router.refresh();
     onClose();
-  };
-
-  const handleImageUpload = async (result: CloudinaryUploadResult) => {
-    const meta = mapUploadResultToAttachment(result);
-    const res = await updateBoardBackgroundImageAction({
-      boardId: board.id,
-      backgroundImagePublicId: meta.publicId,
-      backgroundImageUrl: meta.url,
-    });
-
-    if ("error" in res) {
-      toast.error(res.error);
-      return;
-    }
-
-    setBackgroundImageUrl(meta.url);
-    setValue("background", board.background, { shouldDirty: true });
-    toast.success("Background image updated");
-    router.refresh();
-  };
-
-  const handleClearImage = async () => {
-    if (!board.backgroundImagePublicId) {
-      setBackgroundImageUrl(null);
-      return;
-    }
-
-    const res = await deleteBoardBackgroundImageAction({ boardId: board.id });
-    if ("error" in res) {
-      toast.error(res.error);
-      return;
-    }
-
-    setBackgroundImageUrl(null);
-    toast.success("Background image removed");
-    router.refresh();
   };
 
   return (
@@ -145,9 +99,6 @@ export function BoardSettings({ board, onClose }: BoardSettingsProps) {
             <BackgroundPicker
               value={field.value ?? board.background}
               onChange={field.onChange}
-              onImageUpload={handleImageUpload}
-              imageUrl={backgroundImageUrl}
-              onClearImage={handleClearImage}
               onBlur={field.onBlur}
               name={field.name}
               disabled={isSubmitting}

@@ -115,7 +115,7 @@ function AvatarTab({ user }: { user: PublicUser }) {
 
       setAvatarUrl(meta.url);
       toast.success("Avatar updated");
-      await update({ image: meta.url });
+      await update({ avatarUrl: meta.url });
     } catch {
       toast.error("Failed to update avatar");
     } finally {
@@ -132,7 +132,7 @@ function AvatarTab({ user }: { user: PublicUser }) {
       }
       setAvatarUrl("");
       toast.success("Avatar removed");
-      await update({ image: null });
+      await update({ avatarUrl: null });
     } catch {
       toast.error("Failed to remove avatar");
     }
