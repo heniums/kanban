@@ -1,0 +1,8 @@
+{
+  "track_id": "v1_release_20260708",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-07-08T12:32:17Z",
+  "updated_at": "2026-07-08T12:32:17Z",
+  "description": "Improve landing page to include supported features, state this is an open source hobby project, showcase portfolio and GitHub links in .env. Create v1.0 release with README.md, CHANGELOG.md, LICENSE, CONTRIBUTING.md, and package.json version bump."
+}
