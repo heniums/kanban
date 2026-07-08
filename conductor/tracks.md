@@ -49,4 +49,4 @@ See `conductor/archive/` for historical completed track folders.
 ---
 
 - [x] **Track: Fix broken board deletion undo and implement trash view with restore, permanent delete, pagination, and search**
-      _Link: [./tracks/board_trash_20260708/](./tracks/board_trash_20260708/)_
+      _Link: [../archive/board_trash_20260708/](../archive/board_trash_20260708/)_
