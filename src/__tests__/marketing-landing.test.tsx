@@ -30,10 +30,10 @@ describe("MarketingLanding", () => {
     expect(cta.getAttribute("href")).toBe("/login");
   });
 
-  it("renders three feature highlight cards", () => {
+  it("renders seven feature highlight cards covering all MVP capabilities", () => {
     render(<MarketingLanding />);
     const featureHeadings = screen.getAllByRole("heading", { level: 3 });
-    expect(featureHeadings.length).toBe(3);
+    expect(featureHeadings.length).toBe(7);
   });
 
   it("includes real-time collaboration in the feature highlights", () => {
@@ -43,11 +43,18 @@ describe("MarketingLanding", () => {
     expect(titles.some((t) => /real-?time/i.test(t))).toBe(true);
   });
 
-  it("includes kanban boards in the feature highlights", () => {
+  it("includes board management in the feature highlights", () => {
     render(<MarketingLanding />);
     const headings = screen.getAllByRole("heading", { level: 3 });
     const titles = headings.map((h) => h.textContent ?? "");
     expect(titles.some((t) => /boards?/i.test(t))).toBe(true);
+  });
+
+  it("includes drag-and-drop in the feature highlights", () => {
+    render(<MarketingLanding />);
+    const headings = screen.getAllByRole("heading", { level: 3 });
+    const titles = headings.map((h) => h.textContent ?? "");
+    expect(titles.some((t) => /drag|drop|dnd/i.test(t))).toBe(true);
   });
 
   it("includes sharing in the feature highlights", () => {
@@ -55,11 +62,41 @@ describe("MarketingLanding", () => {
     expect(screen.getByText(/shar/i)).toBeDefined();
   });
 
-  it("renders a footer CTA that links to /register", () => {
+  it("includes authentication in the feature highlights", () => {
     render(<MarketingLanding />);
-    const ctas = screen.getAllByRole("link", { name: /get started/i });
-    expect(ctas.length).toBeGreaterThanOrEqual(2);
-    const footerCta = ctas[ctas.length - 1];
-    expect(footerCta.getAttribute("href")).toBe("/register");
+    const headings = screen.getAllByRole("heading", { level: 3 });
+    const titles = headings.map((h) => h.textContent ?? "");
+    expect(titles.some((t) => /auth|sign.?up|register|account/i.test(t))).toBe(true);
+  });
+
+  it("includes labels or attachments in the feature highlights", () => {
+    render(<MarketingLanding />);
+    expect(screen.getAllByText(/label|attach|image/i).length).toBeGreaterThan(0);
+  });
+
+  it("includes responsive design in the feature highlights", () => {
+    render(<MarketingLanding />);
+    const headings = screen.getAllByRole("heading", { level: 3 });
+    const titles = headings.map((h) => h.textContent ?? "");
+    expect(titles.some((t) => /responsive|mobile|tablet|desktop/i.test(t))).toBe(true);
+  });
+
+  it("renders an About / Open Source section identifying the project as open source", () => {
+    render(<MarketingLanding />);
+    expect(screen.getAllByText(/open.?source/i).length).toBeGreaterThan(0);
+  });
+
+  it("renders a footer with a link to the portfolio", () => {
+    render(<MarketingLanding />);
+    const portfolioLink = screen.getByRole("link", { name: /portfolio|heniums/i });
+    expect(portfolioLink).toBeDefined();
+    expect(portfolioLink.getAttribute("href")).toContain("heniums");
+  });
+
+  it("renders a footer with a link to the GitHub repository", () => {
+    render(<MarketingLanding />);
+    const githubLink = screen.getByRole("link", { name: /github/i });
+    expect(githubLink).toBeDefined();
+    expect(githubLink.getAttribute("href")).toContain("github.com");
   });
 });
