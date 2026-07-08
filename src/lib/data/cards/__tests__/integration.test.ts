@@ -211,6 +211,66 @@ describe("moveCard (integration)", () => {
     expect(l1Sorted.map((c) => c.title)).toEqual(["C1", "D0"]);
     expect(l1Sorted.map((c) => c.position)).toEqual([0, 1]);
   });
+
+  it("reorders within the same list: move last card to first position", async () => {
+    const user = await createTestUser();
+    const board = await createTestBoard(user.id);
+    const { l0 } = await createTestLists(board.id);
+
+    const c0 = await createCard({ listId: l0.id, title: "C0" });
+    const c1 = await createCard({ listId: l0.id, title: "C1" });
+    const c2 = await createCard({ listId: l0.id, title: "C2" });
+    void c0;
+    void c1;
+
+    const moved = await moveCard(c2.id, l0.id, 0);
+    expect(moved?.position).toBe(0);
+
+    const after = await getCardsByListIdDirect(l0.id);
+    expect(after.map((c) => c.title)).toEqual(["C2", "C0", "C1"]);
+    expect(after.map((c) => c.position)).toEqual([0, 1, 2]);
+  });
+
+  it("reorders within the same list: move first card to last position", async () => {
+    const user = await createTestUser();
+    const board = await createTestBoard(user.id);
+    const { l0 } = await createTestLists(board.id);
+
+    const c0 = await createCard({ listId: l0.id, title: "C0" });
+    const c1 = await createCard({ listId: l0.id, title: "C1" });
+    const c2 = await createCard({ listId: l0.id, title: "C2" });
+    void c1;
+    void c2;
+
+    const moved = await moveCard(c0.id, l0.id, 2);
+    expect(moved?.position).toBe(2);
+
+    const after = await getCardsByListIdDirect(l0.id);
+    expect(after.map((c) => c.title)).toEqual(["C1", "C2", "C0"]);
+    expect(after.map((c) => c.position)).toEqual([0, 1, 2]);
+  });
+
+  it("moves a card to position 0 in a non-empty target list", async () => {
+    const user = await createTestUser();
+    const board = await createTestBoard(user.id);
+    const { l0, l1 } = await createTestLists(board.id);
+
+    const srcCard = await createCard({ listId: l0.id, title: "Src" });
+    await createCard({ listId: l1.id, title: "T0" });
+    await createCard({ listId: l1.id, title: "T1" });
+    void srcCard;
+
+    const moved = await moveCard(srcCard.id, l1.id, 0);
+    expect(moved?.listId).toBe(l1.id);
+    expect(moved?.position).toBe(0);
+
+    const inL0 = await getCardsByListIdDirect(l0.id);
+    expect(inL0).toHaveLength(0);
+
+    const inL1 = await getCardsByListIdDirect(l1.id);
+    expect(inL1.map((c) => c.title)).toEqual(["Src", "T0", "T1"]);
+    expect(inL1.map((c) => c.position)).toEqual([0, 1, 2]);
+  });
 });
 
 describe("reorderCards (integration)", () => {
