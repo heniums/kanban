@@ -3,6 +3,7 @@
 import { useState, useTransition, type Dispatch, type SetStateAction, useCallback } from "react";
 import { MessageSquare, Pencil, Trash2, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { Button } from "@/components/ui/button";
 import { ImageViewerModal } from "@/components/upload/image-viewer-modal";
 import {
@@ -12,7 +13,7 @@ import {
 } from "@/lib/actions/comments";
 import { createAttachmentAction } from "@/lib/actions/attachments";
 import { uploadImageFile } from "@/lib/cloudinary/upload-file";
-import { getAvatarUrl, mapUploadResultToAttachment } from "@/lib/cloudinary/client-safe";
+import { mapUploadResultToAttachment } from "@/lib/cloudinary/client-safe";
 import type { CardDetailData } from "./types";
 
 const IMAGE_MARKDOWN_RE = /!\[([^\]]*)\]\(([^)]+)\)/g;
@@ -88,23 +89,6 @@ function CommentItem({
   const author = boardMembers.find((m) => m.id === comment.userId);
   const authorName = author?.name ?? "Unknown";
 
-  const renderAuthorAvatar = () => {
-    if (author?.avatarUrl) {
-      return (
-        <img
-          src={getAvatarUrl(author.avatarUrl) || author.avatarUrl}
-          alt={authorName}
-          className="inline-flex size-5 items-center justify-center rounded-full object-cover"
-        />
-      );
-    }
-    return (
-      <span className="bg-muted text-foreground inline-flex size-5 items-center justify-center rounded-full text-[10px] font-semibold">
-        {authorName.charAt(0).toUpperCase()}
-      </span>
-    );
-  };
-
   const handleSave = async () => {
     const next = draft.trim();
     if (!next) return;
@@ -139,7 +123,7 @@ function CommentItem({
     <div className="group/comment flex flex-col gap-1 rounded-md border p-2">
       <div className="flex items-center justify-between gap-2 text-xs">
         <div className="flex items-center gap-2">
-          {renderAuthorAvatar()}
+          <UserAvatar avatarUrl={author?.avatarUrl} name={authorName} />
           <span className="font-medium">{authorName}</span>
           <span className="text-muted-foreground">{createdStr}</span>
         </div>

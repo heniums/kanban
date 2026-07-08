@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus, X } from "lucide-react";
-import { getAvatarUrl } from "@/lib/cloudinary/client-safe";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -38,25 +38,6 @@ export function AssigneesControl({
     return m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q);
   });
 
-  const renderAvatar = (u: Member) => {
-    const className =
-      "inline-flex size-5 items-center justify-center rounded-full border text-[10px] font-semibold";
-    if (u.avatarUrl) {
-      return (
-        <img
-          src={getAvatarUrl(u.avatarUrl) || u.avatarUrl}
-          alt={u.name}
-          className={`${className} object-cover`}
-        />
-      );
-    }
-    return (
-      <span className={`bg-muted text-foreground ${className}`}>
-        {u.name.charAt(0).toUpperCase()}
-      </span>
-    );
-  };
-
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {attached.length === 0 && (
@@ -68,7 +49,7 @@ export function AssigneesControl({
           data-testid="attached-assignee"
           className="bg-muted text-foreground inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs"
         >
-          {renderAvatar(u)}
+          <UserAvatar avatarUrl={u.avatarUrl} name={u.name} />
           {u.name}
           <button
             type="button"
@@ -122,7 +103,7 @@ export function AssigneesControl({
                   }}
                   className="hover:bg-muted flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs"
                 >
-                  {renderAvatar(m)}
+                  <UserAvatar avatarUrl={m.avatarUrl} name={m.name} />
                   <span className="flex-1 truncate">{m.name}</span>
                   <span className="text-muted-foreground truncate text-[10px]">{m.email}</span>
                 </button>
