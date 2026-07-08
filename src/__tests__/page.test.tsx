@@ -39,8 +39,6 @@ const makeBoard = (id: string): Board => ({
   title: `Board ${id}`,
   description: null,
   background: "#000",
-  backgroundImageUrl: null,
-  backgroundImagePublicId: null,
   ownerId: "user-1",
   createdAt: new Date(),
   updatedAt: new Date(),

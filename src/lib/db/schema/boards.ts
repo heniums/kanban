@@ -6,8 +6,6 @@ export const boards = pgTable("boards", {
   title: text("title").notNull(),
   description: text("description"),
   background: text("background").notNull(),
-  backgroundImageUrl: text("background_image_url"),
-  backgroundImagePublicId: text("background_image_public_id"),
   ownerId: uuid("owner_id")
     .notNull()
     .references(() => users.id),
