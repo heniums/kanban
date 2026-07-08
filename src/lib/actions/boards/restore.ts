@@ -10,7 +10,9 @@ import { BoardPermission } from "@/lib/permissions";
 export async function restoreBoardAction(id: string) {
   const { userId } = await verifySession();
 
-  const allowed = await assertBoardPermission(id, userId, BoardPermission.MANAGE_SETTINGS);
+  const allowed = await assertBoardPermission(id, userId, BoardPermission.MANAGE_SETTINGS, {
+    includeDeleted: true,
+  });
   if (!allowed) {
     return { error: "Forbidden" };
   }

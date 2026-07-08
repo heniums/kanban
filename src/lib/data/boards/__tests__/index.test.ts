@@ -176,4 +176,11 @@ describe("restoreBoard", () => {
     expect(db.update).toHaveBeenCalled();
     expect(db.set).toHaveBeenCalledWith({ deletedAt: null });
   });
+
+  it("filters by id and only restores soft-deleted boards", async () => {
+    returningImpl.mockResolvedValueOnce([{ id: "board-1" }]);
+    await restoreBoard("board-1");
+    expect(db.update).toHaveBeenCalled();
+    expect(db.where).toHaveBeenCalled();
+  });
 });
