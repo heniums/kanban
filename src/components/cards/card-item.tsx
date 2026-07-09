@@ -123,6 +123,7 @@ export function CardItem({ card, onOpen, isDragging = false }: CardItemProps) {
             alt=""
             className="h-24 w-full object-cover"
             loading="lazy"
+            draggable={false}
           />
         </div>
       )}

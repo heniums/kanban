@@ -50,3 +50,8 @@ See `conductor/archive/` for historical completed track folders.
 
 - [x] **Track: Fix broken board deletion undo and implement trash view with restore, permanent delete, pagination, and search**
       _Link: [../archive/board_trash_20260708/](../archive/board_trash_20260708/)_
+
+---
+
+- [x] **Track: Fix card drag-and-drop unique constraint violations in moveCard that cause every card reorder and cross-list move to fail when any list contains cards**
+      _Link: [./tracks/card_dnd_fix_20260708/](./tracks/card_dnd_fix_20260708/)_

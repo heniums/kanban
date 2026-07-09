@@ -1,0 +1,8 @@
+{
+  "track_id": "card_dnd_fix_20260708",
+  "type": "bug",
+  "status": "new",
+  "created_at": "2026-07-08T22:30:00Z",
+  "updated_at": "2026-07-08T22:30:00Z",
+  "description": "Fix card drag-and-drop unique constraint violations in moveCard that cause every card reorder and cross-list move to fail when any list contains cards."
+}

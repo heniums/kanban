@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { sql, asc } from "drizzle-orm";
 import { createDbClient } from "@/lib/db/client";
 import { cards, type Card, type NewCard } from "@/lib/db/schema/cards";
 import { cardLabels } from "@/lib/db/schema/card-labels";
@@ -150,6 +150,12 @@ export async function moveCard(
     const clampedTarget = Math.max(0, targetPosition);
 
     if (sourceListId === targetListId) {
+      const allCards = await tx
+        .select({ id: cards.id })
+        .from(cards)
+        .where(sql`${cards.listId} = ${sourceListId}`)
+        .orderBy(asc(cards.position));
+
       const [{ max }] = (
         await tx.execute(
           sql`SELECT COALESCE(MAX(position), -1) + 1 AS max FROM cards WHERE list_id = ${sourceListId}`,
@@ -158,26 +164,40 @@ export async function moveCard(
       const safeTarget = Math.min(clampedTarget, max - 1);
       if (safeTarget === existing.position) return existing;
 
-      if (safeTarget < existing.position) {
-        await tx.execute(
-          sql`UPDATE cards SET position = position + 1 WHERE list_id = ${sourceListId} AND position >= ${safeTarget} AND position < ${existing.position}`,
-        );
-      } else {
-        await tx.execute(
-          sql`UPDATE cards SET position = position - 1 WHERE list_id = ${sourceListId} AND position <= ${safeTarget} AND position > ${existing.position}`,
-        );
+      const ordered = allCards.map((c) => c.id).filter((id) => id !== cardId);
+      ordered.splice(safeTarget, 0, cardId);
+
+      for (let i = 0; i < ordered.length; i++) {
+        await tx
+          .update(cards)
+          .set({ position: -(i + 1) })
+          .where(sql`${cards.id} = ${ordered[i]}`);
       }
-      const [moved] = await tx
-        .update(cards)
-        .set({ position: safeTarget })
-        .where(sql`${cards.id} = ${cardId}`)
-        .returning();
+      let moved: Card | undefined;
+      for (let i = 0; i < ordered.length; i++) {
+        const [row] = await tx
+          .update(cards)
+          .set({ position: i })
+          .where(sql`${cards.id} = ${ordered[i]}`)
+          .returning();
+        if (row && row.id === cardId) moved = row;
+      }
       return moved ?? null;
     }
 
-    await tx.execute(
-      sql`UPDATE cards SET position = position - 1 WHERE list_id = ${sourceListId} AND position > ${existing.position}`,
-    );
+    const sourceCards = await tx
+      .select({ id: cards.id })
+      .from(cards)
+      .where(sql`${cards.listId} = ${sourceListId}`)
+      .orderBy(asc(cards.position));
+
+    const targetCards = await tx
+      .select({ id: cards.id })
+      .from(cards)
+      .where(sql`${cards.listId} = ${targetListId}`)
+      .orderBy(asc(cards.position));
+
+    const sourceOrdered = sourceCards.map((c) => c.id).filter((id) => id !== cardId);
 
     const [{ max }] = (
       await tx.execute(
@@ -186,14 +206,49 @@ export async function moveCard(
     ).rows as Array<{ max: number }>;
     const safeTarget = Math.min(clampedTarget, max);
 
-    await tx.execute(
-      sql`UPDATE cards SET position = position + 1 WHERE list_id = ${targetListId} AND position >= ${safeTarget}`,
-    );
-    const [moved] = await tx
+    const targetOrdered = targetCards.map((c) => c.id);
+    targetOrdered.splice(safeTarget, 0, cardId);
+
+    // Move the card out of the source list with a temporary negative position
+    // so the source compaction never collides with its old position.
+    await tx
       .update(cards)
-      .set({ listId: targetListId, position: safeTarget })
-      .where(sql`${cards.id} = ${cardId}`)
-      .returning();
+      .set({ listId: targetListId, position: -999 })
+      .where(sql`${cards.id} = ${cardId}`);
+
+    for (let i = 0; i < sourceOrdered.length; i++) {
+      await tx
+        .update(cards)
+        .set({ position: -(i + 1) })
+        .where(sql`${cards.id} = ${sourceOrdered[i]}`);
+    }
+
+    let targetIdx = 0;
+    for (let i = 0; i < targetOrdered.length; i++) {
+      if (targetOrdered[i] === cardId) continue;
+      await tx
+        .update(cards)
+        .set({ position: -(targetIdx + 1) })
+        .where(sql`${cards.id} = ${targetOrdered[i]}`);
+      targetIdx++;
+    }
+
+    let moved: Card | undefined;
+    for (let i = 0; i < sourceOrdered.length; i++) {
+      await tx
+        .update(cards)
+        .set({ position: i })
+        .where(sql`${cards.id} = ${sourceOrdered[i]}`);
+    }
+    for (let i = 0; i < targetOrdered.length; i++) {
+      const isMovedCard = targetOrdered[i] === cardId;
+      const [row] = await tx
+        .update(cards)
+        .set({ position: i })
+        .where(sql`${cards.id} = ${targetOrdered[i]}`)
+        .returning();
+      if (row && isMovedCard) moved = row;
+    }
     return moved ?? null;
   });
 }
