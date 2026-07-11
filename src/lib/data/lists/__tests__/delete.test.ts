@@ -8,8 +8,11 @@ const setupDbMock = () => {
   const mock: any = {};
   const returning = vi.fn();
 
-  // Select chain for cards query (returns empty array — no cards to clean up)
-  const selectFromMock = { where: vi.fn().mockResolvedValue([]) };
+  // Select chain for attachments JOIN query (returns empty array by default)
+  const selectFromMock = {
+    where: vi.fn().mockResolvedValue([]),
+    innerJoin: vi.fn(() => selectFromMock),
+  };
   mock.select = vi.fn(() => mock);
   mock.from = vi.fn(() => selectFromMock);
   mock.delete = vi.fn(() => mock);
@@ -39,6 +42,14 @@ vi.mock("@/lib/db/schema/boards", () => ({
 
 vi.mock("@/lib/db/schema/cards", () => ({
   cards: { _table: "cards" },
+}));
+
+vi.mock("@/lib/db/schema/attachments", () => ({
+  attachments: { _table: "attachments", publicId: "public_id" },
+}));
+
+vi.mock("@/lib/db/schema/card-attachments", () => ({
+  cardAttachments: { _table: "card_attachments", cardId: "card_id", attachmentId: "attachment_id" },
 }));
 
 vi.mock("@/lib/data/attachments", () => ({
@@ -87,50 +98,52 @@ describe("deleteList", () => {
     expect(db.execute).toHaveBeenCalledTimes(1);
   });
 
-  it("cleans up Cloudinary assets for cards in the list", async () => {
+  it("fetches all attachments in a single JOIN query and deletes them", async () => {
     returningImpl.mockResolvedValueOnce([{ id: "l1", boardId: "board-1", position: 1 }]);
 
-    // Override the select→from→where chain for the cards query
-    const cardIds = [{ id: "c1" }, { id: "c2" }];
-    const fromMock = { where: vi.fn().mockResolvedValue(cardIds) };
-    db.from = vi.fn(() => fromMock);
-    vi.mocked(listAttachmentsByCardId)
-      .mockResolvedValueOnce([
-        {
-          id: "a1",
-          publicId: "pub-1",
-          url: "",
-          format: null,
-          width: null,
-          height: null,
-          bytes: null,
-          resourceType: null,
-          createdBy: "u1",
-          createdAt: new Date(),
-        },
-      ] as any)
-      .mockResolvedValueOnce([
-        {
-          id: "a2",
-          publicId: "pub-2",
-          url: "",
-          format: null,
-          width: null,
-          height: null,
-          bytes: null,
-          resourceType: null,
-          createdBy: "u1",
-          createdAt: new Date(),
-        },
-      ] as any);
+    // Mock the select→from→innerJoin→innerJoin→where chain for attachments
+    const attachmentsData = [{ publicId: "pub-1" }, { publicId: "pub-2" }];
+    const selectChainMock = {
+      innerJoin: vi.fn(() => selectChainMock),
+      where: vi.fn().mockResolvedValue(attachmentsData),
+    };
+    db.from = vi.fn(() => selectChainMock);
 
     await deleteList("l1");
 
-    expect(listAttachmentsByCardId).toHaveBeenCalledTimes(2);
-    expect(listAttachmentsByCardId).toHaveBeenCalledWith("c1");
-    expect(listAttachmentsByCardId).toHaveBeenCalledWith("c2");
+    // Should NOT call listAttachmentsByCardId (old per-card N+1 pattern)
+    expect(listAttachmentsByCardId).not.toHaveBeenCalled();
+    // Should call deleteCloudinaryAsset for each attachment
     expect(deleteCloudinaryAsset).toHaveBeenCalledTimes(2);
     expect(deleteCloudinaryAsset).toHaveBeenCalledWith("pub-1");
     expect(deleteCloudinaryAsset).toHaveBeenCalledWith("pub-2");
+  });
+
+  it("parallelizes Cloudinary deletions with Promise.allSettled", async () => {
+    returningImpl.mockResolvedValueOnce([{ id: "l1", boardId: "board-1", position: 1 }]);
+
+    const callOrder: string[] = [];
+    vi.mocked(deleteCloudinaryAsset).mockImplementation(() => {
+      callOrder.push("start");
+      return new Promise((resolve) =>
+        setTimeout(() => {
+          callOrder.push("end");
+          resolve(undefined);
+        }, 10),
+      );
+    });
+
+    const attachmentsData = [{ publicId: "pub-1" }, { publicId: "pub-2" }];
+    const selectChainMock = {
+      innerJoin: vi.fn(() => selectChainMock),
+      where: vi.fn().mockResolvedValue(attachmentsData),
+    };
+    db.from = vi.fn(() => selectChainMock);
+
+    await deleteList("l1");
+
+    // If sequential: start, end, start, end
+    // If parallel: start, start, end, end
+    expect(callOrder).toEqual(["start", "start", "end", "end"]);
   });
 });

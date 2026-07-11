@@ -40,14 +40,14 @@ export async function createCard(data: CreateCardInput): Promise<Card> {
       .returning();
 
     if (data.labelIds?.length) {
-      for (const labelId of data.labelIds) {
-        await tx.insert(cardLabels).values({ cardId: card.id, labelId });
-      }
+      await tx
+        .insert(cardLabels)
+        .values(data.labelIds.map((labelId) => ({ cardId: card.id, labelId })));
     }
     if (data.assigneeIds?.length) {
-      for (const userId of data.assigneeIds) {
-        await tx.insert(cardAssignees).values({ cardId: card.id, userId });
-      }
+      await tx
+        .insert(cardAssignees)
+        .values(data.assigneeIds.map((userId) => ({ cardId: card.id, userId })));
     }
 
     return card;
@@ -76,14 +76,16 @@ export async function updateCard(cardId: string, data: UpdateCardInput): Promise
 
     if (data.labelIds !== undefined) {
       await tx.delete(cardLabels).where(sql`${cardLabels.cardId} = ${cardId}`);
-      for (const labelId of data.labelIds) {
-        await tx.insert(cardLabels).values({ cardId, labelId });
+      if (data.labelIds.length > 0) {
+        await tx.insert(cardLabels).values(data.labelIds.map((labelId) => ({ cardId, labelId })));
       }
     }
     if (data.assigneeIds !== undefined) {
       await tx.delete(cardAssignees).where(sql`${cardAssignees.cardId} = ${cardId}`);
-      for (const userId of data.assigneeIds) {
-        await tx.insert(cardAssignees).values({ cardId, userId });
+      if (data.assigneeIds.length > 0) {
+        await tx
+          .insert(cardAssignees)
+          .values(data.assigneeIds.map((userId) => ({ cardId, userId })));
       }
     }
 
@@ -361,16 +363,20 @@ export async function copyCard(sourceCardId: string): Promise<Card | null> {
       .select({ labelId: cardLabels.labelId })
       .from(cardLabels)
       .where(sql`${cardLabels.cardId} = ${sourceCardId}`);
-    for (const sl of srcLabels) {
-      await tx.insert(cardLabels).values({ cardId: copy.id, labelId: sl.labelId });
+    if (srcLabels.length > 0) {
+      await tx
+        .insert(cardLabels)
+        .values(srcLabels.map((sl) => ({ cardId: copy.id, labelId: sl.labelId })));
     }
 
     const srcAssignees = await tx
       .select({ userId: cardAssignees.userId })
       .from(cardAssignees)
       .where(sql`${cardAssignees.cardId} = ${sourceCardId}`);
-    for (const sa of srcAssignees) {
-      await tx.insert(cardAssignees).values({ cardId: copy.id, userId: sa.userId });
+    if (srcAssignees.length > 0) {
+      await tx
+        .insert(cardAssignees)
+        .values(srcAssignees.map((sa) => ({ cardId: copy.id, userId: sa.userId })));
     }
 
     return copy;
