@@ -21,6 +21,28 @@ export async function getCardById(cardId: string): Promise<Card | null> {
   return card?.card ?? null;
 }
 
+export async function getCardLabelsByCardId(
+  cardId: string,
+): Promise<{ id: string; name: string; color: string }[]> {
+  const db = createDbClient();
+  return db
+    .select({ id: labels.id, name: labels.name, color: labels.color })
+    .from(cardLabels)
+    .innerJoin(labels, eq(labels.id, cardLabels.labelId))
+    .where(sql`${cardLabels.cardId} = ${cardId}`);
+}
+
+export async function getCardAssigneesByCardId(
+  cardId: string,
+): Promise<{ id: string; name: string; avatarUrl: string | null }[]> {
+  const db = createDbClient();
+  return db
+    .select({ id: users.id, name: users.name, avatarUrl: users.avatarUrl })
+    .from(cardAssignees)
+    .innerJoin(users, eq(users.id, cardAssignees.userId))
+    .where(sql`${cardAssignees.cardId} = ${cardId}`);
+}
+
 export async function getCardSummaryById(cardId: string): Promise<CardSummary | null> {
   const db = createDbClient();
 

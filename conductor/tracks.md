@@ -58,5 +58,5 @@ See `conductor/archive/` for historical completed track folders.
 
 ---
 
-- [ ] **Track: Database & data-loading performance optimization — add missing indexes, eliminate N+1 query patterns, remove redundant fetches, optimize NextAuth jwt callback, configure connection pool, and parallelize board page queries**
-      _Link: [./tracks/db_perf_optimization_20260711/](./tracks/db_perf_optimization_20260711/)_
+- [~] **Track: Database & data-loading performance optimization — add missing indexes, eliminate N+1 query patterns, remove redundant fetches, optimize NextAuth jwt callback, configure connection pool, and parallelize board page queries**
+  _Link: [./tracks/db_perf_optimization_20260711/](./tracks/db_perf_optimization_20260711/)_

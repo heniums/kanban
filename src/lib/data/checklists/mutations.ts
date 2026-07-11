@@ -6,8 +6,12 @@ import {
   type ChecklistItem,
   type NewChecklistItem,
 } from "@/lib/db/schema/checklist-items";
+import { cards } from "@/lib/db/schema/cards";
 
-export async function createChecklist(data: { cardId: string; title: string }): Promise<Checklist> {
+export async function createChecklist(data: {
+  cardId: string;
+  title: string;
+}): Promise<Checklist & { boardId: string }> {
   const db = createDbClient();
   return db.transaction(async (tx) => {
     const [maxRow] = await tx
@@ -15,34 +19,52 @@ export async function createChecklist(data: { cardId: string; title: string }): 
       .from(checklists)
       .where(sql`${checklists.cardId} = ${data.cardId}`);
     const nextPosition = (maxRow?.value ?? -1) + 1;
+    const [cardRow] = await tx
+      .select({ boardId: cards.boardId })
+      .from(cards)
+      .where(eq(cards.id, data.cardId));
     const [checklist] = await tx
       .insert(checklists)
       .values({ cardId: data.cardId, title: data.title, position: nextPosition })
       .returning();
-    return checklist;
+    return { ...checklist, boardId: cardRow?.boardId ?? "" };
   });
 }
 
-export async function deleteChecklist(checklistId: string): Promise<Checklist | null> {
+export async function deleteChecklist(
+  checklistId: string,
+): Promise<(Checklist & { boardId: string }) | null> {
   const db = createDbClient();
   return db.transaction(async (tx) => {
     const [row] = await tx
-      .select({ id: checklists.id, cardId: checklists.cardId, position: checklists.position })
+      .select({
+        id: checklists.id,
+        cardId: checklists.cardId,
+        position: checklists.position,
+        boardId: cards.boardId,
+      })
       .from(checklists)
+      .innerJoin(cards, sql`${cards.id} = ${checklists.cardId}`)
       .where(sql`${checklists.id} = ${checklistId}`);
     if (!row) return null;
     await tx.delete(checklists).where(eq(checklists.id, checklistId));
     await tx.execute(
       sql`UPDATE checklists SET position = position - 1 WHERE card_id = ${row.cardId} AND position > ${row.position}`,
     );
-    return { id: row.id, cardId: row.cardId, position: row.position, title: "" };
+    return {
+      id: row.id,
+      cardId: row.cardId,
+      position: row.position,
+      title: "",
+      boardId: row.boardId,
+    };
   });
 }
 
 export async function createChecklistItem(data: {
   checklistId: string;
   content: string;
-}): Promise<ChecklistItem> {
+}): Promise<ChecklistItem & { cardId: string; boardId: string }> {
   const db = createDbClient();
   return db.transaction(async (tx) => {
     const [maxRow] = await tx
@@ -50,6 +72,11 @@ export async function createChecklistItem(data: {
       .from(checklistItems)
       .where(sql`${checklistItems.checklistId} = ${data.checklistId}`);
     const nextPosition = (maxRow?.value ?? -1) + 1;
+    const [cardRow] = await tx
+      .select({ cardId: checklists.cardId, boardId: cards.boardId })
+      .from(checklists)
+      .innerJoin(cards, sql`${cards.id} = ${checklists.cardId}`)
+      .where(eq(checklists.id, data.checklistId));
     const [item] = await tx
       .insert(checklistItems)
       .values({
@@ -59,14 +86,14 @@ export async function createChecklistItem(data: {
         position: nextPosition,
       })
       .returning();
-    return item;
+    return { ...item, cardId: cardRow?.cardId ?? "", boardId: cardRow?.boardId ?? "" };
   });
 }
 
 export async function updateChecklistItem(
   itemId: string,
   data: { content?: string; isCompleted?: boolean },
-): Promise<ChecklistItem | null> {
+): Promise<(ChecklistItem & { cardId: string; boardId: string }) | null> {
   const db = createDbClient();
   const patch: Partial<NewChecklistItem> = {};
   if (data.content !== undefined) patch.content = data.content;
@@ -78,15 +105,35 @@ export async function updateChecklistItem(
     .set(patch)
     .where(sql`${checklistItems.id} = ${itemId}`)
     .returning();
-  return updated ?? null;
+  if (!updated) return null;
+
+  const [row] = await db
+    .select({ cardId: checklists.cardId, boardId: cards.boardId })
+    .from(checklists)
+    .innerJoin(cards, sql`${cards.id} = ${checklists.cardId}`)
+    .where(eq(checklists.id, updated.checklistId));
+
+  return { ...updated, cardId: row?.cardId ?? "", boardId: row?.boardId ?? "" };
 }
 
-export async function deleteChecklistItem(itemId: string): Promise<ChecklistItem | null> {
+export async function deleteChecklistItem(
+  itemId: string,
+): Promise<(ChecklistItem & { cardId: string; boardId: string }) | null> {
   const db = createDbClient();
   return db.transaction(async (tx) => {
     const [item] = await tx
-      .select()
+      .select({
+        id: checklistItems.id,
+        checklistId: checklistItems.checklistId,
+        content: checklistItems.content,
+        isCompleted: checklistItems.isCompleted,
+        position: checklistItems.position,
+        cardId: checklists.cardId,
+        boardId: cards.boardId,
+      })
       .from(checklistItems)
+      .innerJoin(checklists, sql`${checklists.id} = ${checklistItems.checklistId}`)
+      .innerJoin(cards, sql`${cards.id} = ${checklists.cardId}`)
       .where(sql`${checklistItems.id} = ${itemId}`);
     if (!item) return null;
     await tx.delete(checklistItems).where(eq(checklistItems.id, itemId));

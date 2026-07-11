@@ -5,17 +5,6 @@ import { boardMembers } from "@/lib/db/schema/board-members";
 export async function removeMember(boardId: string, userId: string, requestingUserId: string) {
   const db = createDbClient();
 
-  if (userId === requestingUserId) {
-    const [member] = await db
-      .select()
-      .from(boardMembers)
-      .where(and(eq(boardMembers.boardId, boardId), eq(boardMembers.userId, userId)));
-
-    if (member?.role === "owner") {
-      return { error: "Owner cannot remove themselves from the board" };
-    }
-  }
-
   return db.transaction(async (tx) => {
     const [memberToRemove] = await tx
       .select()
@@ -24,6 +13,10 @@ export async function removeMember(boardId: string, userId: string, requestingUs
 
     if (!memberToRemove) {
       return { error: "User is not a member of this board" };
+    }
+
+    if (memberToRemove.role === "owner" && userId === requestingUserId) {
+      return { error: "Owner cannot remove themselves from the board" };
     }
 
     if (memberToRemove.role === "owner") {

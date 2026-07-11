@@ -25,6 +25,7 @@ const setupDbMock = () => {
   mock.innerJoin = vi.fn(() => mock);
   mock.set = vi.fn(() => mock);
   mock.where = vi.fn(() => mock);
+  mock.returning = vi.fn(() => Promise.resolve(returnedRows.shift() ?? []));
   return mock;
 };
 
@@ -43,7 +44,7 @@ vi.mock("@/lib/db/schema/boards", () => ({
   boards: { _table: "boards" },
 }));
 
-import { createComment } from "../mutations";
+import { createComment, updateComment, deleteComment } from "../mutations";
 
 beforeEach(() => {
   db = setupDbMock();
@@ -52,8 +53,11 @@ beforeEach(() => {
 });
 
 describe("createComment", () => {
-  it("creates a comment", async () => {
-    returnedRows = [[{ id: "c-1", cardId: "card-1", userId: "user-1", content: "Hello" }]];
+  it("creates a comment and returns boardId", async () => {
+    returnedRows = [
+      [{ boardId: "board-1" }],
+      [{ id: "c-1", cardId: "card-1", userId: "user-1", content: "Hello" }],
+    ];
 
     const result = await createComment(
       { cardId: "card-1", content: "Hello" },
@@ -62,6 +66,52 @@ describe("createComment", () => {
 
     expect(result.id).toBe("c-1");
     expect(result.content).toBe("Hello");
+    expect(result.boardId).toBe("board-1");
     expect(db.transaction).toHaveBeenCalled();
+  });
+});
+
+describe("updateComment", () => {
+  it("updates a comment and returns boardId", async () => {
+    returnedRows = [
+      [{ id: "c-1", cardId: "card-1", userId: "user-1", content: "Updated" }],
+      [{ boardId: "board-1" }],
+    ];
+
+    const result = await updateComment("c-1", { content: "Updated" });
+
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe("c-1");
+    expect(result?.content).toBe("Updated");
+    expect(result?.boardId).toBe("board-1");
+  });
+
+  it("returns null when comment is not found", async () => {
+    returnedRows = [[]];
+
+    const result = await updateComment("missing", { content: "X" });
+    expect(result).toBeNull();
+  });
+});
+
+describe("deleteComment", () => {
+  it("deletes a comment and returns boardId", async () => {
+    returnedRows = [
+      [{ id: "c-1", cardId: "card-1", userId: "user-1", content: "Hello" }],
+      [{ boardId: "board-1" }],
+    ];
+
+    const result = await deleteComment("c-1");
+
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe("c-1");
+    expect(result?.boardId).toBe("board-1");
+  });
+
+  it("returns null when comment is not found", async () => {
+    returnedRows = [[]];
+
+    const result = await deleteComment("missing");
+    expect(result).toBeNull();
   });
 });

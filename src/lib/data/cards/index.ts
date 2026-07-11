@@ -1,5 +1,7 @@
 export {
   getCardById,
+  getCardLabelsByCardId,
+  getCardAssigneesByCardId,
   getCardsByBoardId,
   getCardLabelsByBoardId,
   getCardAssigneesByBoardId,
