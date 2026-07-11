@@ -8,6 +8,7 @@ let capturedInserts: unknown[] = [];
 let capturedUpdates: Array<{ set: unknown; where: unknown }> = [];
 let capturedDeletes: unknown[] = [];
 let returnedRows: any[] = [];
+let executeReturnRows: any[] = [];
 
 const setupDbMock = () => {
   const mock: any = {};
@@ -46,7 +47,7 @@ const setupDbMock = () => {
     return mock;
   });
   mock.transaction = vi.fn(async (fn: (t: any) => Promise<unknown>) => fn(tx));
-  mock.execute = vi.fn(() => Promise.resolve(undefined));
+  mock.execute = vi.fn(() => Promise.resolve({ rows: executeReturnRows.shift() ?? [] }));
   mock.from = vi.fn(() => mock);
   mock.innerJoin = vi.fn(() => mock);
   mock.leftJoin = vi.fn(() => mock);
@@ -96,6 +97,7 @@ beforeEach(() => {
   capturedUpdates = [];
   capturedDeletes = [];
   returnedRows = [];
+  executeReturnRows = [];
 });
 
 describe("createCard", () => {
@@ -192,16 +194,43 @@ describe("deleteCard", () => {
 
 describe("reorderCards", () => {
   it("uses a two-pass strategy to avoid unique constraint conflicts", async () => {
+    // Post-refactor: a single `.returning()` call from the final batched
+    // UPDATE returns all updated rows in one array (Drizzle-mapped camelCase).
     returnedRows = [
-      [{ id: "c2", position: 0 }],
-      [{ id: "c1", position: 1 }],
-      [{ id: "c3", position: 2 }],
+      [
+        { id: "c2", position: 0 },
+        { id: "c1", position: 1 },
+        { id: "c3", position: 2 },
+      ],
     ];
 
     const result = await reorderCards("list-1", ["c2", "c1", "c3"]);
 
     expect(db.transaction).toHaveBeenCalled();
     expect(result).toHaveLength(3);
+  });
+
+  it("issues a constant number of UPDATE statements regardless of list size", async () => {
+    returnedRows = [
+      [
+        { id: "c2", position: 0 },
+        { id: "c1", position: 1 },
+        { id: "c3", position: 2 },
+      ],
+    ];
+    await reorderCards("list-1", ["c2", "c1", "c3"]);
+    const smallCount = capturedUpdates.length;
+
+    capturedUpdates = [];
+    returnedRows = [Array.from({ length: 10 }, (_, i) => ({ id: `c${i}`, position: i }))];
+    await reorderCards(
+      "list-1",
+      Array.from({ length: 10 }, (_, i) => `c${i}`),
+    );
+    const largeCount = capturedUpdates.length;
+
+    expect(smallCount).toBe(largeCount);
+    expect(smallCount).toBeLessThanOrEqual(5);
   });
 
   it("returns empty array when no card IDs are provided", async () => {

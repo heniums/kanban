@@ -102,13 +102,12 @@ export async function updateCard(cardId: string, data: UpdateCardInput): Promise
 export async function deleteCard(cardId: string): Promise<Card | null> {
   const db = createDbClient();
   return db.transaction(async (tx) => {
-    // Clean up Cloudinary assets before DB cascade wipes attachment metadata
     const attachments = await listAttachmentsByCardId(cardId);
     for (const att of attachments) {
       try {
         await deleteCloudinaryAsset(att.publicId);
       } catch {
-        // Best-effort cleanup — don't fail card deletion if Cloudinary errors
+        // Best-effort cleanup
       }
     }
 
@@ -167,21 +166,32 @@ export async function moveCard(
       const ordered = allCards.map((c) => c.id).filter((id) => id !== cardId);
       ordered.splice(safeTarget, 0, cardId);
 
-      for (let i = 0; i < ordered.length; i++) {
-        await tx
-          .update(cards)
-          .set({ position: -(i + 1) })
-          .where(sql`${cards.id} = ${ordered[i]}`);
-      }
-      let moved: Card | undefined;
-      for (let i = 0; i < ordered.length; i++) {
-        const [row] = await tx
-          .update(cards)
-          .set({ position: i })
-          .where(sql`${cards.id} = ${ordered[i]}`)
-          .returning();
-        if (row && row.id === cardId) moved = row;
-      }
+      const orderedIds = sql.join(
+        ordered.map((id) => sql`${id}`),
+        sql`, `,
+      );
+      const whenThenNeg = sql.join(
+        ordered.map((id, i) => sql`WHEN ${id} THEN ${-(i + 1)}::int`),
+        sql` `,
+      );
+      const whenThenFin = sql.join(
+        ordered.map((id, i) => sql`WHEN ${id} THEN ${i}::int`),
+        sql` `,
+      );
+      const whereClause = sql`id IN (${orderedIds}) AND list_id = ${sourceListId}`;
+
+      await tx
+        .update(cards)
+        .set({ position: sql`CASE id ${whenThenNeg} END` })
+        .where(whereClause);
+
+      const result = await tx
+        .update(cards)
+        .set({ position: sql`CASE id ${whenThenFin} END` })
+        .where(whereClause)
+        .returning();
+
+      const moved = result.find((r) => r.id === cardId);
       return moved ?? null;
     }
 
@@ -209,46 +219,73 @@ export async function moveCard(
     const targetOrdered = targetCards.map((c) => c.id);
     targetOrdered.splice(safeTarget, 0, cardId);
 
-    // Move the card out of the source list with a temporary negative position
-    // so the source compaction never collides with its old position.
+    const targetExcl = targetOrdered.filter((id) => id !== cardId);
+
     await tx
       .update(cards)
       .set({ listId: targetListId, position: -999 })
       .where(sql`${cards.id} = ${cardId}`);
 
-    for (let i = 0; i < sourceOrdered.length; i++) {
+    if (sourceOrdered.length > 0) {
+      const sourceIds = sql.join(
+        sourceOrdered.map((id) => sql`${id}`),
+        sql`, `,
+      );
+      const whenThenNeg = sql.join(
+        sourceOrdered.map((id, i) => sql`WHEN ${id} THEN ${-(i + 1)}::int`),
+        sql` `,
+      );
       await tx
         .update(cards)
-        .set({ position: -(i + 1) })
-        .where(sql`${cards.id} = ${sourceOrdered[i]}`);
+        .set({ position: sql`CASE id ${whenThenNeg} END` })
+        .where(sql`id IN (${sourceIds}) AND list_id = ${sourceListId}`);
     }
 
-    let targetIdx = 0;
-    for (let i = 0; i < targetOrdered.length; i++) {
-      if (targetOrdered[i] === cardId) continue;
+    if (targetExcl.length > 0) {
+      const targetExclIds = sql.join(
+        targetExcl.map((id) => sql`${id}`),
+        sql`, `,
+      );
+      const whenThenNeg = sql.join(
+        targetExcl.map((id, i) => sql`WHEN ${id} THEN ${-(i + 1)}::int`),
+        sql` `,
+      );
       await tx
         .update(cards)
-        .set({ position: -(targetIdx + 1) })
-        .where(sql`${cards.id} = ${targetOrdered[i]}`);
-      targetIdx++;
+        .set({ position: sql`CASE id ${whenThenNeg} END` })
+        .where(sql`id IN (${targetExclIds}) AND list_id = ${targetListId}`);
     }
 
-    let moved: Card | undefined;
-    for (let i = 0; i < sourceOrdered.length; i++) {
+    if (sourceOrdered.length > 0) {
+      const sourceIds = sql.join(
+        sourceOrdered.map((id) => sql`${id}`),
+        sql`, `,
+      );
+      const whenThenFin = sql.join(
+        sourceOrdered.map((id, i) => sql`WHEN ${id} THEN ${i}::int`),
+        sql` `,
+      );
       await tx
         .update(cards)
-        .set({ position: i })
-        .where(sql`${cards.id} = ${sourceOrdered[i]}`);
+        .set({ position: sql`CASE id ${whenThenFin} END` })
+        .where(sql`id IN (${sourceIds}) AND list_id = ${sourceListId}`);
     }
-    for (let i = 0; i < targetOrdered.length; i++) {
-      const isMovedCard = targetOrdered[i] === cardId;
-      const [row] = await tx
-        .update(cards)
-        .set({ position: i })
-        .where(sql`${cards.id} = ${targetOrdered[i]}`)
-        .returning();
-      if (row && isMovedCard) moved = row;
-    }
+
+    const targetIdsAll = sql.join(
+      targetOrdered.map((id) => sql`${id}`),
+      sql`, `,
+    );
+    const whenThenFinAll = sql.join(
+      targetOrdered.map((id, i) => sql`WHEN ${id} THEN ${i}::int`),
+      sql` `,
+    );
+    const result = await tx
+      .update(cards)
+      .set({ position: sql`CASE id ${whenThenFinAll} END` })
+      .where(sql`id IN (${targetIdsAll}) AND list_id = ${targetListId}`)
+      .returning();
+
+    const moved = result.find((r) => r.id === cardId);
     return moved ?? null;
   });
 }
@@ -262,26 +299,33 @@ export async function reorderCards(listId: string, orderedCardIds: string[]): Pr
 
   const db = createDbClient();
   return db.transaction(async (tx) => {
-    const updated: Card[] = [];
-    for (let i = 0; i < orderedCardIds.length; i++) {
-      await tx
-        .update(cards)
-        .set({ position: -(i + 1) })
-        .where(
-          sql`${cards.id} = ${orderedCardIds[i]} AND ${cards.listId} = ${listId} AND ${cards.boardId} IN (SELECT id FROM ${boards} WHERE ${boards.deletedAt} IS NULL)`,
-        );
-    }
-    for (let i = 0; i < orderedCardIds.length; i++) {
-      const [row] = await tx
-        .update(cards)
-        .set({ position: i })
-        .where(
-          sql`${cards.id} = ${orderedCardIds[i]} AND ${cards.listId} = ${listId} AND ${cards.boardId} IN (SELECT id FROM ${boards} WHERE ${boards.deletedAt} IS NULL)`,
-        )
-        .returning();
-      if (row) updated.push(row);
-    }
-    return updated;
+    const ids = sql.join(
+      orderedCardIds.map((id) => sql`${id}`),
+      sql`, `,
+    );
+    const whenThenNeg = sql.join(
+      orderedCardIds.map((id, i) => sql`WHEN ${id} THEN ${-(i + 1)}::int`),
+      sql` `,
+    );
+    const whenThenFin = sql.join(
+      orderedCardIds.map((id, i) => sql`WHEN ${id} THEN ${i}::int`),
+      sql` `,
+    );
+    const whereClause = sql`id IN (${ids}) AND list_id = ${listId} AND board_id IN (SELECT id FROM boards WHERE deleted_at IS NULL)`;
+
+    await tx
+      .update(cards)
+      .set({ position: sql`CASE id ${whenThenNeg} END` })
+      .where(whereClause);
+
+    const result = await tx
+      .update(cards)
+      .set({ position: sql`CASE id ${whenThenFin} END` })
+      .where(whereClause)
+      .returning();
+
+    const rowsById = new Map<string, Card>(result.map((r) => [r.id, r] as const));
+    return orderedCardIds.map((id) => rowsById.get(id)).filter((r): r is Card => r !== undefined);
   });
 }
 

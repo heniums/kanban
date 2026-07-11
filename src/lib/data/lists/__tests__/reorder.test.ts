@@ -13,6 +13,7 @@ const setupDbMock = () => {
   mock.set = vi.fn(() => mock);
   mock.where = vi.fn(() => mock);
   mock.returning = returning;
+  mock.execute = vi.fn(() => Promise.resolve({ rows: [] }));
 
   return { db: mock, returning };
 };
@@ -44,11 +45,11 @@ beforeEach(() => {
 
 describe("reorderLists", () => {
   it("uses a two-pass strategy to avoid unique constraint conflicts", async () => {
-    // First pass: 3 set() calls for negative positions
-    // Second pass: 3 returning() calls for final positions
-    returningImpl.mockResolvedValueOnce([{ id: "l2", position: 0 }]);
-    returningImpl.mockResolvedValueOnce([{ id: "l1", position: 1 }]);
-    returningImpl.mockResolvedValueOnce([{ id: "l3", position: 2 }]);
+    returningImpl.mockResolvedValueOnce([
+      { id: "l2", position: 0 },
+      { id: "l1", position: 1 },
+      { id: "l3", position: 2 },
+    ]);
 
     const result = await reorderLists("board-1", ["l2", "l1", "l3"]);
 
@@ -57,15 +58,36 @@ describe("reorderLists", () => {
     expect(result).toHaveLength(3);
   });
 
+  it("issues a constant number of UPDATE statements regardless of list count", async () => {
+    returningImpl.mockResolvedValueOnce([
+      { id: "l2", position: 0 },
+      { id: "l1", position: 1 },
+      { id: "l3", position: 2 },
+    ]);
+    await reorderLists("board-1", ["l2", "l1", "l3"]);
+    const smallCount = db.update.mock.calls.length;
+
+    const tenLists = ["l9", "l1", "l3", "l4", "l7", "l8", "l11", "l12", "l13", "l14"];
+    returningImpl.mockResolvedValueOnce(
+      Array.from({ length: 10 }, (_, i) => ({ id: `l${i}`, position: i })),
+    );
+    await reorderLists("board-1", tenLists);
+    const largeCount = db.update.mock.calls.length - smallCount;
+
+    expect(smallCount).toBe(largeCount);
+    expect(smallCount).toBeLessThanOrEqual(5);
+  });
+
   it("returns empty array when no list IDs are provided", async () => {
     const result = await reorderLists("board-1", []);
     expect(result).toEqual([]);
   });
 
-  it("skips lists that do not belong to the board or owner", async () => {
-    returningImpl.mockResolvedValueOnce([{ id: "l1", position: 0 }]);
-    returningImpl.mockResolvedValueOnce([]);
-    returningImpl.mockResolvedValueOnce([{ id: "l3", position: 2 }]);
+  it("skips lists that the RETURNING clause doesn't return (e.g., not on this board)", async () => {
+    returningImpl.mockResolvedValueOnce([
+      { id: "l1", position: 0 },
+      { id: "l3", position: 2 },
+    ]);
 
     const result = await reorderLists("board-1", ["l1", "l2", "l3"]);
 
