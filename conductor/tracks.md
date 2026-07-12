@@ -55,8 +55,3 @@ See `conductor/archive/` for historical completed track folders.
 
 - [x] **Track: Fix card drag-and-drop unique constraint violations in moveCard that cause every card reorder and cross-list move to fail when any list contains cards**
       _Link: [./tracks/card_dnd_fix_20260708/](./tracks/card_dnd_fix_20260708/)_
-
----
-
-- [x] **Track: Label creation/edit/delete missing creating-state guard (Bug Fix)**
-      _Link: [./tracks/label_creation_guard_20260712/](./tracks/label_creation_guard_20260712/)_

@@ -1,0 +1,8 @@
+{
+  "track_id": "label_creation_guard_20260712",
+  "type": "bug",
+  "status": "new",
+  "created_at": "2026-07-12T12:30:00Z",
+  "updated_at": "2026-07-12T12:30:00Z",
+  "description": "labels creation in card detail isn't have a creating state which allow users to spam click the button and spawn multiple labels create request to the server."
+}
