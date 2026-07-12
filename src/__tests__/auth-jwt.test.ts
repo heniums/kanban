@@ -5,28 +5,31 @@ const mocks = vi.hoisted(() => ({
   verifyCredentials: vi.fn(),
 }));
 
+// Capture the REAL callbacks object that auth.ts passes to NextAuth so we
+// exercise the actual jwt callback logic instead of a re-implementation.
+const captured = vi.hoisted(() => ({
+  callbacks: undefined as unknown as {
+    jwt: (params: {
+      token: Record<string, unknown>;
+      trigger?: string;
+      session?: unknown;
+    }) => Promise<unknown>;
+  },
+}));
+
 vi.mock("@/lib/data/auth", () => ({
   verifyCredentials: mocks.verifyCredentials,
   getUserById: mocks.getUserById,
 }));
 
-vi.mock("next-auth", () => {
-  const callbacks: Record<string, (...args: unknown[]) => unknown> = {};
-  return {
-    default: (config: { callbacks?: Record<string, (...a: unknown[]) => unknown> }) => {
-      Object.assign(callbacks, config.callbacks);
-      return {
-        handlers: {},
-        signIn: vi.fn(),
-        signOut: vi.fn(),
-        auth: vi.fn(),
-        _callbacks: callbacks,
-      };
-    },
-  };
-});
+vi.mock("next-auth", () => ({
+  default: (config: { callbacks: typeof captured.callbacks }) => {
+    captured.callbacks = config.callbacks;
+    return { handlers: {}, signIn: vi.fn(), signOut: vi.fn(), auth: vi.fn() };
+  },
+}));
 
-import NextAuth from "next-auth";
+import "@/auth";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -34,54 +37,37 @@ beforeEach(() => {
 
 describe("auth jwt callback", () => {
   it("does NOT call getUserById when token already has avatarUrl", async () => {
-    const result = NextAuth({
-      providers: [],
-      session: { strategy: "jwt" },
-      callbacks: {
-        async jwt({ token }) {
-          if (token.sub && !(token as Record<string, unknown>).avatarUrl) {
-            const dbUser = await mocks.getUserById(token.sub);
-            if (dbUser) {
-              (token as Record<string, unknown>).avatarUrl = dbUser.avatarUrl;
-            }
-          }
-          return token;
-        },
-      },
-    });
-    const jwt = (result as unknown as { _callbacks: Record<string, (...a: unknown[]) => unknown> })
-      ._callbacks.jwt;
-
-    const token = { sub: "user-1", name: "Test", email: "t@t.com", avatarUrl: "old-url" };
-    await jwt({ token });
-
+    const token: Record<string, unknown> = {
+      sub: "user-1",
+      name: "Test",
+      email: "t@t.com",
+      avatarUrl: "old-url",
+    };
+    await captured.callbacks.jwt({ token });
     expect(mocks.getUserById).not.toHaveBeenCalled();
   });
 
-  it("calls getUserById when token lacks avatarUrl (backfill)", async () => {
-    const result = NextAuth({
-      providers: [],
-      session: { strategy: "jwt" },
-      callbacks: {
-        async jwt({ token }) {
-          if (token.sub && !(token as Record<string, unknown>).avatarUrl) {
-            const dbUser = await mocks.getUserById(token.sub);
-            if (dbUser) {
-              (token as Record<string, unknown>).avatarUrl = dbUser.avatarUrl;
-            }
-          }
-          return token;
-        },
-      },
-    });
-    const jwt = (result as unknown as { _callbacks: Record<string, (...a: unknown[]) => unknown> })
-      ._callbacks.jwt;
-
+  it("calls getUserById to backfill avatarUrl when token lacks it", async () => {
     mocks.getUserById.mockResolvedValue({ avatarUrl: "new-url" });
-    const token = { sub: "user-1", name: "Test", email: "t@t.com" };
-    await jwt({ token });
-
+    const token: Record<string, unknown> = { sub: "user-1", name: "Test", email: "t@t.com" };
+    await captured.callbacks.jwt({ token });
     expect(mocks.getUserById).toHaveBeenCalledTimes(1);
-    expect((token as Record<string, unknown>).avatarUrl).toBe("new-url");
+    expect(token.avatarUrl).toBe("new-url");
+  });
+
+  it("refreshes avatarUrl from the update trigger without a DB call", async () => {
+    const token: Record<string, unknown> = {
+      sub: "user-1",
+      name: "Test",
+      email: "t@t.com",
+      avatarUrl: "old-url",
+    };
+    await captured.callbacks.jwt({
+      token,
+      trigger: "update",
+      session: { avatarUrl: "refreshed-url" },
+    });
+    expect(mocks.getUserById).not.toHaveBeenCalled();
+    expect(token.avatarUrl).toBe("refreshed-url");
   });
 });

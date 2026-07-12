@@ -1,7 +1,7 @@
 {
   "track_id": "db_perf_optimization_20260711",
   "type": "chore",
-  "status": "new",
+  "status": "complete",
   "created_at": "2026-07-11T13:31:36Z",
   "updated_at": "2026-07-11T13:31:36Z",
   "description": "Database and data-loading performance optimization — add missing indexes, eliminate N+1 query patterns, remove redundant fetches, optimize NextAuth jwt callback, configure connection pool, and parallelize board page queries"

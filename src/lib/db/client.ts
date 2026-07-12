@@ -49,7 +49,7 @@ export function createDbClient() {
       // Apply statement_timeout on every new connection (per-query abort threshold)
       const statementTimeoutMs = Number(process.env.DB_STATEMENT_TIMEOUT ?? 30000);
       pool.on("connect", (client) => {
-        client.query(`SET statement_timeout = ${statementTimeoutMs}`);
+        client.query(`SET statement_timeout = ${Math.round(statementTimeoutMs)}`);
       });
 
       // Lightweight slow-query instrumentation (logs queries slower than threshold)
