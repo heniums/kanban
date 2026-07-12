@@ -41,7 +41,36 @@ export function createDbClient() {
     if (!_db) {
       const pool = new Pool({
         connectionString: process.env.DATABASE_URL,
+        max: Number(process.env.DB_POOL_MAX ?? 10),
+        idleTimeoutMillis: Number(process.env.DB_IDLE_TIMEOUT ?? 10000),
+        connectionTimeoutMillis: Number(process.env.DB_CONNECT_TIMEOUT ?? 10000),
       });
+
+      // Apply statement_timeout on every new connection (per-query abort threshold)
+      const statementTimeoutMs = Number(process.env.DB_STATEMENT_TIMEOUT ?? 30000);
+      pool.on("connect", (client) => {
+        client.query(`SET statement_timeout = ${statementTimeoutMs}`);
+      });
+
+      // Lightweight slow-query instrumentation (logs queries slower than threshold)
+      const slowThresholdMs = Number(process.env.DB_SLOW_QUERY_THRESHOLD ?? 500);
+      if (slowThresholdMs > 0) {
+        const originalQuery = pool.query.bind(pool) as (...args: unknown[]) => Promise<unknown>;
+        (pool as unknown as { query: (...args: unknown[]) => Promise<unknown> }).query = (
+          ...args: unknown[]
+        ) => {
+          const start = Date.now();
+          const text = typeof args[0] === "string" ? args[0] : "[prepared]";
+          return originalQuery(...args).then((res: unknown) => {
+            const elapsed = Date.now() - start;
+            if (elapsed >= slowThresholdMs) {
+              console.warn(`[slow-query] ${elapsed}ms: ${text.slice(0, 120)}`);
+            }
+            return res;
+          });
+        };
+      }
+
       _db = drizzle({ client: pool });
     }
     _dbProxy = createDbProxy(_db);

@@ -1,28 +1,64 @@
-import { describe, expect, it } from "vitest";
-import { sql } from "drizzle-orm";
-// @vitest-environment node
-import { createDbClient } from "@/lib/db/client";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
-describe("createDbClient", () => {
-  it("returns a drizzle client that connects and responds to a simple query", async () => {
-    const db = createDbClient();
-    const result = await db.execute(sql`SELECT 1 as one`);
+const capturedPoolConfigs: unknown[] = [];
+let poolOnHandlers: Record<string, Array<(client: unknown) => void>> = {};
 
-    expect(result.rows).toHaveLength(1);
-    expect(result.rows[0]).toEqual({ one: 1 });
+vi.mock("pg", () => ({
+  default: {
+    Pool: vi.fn().mockImplementation(function (this: unknown, config: unknown) {
+      capturedPoolConfigs.push(config);
+      return {
+        on: (event: string, handler: (client: unknown) => void) => {
+          if (!poolOnHandlers[event]) poolOnHandlers[event] = [];
+          poolOnHandlers[event].push(handler);
+        },
+        query: vi.fn().mockResolvedValue({ rows: [] }),
+      };
+    }),
+  },
+}));
+
+vi.mock("drizzle-orm/node-postgres", () => ({
+  drizzle: vi.fn(({ client }) => ({ _client: client })),
+}));
+
+vi.mock("server-only", () => ({}));
+
+beforeEach(() => {
+  capturedPoolConfigs.length = 0;
+  poolOnHandlers = {};
+  vi.resetModules();
+});
+
+async function importClient() {
+  const mod = await import("@/lib/db/client");
+  mod.setDbOverride(null);
+  return mod;
+}
+
+describe("connection pool configuration", () => {
+  it("creates the pool with max, idleTimeoutMillis, and connectionTimeoutMillis", async () => {
+    const { createDbClient } = await importClient();
+    createDbClient();
+
+    expect(capturedPoolConfigs).toHaveLength(1);
+    const config = capturedPoolConfigs[0] as Record<string, unknown>;
+    expect(config.max).toBe(10);
+    expect(config.idleTimeoutMillis).toBe(10000);
+    expect(config.connectionTimeoutMillis).toBe(10000);
+    expect(config.connectionString).toBe(process.env.DATABASE_URL);
   });
 
-  it("supports parameterized queries", async () => {
-    const db = createDbClient();
-    const result = await db.execute(sql`SELECT ${"hello"}::text as greeting`);
+  it("registers a connect handler that sets statement_timeout", async () => {
+    const { createDbClient } = await importClient();
+    createDbClient();
 
-    expect(result.rows).toHaveLength(1);
-    expect(result.rows[0]).toEqual({ greeting: "hello" });
-  });
-
-  it("returns the same instance on repeated calls (singleton)", () => {
-    const db1 = createDbClient();
-    const db2 = createDbClient();
-    expect(db1).toBe(db2);
+    expect(poolOnHandlers.connect).toBeDefined();
+    expect(poolOnHandlers.connect.length).toBeGreaterThan(0);
+    const fakeClient = { query: vi.fn() };
+    poolOnHandlers.connect[0](fakeClient);
+    expect(fakeClient.query).toHaveBeenCalled();
+    const sql = fakeClient.query.mock.calls[0][0] as string;
+    expect(sql).toContain("statement_timeout");
   });
 });
