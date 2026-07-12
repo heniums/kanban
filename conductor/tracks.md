@@ -55,8 +55,3 @@ See `conductor/archive/` for historical completed track folders.
 
 - [x] **Track: Fix card drag-and-drop unique constraint violations in moveCard that cause every card reorder and cross-list move to fail when any list contains cards**
       _Link: [./tracks/card_dnd_fix_20260708/](./tracks/card_dnd_fix_20260708/)_
-
----
-
-- [x] **Track: Database & data-loading performance optimization — add missing indexes, eliminate N+1 query patterns, remove redundant fetches, optimize NextAuth jwt callback, configure connection pool, and parallelize board page queries**
-      _Link: [./tracks/db_perf_optimization_20260711/](./tracks/db_perf_optimization_20260711/)_
