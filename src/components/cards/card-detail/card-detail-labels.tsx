@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Plus, Search, Trash2, X } from "lucide-react";
+import { Loader2, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -69,14 +69,23 @@ export function LabelsControl({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteLabelId, setDeleteLabelId] = useState<string | null>(null);
 
+  const [isCreating, setIsCreating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const submitCreate = async () => {
     const trimmed = name.trim();
-    if (!trimmed) return;
-    const created = await onCreateLabel(trimmed, color);
-    if (created) {
-      setName("");
-      setColor("#3b82f6");
-      setCreateOpen(false);
+    if (!trimmed || isCreating || disabled) return;
+    setIsCreating(true);
+    try {
+      const created = await onCreateLabel(trimmed, color);
+      if (created) {
+        setName("");
+        setColor("#3b82f6");
+        setCreateOpen(false);
+      }
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -93,9 +102,14 @@ export function LabelsControl({
   };
 
   const submitEdit = async () => {
-    if (!editLabelId || !onUpdateLabel || !editName.trim()) return;
-    const ok = await onUpdateLabel(editLabelId, editName.trim(), editColor);
-    if (ok) cancelEdit();
+    if (!editLabelId || !onUpdateLabel || !editName.trim() || isUpdating || disabled) return;
+    setIsUpdating(true);
+    try {
+      const ok = await onUpdateLabel(editLabelId, editName.trim(), editColor);
+      if (ok) cancelEdit();
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const requestDelete = (labelId: string) => {
@@ -104,11 +118,16 @@ export function LabelsControl({
   };
 
   const confirmDelete = async () => {
-    if (!deleteLabelId || !onDeleteLabel) return;
-    await onDeleteLabel(deleteLabelId);
-    setDeleteOpen(false);
-    setDeleteLabelId(null);
-    setEditLabelId(null);
+    if (!deleteLabelId || !onDeleteLabel || isDeleting || disabled) return;
+    setIsDeleting(true);
+    try {
+      await onDeleteLabel(deleteLabelId);
+      setDeleteOpen(false);
+      setDeleteLabelId(null);
+      setEditLabelId(null);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -229,6 +248,8 @@ export function LabelsControl({
                               variant="ghost"
                               className="text-destructive h-7 text-xs"
                               onClick={() => requestDelete(l.id)}
+                              disabled={disabled || isDeleting}
+                              aria-label={`Delete label ${l.name}`}
                             >
                               <Trash2 className="size-3" />
                             </Button>
@@ -247,8 +268,10 @@ export function LabelsControl({
                                 size="sm"
                                 className="h-7 text-xs"
                                 onClick={submitEdit}
-                                disabled={!editName.trim()}
+                                disabled={!editName.trim() || isUpdating || disabled}
+                                aria-busy={isUpdating}
                               >
+                                {isUpdating && <Loader2 className="size-3 animate-spin" />}
                                 Save
                               </Button>
                             </div>
@@ -345,8 +368,10 @@ export function LabelsControl({
                         type="button"
                         size="sm"
                         onClick={submitCreate}
-                        disabled={!name.trim()}
+                        disabled={!name.trim() || isCreating || disabled}
+                        aria-busy={isCreating}
                       >
+                        {isCreating && <Loader2 className="size-3.5 animate-spin" />}
                         Create
                       </Button>
                     </div>
@@ -367,7 +392,7 @@ export function LabelsControl({
         </Popover>
       </div>
 
-      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+      <AlertDialog open={deleteOpen} onOpenChange={(open) => !isDeleting && setDeleteOpen(open)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this label?</AlertDialogTitle>
@@ -376,14 +401,17 @@ export function LabelsControl({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
                 void confirmDelete();
               }}
+              disabled={isDeleting || disabled}
+              aria-busy={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
+              {isDeleting && <Loader2 className="size-3.5 animate-spin" />}
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

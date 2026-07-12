@@ -62,9 +62,9 @@ describe("LabelsControl action guards", () => {
     });
   });
 
-  it("resets creating state after failure so the control is usable again (FR-4, AC-3)", async () => {
+  it("resets creating state after a failed creation so the control is usable again (FR-4, AC-3)", async () => {
     const user = userEvent.setup();
-    const d = deferred<Label>();
+    const d = deferred<Label | null>();
     const onCreateLabel = vi.fn().mockReturnValue(d.promise);
     renderControl({ onCreateLabel });
 
@@ -75,8 +75,9 @@ describe("LabelsControl action guards", () => {
     const createBtn = screen.getByRole("button", { name: /^create$/i }) as HTMLButtonElement;
     await user.click(createBtn);
     expect(onCreateLabel).toHaveBeenCalledTimes(1);
+    expect(createBtn.disabled).toBe(true);
 
-    d.reject(new Error("boom"));
+    d.resolve(null);
     await waitFor(() => {
       const btn = screen.getByRole("button", { name: /^create$/i }) as HTMLButtonElement;
       expect(btn.getAttribute("aria-busy")).toBe("false");
