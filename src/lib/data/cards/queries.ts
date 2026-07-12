@@ -94,14 +94,23 @@ export async function getCardSummaryById(cardId: string): Promise<CardSummary | 
   };
 }
 
-export async function getCardsByBoardId(boardId: string): Promise<Card[]> {
+export async function getCardsByBoardId(boardId: string): Promise<Omit<Card, "description">[]> {
   const db = createDbClient();
   const rows = await db
-    .select({ card: cards })
+    .select({
+      id: cards.id,
+      listId: cards.listId,
+      boardId: cards.boardId,
+      title: cards.title,
+      position: cards.position,
+      dueDate: cards.dueDate,
+      createdAt: cards.createdAt,
+      updatedAt: cards.updatedAt,
+    })
     .from(cards)
     .where(sql`${cards.boardId} = ${boardId}`)
     .orderBy(sql`${cards.listId} ASC, ${cards.position} ASC`);
-  return rows.map((r) => r.card);
+  return rows;
 }
 
 export async function getCardLabelsByBoardId(boardId: string): Promise<Record<string, Label[]>> {

@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { updateCardAction } from "@/lib/actions/cards";
 
-export type CardSummary = Card & {
+export type CardSummary = Omit<Card, "description"> & {
+  description?: string | null;
   labels?: { id: string; name: string; color: string }[];
   assignees?: { id: string; name: string; avatarUrl?: string | null }[];
   checklistProgress?: { total: number; completed: number } | null;

@@ -33,10 +33,9 @@ export default async function BoardPage({ params }: BoardPageProps) {
     notFound();
   }
 
-  const capabilities = await getBoardCapabilities(userId, boardId);
-
-  const lists = await getListsByBoardId(boardId);
   const [
+    capabilities,
+    lists,
     allCards,
     cardLabelsMap,
     cardAssigneesMap,
@@ -44,6 +43,8 @@ export default async function BoardPage({ params }: BoardPageProps) {
     commentCountsMap,
     attachmentPreviewMap,
   ] = await Promise.all([
+    getBoardCapabilities(userId, boardId),
+    getListsByBoardId(boardId),
     getCardsByBoardId(boardId),
     getCardLabelsByBoardId(boardId),
     getCardAssigneesByBoardId(boardId),

@@ -3,7 +3,7 @@ import type { CardDetailData } from "./types";
 interface RealtimeCard {
   id: string;
   title: string;
-  description: string | null;
+  description?: string | null;
   dueDate: Date | null;
   updatedAt: Date;
   checklistProgress?: { total: number; completed: number } | null;
@@ -17,7 +17,7 @@ export function mergeCardUpdate(prev: CardDetailData, updatedCard: RealtimeCard)
     card: {
       ...prev.card,
       title: updatedCard.title,
-      description: updatedCard.description,
+      description: updatedCard.description ?? prev.card.description,
       dueDate: updatedCard.dueDate,
       updatedAt: updatedCard.updatedAt,
       checklistProgress:
