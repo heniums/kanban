@@ -58,5 +58,5 @@ See `conductor/archive/` for historical completed track folders.
 
 ---
 
-- [ ] **Track: Label creation/edit/delete missing creating-state guard (Bug Fix)**
+- [x] **Track: Label creation/edit/delete missing creating-state guard (Bug Fix)**
       _Link: [./tracks/label_creation_guard_20260712/](./tracks/label_creation_guard_20260712/)_
