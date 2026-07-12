@@ -21,6 +21,28 @@ export async function getCardById(cardId: string): Promise<Card | null> {
   return card?.card ?? null;
 }
 
+export async function getCardLabelsByCardId(
+  cardId: string,
+): Promise<{ id: string; name: string; color: string }[]> {
+  const db = createDbClient();
+  return db
+    .select({ id: labels.id, name: labels.name, color: labels.color })
+    .from(cardLabels)
+    .innerJoin(labels, eq(labels.id, cardLabels.labelId))
+    .where(sql`${cardLabels.cardId} = ${cardId}`);
+}
+
+export async function getCardAssigneesByCardId(
+  cardId: string,
+): Promise<{ id: string; name: string; avatarUrl: string | null }[]> {
+  const db = createDbClient();
+  return db
+    .select({ id: users.id, name: users.name, avatarUrl: users.avatarUrl })
+    .from(cardAssignees)
+    .innerJoin(users, eq(users.id, cardAssignees.userId))
+    .where(sql`${cardAssignees.cardId} = ${cardId}`);
+}
+
 export async function getCardSummaryById(cardId: string): Promise<CardSummary | null> {
   const db = createDbClient();
 
@@ -72,14 +94,23 @@ export async function getCardSummaryById(cardId: string): Promise<CardSummary | 
   };
 }
 
-export async function getCardsByBoardId(boardId: string): Promise<Card[]> {
+export async function getCardsByBoardId(boardId: string): Promise<Omit<Card, "description">[]> {
   const db = createDbClient();
   const rows = await db
-    .select({ card: cards })
+    .select({
+      id: cards.id,
+      listId: cards.listId,
+      boardId: cards.boardId,
+      title: cards.title,
+      position: cards.position,
+      dueDate: cards.dueDate,
+      createdAt: cards.createdAt,
+      updatedAt: cards.updatedAt,
+    })
     .from(cards)
     .where(sql`${cards.boardId} = ${boardId}`)
     .orderBy(sql`${cards.listId} ASC, ${cards.position} ASC`);
-  return rows.map((r) => r.card);
+  return rows;
 }
 
 export async function getCardLabelsByBoardId(boardId: string): Promise<Record<string, Label[]>> {

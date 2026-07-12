@@ -10,7 +10,8 @@ import {
   reorderCards,
   copyCard,
   getCardById,
-  getCardSummaryById,
+  getCardLabelsByCardId,
+  getCardAssigneesByCardId,
 } from "@/lib/data/cards";
 import {
   createCardSchema,
@@ -72,10 +73,17 @@ export async function updateCardAction(input: unknown): Promise<Result<CardSumma
     if (!card) {
       return { errors: [{ field: "", message: "Card not found" }] };
     }
-    const cardSummary = await getCardSummaryById(cardId);
-    if (!cardSummary) {
-      return { errors: [{ field: "", message: "Card not found" }] };
-    }
+    const [labelRows, assigneeRows] = await Promise.all([
+      patch.labelIds !== undefined ? getCardLabelsByCardId(cardId) : Promise.resolve(undefined),
+      patch.assigneeIds !== undefined
+        ? getCardAssigneesByCardId(cardId)
+        : Promise.resolve(undefined),
+    ]);
+    const cardSummary: CardSummary = {
+      ...card,
+      ...(labelRows !== undefined ? { labels: labelRows } : {}),
+      ...(assigneeRows !== undefined ? { assignees: assigneeRows } : {}),
+    };
     revalidatePath(`/boards/${card.boardId}`);
     emitToBoard(card.boardId, REALTIME_EVENTS.CARD_UPDATED, { card: cardSummary });
     return { data: cardSummary };

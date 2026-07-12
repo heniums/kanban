@@ -1,4 +1,4 @@
-import { integer, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
+import { index, integer, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 import { lists } from "./lists";
 import { boards } from "./boards";
 
@@ -24,6 +24,7 @@ export const cards = pgTable(
   },
   (table) => ({
     listIdPositionUnique: unique("cards_list_id_position_unique").on(table.listId, table.position),
+    boardIdIdx: index("cards_board_id_idx").on(table.boardId),
   }),
 );
 

@@ -26,6 +26,7 @@ const setupDbMock = () => {
   mock.orderBy = vi.fn(() => mock);
   mock.set = vi.fn(() => mock);
   mock.where = vi.fn(() => mock);
+  mock.returning = vi.fn(() => Promise.resolve(returnedRows.shift() ?? []));
   mock.execute = vi.fn(() => Promise.resolve({ rows: [] }));
   return mock;
 };
@@ -48,7 +49,13 @@ vi.mock("@/lib/db/schema/boards", () => ({
   boards: { _table: "boards" },
 }));
 
-import { createChecklist, createChecklistItem } from "../mutations";
+import {
+  createChecklist,
+  deleteChecklist,
+  createChecklistItem,
+  updateChecklistItem,
+  deleteChecklistItem,
+} from "../mutations";
 
 beforeEach(() => {
   db = setupDbMock();
@@ -57,21 +64,47 @@ beforeEach(() => {
 });
 
 describe("createChecklist", () => {
-  it("creates a checklist with auto-incremented position", async () => {
-    returnedRows = [[{ value: 1 }], [{ id: "cl-1", cardId: "card-1", title: "Test", position: 2 }]];
+  it("creates a checklist with auto-incremented position and returns boardId", async () => {
+    returnedRows = [
+      [{ value: 1 }],
+      [{ boardId: "board-1" }],
+      [{ id: "cl-1", cardId: "card-1", title: "Test", position: 2 }],
+    ];
 
     const result = await createChecklist({ cardId: "card-1", title: "Test" });
 
     expect(result.id).toBe("cl-1");
     expect(result.title).toBe("Test");
+    expect(result.boardId).toBe("board-1");
     expect(db.transaction).toHaveBeenCalled();
   });
 });
 
+describe("deleteChecklist", () => {
+  it("deletes a checklist and returns row with boardId", async () => {
+    returnedRows = [[{ id: "cl-1", cardId: "card-1", position: 1, boardId: "board-1" }], []];
+
+    const result = await deleteChecklist("cl-1");
+
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe("cl-1");
+    expect(result?.cardId).toBe("card-1");
+    expect(result?.boardId).toBe("board-1");
+  });
+
+  it("returns null when checklist is not found", async () => {
+    returnedRows = [[]];
+
+    const result = await deleteChecklist("missing");
+    expect(result).toBeNull();
+  });
+});
+
 describe("createChecklistItem", () => {
-  it("creates a checklist item with auto-incremented position", async () => {
+  it("creates a checklist item with auto-incremented position and returns cardId/boardId", async () => {
     returnedRows = [
       [{ value: 0 }],
+      [{ cardId: "card-1", boardId: "board-1" }],
       [{ id: "ci-1", checklistId: "cl-1", content: "Buy milk", isCompleted: false, position: 1 }],
     ];
 
@@ -82,6 +115,63 @@ describe("createChecklistItem", () => {
 
     expect(result.id).toBe("ci-1");
     expect(result.content).toBe("Buy milk");
+    expect(result.cardId).toBe("card-1");
+    expect(result.boardId).toBe("board-1");
     expect(db.transaction).toHaveBeenCalled();
+  });
+});
+
+describe("updateChecklistItem", () => {
+  it("updates an item and returns cardId/boardId", async () => {
+    returnedRows = [
+      [{ id: "ci-1", checklistId: "cl-1", content: "Updated", isCompleted: true, position: 1 }],
+      [{ cardId: "card-1", boardId: "board-1" }],
+    ];
+
+    const result = await updateChecklistItem("ci-1", { isCompleted: true });
+
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe("ci-1");
+    expect(result?.isCompleted).toBe(true);
+    expect(result?.cardId).toBe("card-1");
+    expect(result?.boardId).toBe("board-1");
+  });
+
+  it("returns null when no fields to update", async () => {
+    const result = await updateChecklistItem("ci-1", {});
+    expect(result).toBeNull();
+  });
+});
+
+describe("deleteChecklistItem", () => {
+  it("deletes an item and returns cardId/boardId", async () => {
+    returnedRows = [
+      [
+        {
+          id: "ci-1",
+          checklistId: "cl-1",
+          content: "Test",
+          isCompleted: false,
+          position: 0,
+          cardId: "card-1",
+          boardId: "board-1",
+        },
+      ],
+      [],
+    ];
+
+    const result = await deleteChecklistItem("ci-1");
+
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe("ci-1");
+    expect(result?.cardId).toBe("card-1");
+    expect(result?.boardId).toBe("board-1");
+  });
+
+  it("returns null when item is not found", async () => {
+    returnedRows = [[]];
+
+    const result = await deleteChecklistItem("missing");
+    expect(result).toBeNull();
   });
 });

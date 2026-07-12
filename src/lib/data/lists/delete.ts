@@ -3,26 +3,22 @@ import { createDbClient } from "@/lib/db/client";
 import { lists, type List } from "@/lib/db/schema/lists";
 import { boards } from "@/lib/db/schema/boards";
 import { cards } from "@/lib/db/schema/cards";
-import { listAttachmentsByCardId } from "@/lib/data/attachments";
+import { attachments } from "@/lib/db/schema/attachments";
+import { cardAttachments } from "@/lib/db/schema/card-attachments";
 import { deleteCloudinaryAsset } from "@/lib/cloudinary";
 
 export async function deleteList(listId: string): Promise<List | null> {
   const db = createDbClient();
 
-  const cardIds = await db
-    .select({ id: cards.id })
+  const attachmentsInList = await db
+    .select({ publicId: attachments.publicId })
     .from(cards)
+    .innerJoin(cardAttachments, sql`${cardAttachments.cardId} = ${cards.id}`)
+    .innerJoin(attachments, sql`${attachments.id} = ${cardAttachments.attachmentId}`)
     .where(sql`${cards.listId} = ${listId}`);
 
-  for (const { id } of cardIds) {
-    const attachments = await listAttachmentsByCardId(id);
-    for (const att of attachments) {
-      try {
-        await deleteCloudinaryAsset(att.publicId);
-      } catch {
-        // Best-effort cleanup
-      }
-    }
+  if (attachmentsInList.length > 0) {
+    await Promise.allSettled(attachmentsInList.map((att) => deleteCloudinaryAsset(att.publicId)));
   }
 
   return db.transaction(async (tx) => {

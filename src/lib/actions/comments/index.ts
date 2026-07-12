@@ -3,9 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { verifySession } from "@/lib/dal";
 import { createComment, updateComment, deleteComment } from "@/lib/data/comments";
-import { createDbClient } from "@/lib/db/client";
-import { cards } from "@/lib/db/schema/cards";
-import { sql } from "drizzle-orm";
 import {
   createCommentSchema,
   updateCommentSchema,
@@ -20,16 +17,6 @@ type Result<T> = { data: T } | { errors: Array<{ field: string; message: string 
 
 function formatZodErrors(error: import("zod").ZodError) {
   return error.errors.map((e) => ({ field: e.path.join("."), message: e.message }));
-}
-
-async function revalidateForCard(cardId: string) {
-  const db = createDbClient();
-  const [row] = await db
-    .select({ boardId: cards.boardId })
-    .from(cards)
-    .where(sql`${cards.id} = ${cardId}`);
-  if (row) revalidatePath(`/boards/${row.boardId}`);
-  return row?.boardId ?? null;
 }
 
 export async function createCommentAction(input: unknown): Promise<Result<Comment>> {
@@ -48,9 +35,11 @@ export async function createCommentAction(input: unknown): Promise<Result<Commen
 
   try {
     const comment = await createComment(parsed.data, { userId });
-    const boardId = await revalidateForCard(comment.cardId);
-    if (boardId)
-      emitToBoard(boardId, REALTIME_EVENTS.COMMENT_CREATED, { cardId: comment.cardId, boardId });
+    revalidatePath(`/boards/${comment.boardId}`);
+    emitToBoard(comment.boardId, REALTIME_EVENTS.COMMENT_CREATED, {
+      cardId: comment.cardId,
+      boardId: comment.boardId,
+    });
     return { data: comment };
   } catch (err) {
     return { errors: [{ field: "", message: err instanceof Error ? err.message : "Failed" }] };
@@ -74,9 +63,11 @@ export async function updateCommentAction(input: unknown): Promise<Result<Commen
   try {
     const comment = await updateComment(parsed.data.commentId, { content: parsed.data.content });
     if (!comment) return { errors: [{ field: "", message: "Comment not found" }] };
-    const boardId = await revalidateForCard(comment.cardId);
-    if (boardId)
-      emitToBoard(boardId, REALTIME_EVENTS.COMMENT_UPDATED, { cardId: comment.cardId, boardId });
+    revalidatePath(`/boards/${comment.boardId}`);
+    emitToBoard(comment.boardId, REALTIME_EVENTS.COMMENT_UPDATED, {
+      cardId: comment.cardId,
+      boardId: comment.boardId,
+    });
     return { data: comment };
   } catch (err) {
     return { errors: [{ field: "", message: err instanceof Error ? err.message : "Failed" }] };
@@ -100,9 +91,11 @@ export async function deleteCommentAction(input: unknown): Promise<Result<{ card
   try {
     const deleted = await deleteComment(parsed.data.commentId);
     if (!deleted) return { errors: [{ field: "", message: "Comment not found" }] };
-    const boardId = await revalidateForCard(deleted.cardId);
-    if (boardId)
-      emitToBoard(boardId, REALTIME_EVENTS.COMMENT_DELETED, { cardId: deleted.cardId, boardId });
+    revalidatePath(`/boards/${deleted.boardId}`);
+    emitToBoard(deleted.boardId, REALTIME_EVENTS.COMMENT_DELETED, {
+      cardId: deleted.cardId,
+      boardId: deleted.boardId,
+    });
     return { data: { cardId: deleted.cardId } };
   } catch (err) {
     return { errors: [{ field: "", message: err instanceof Error ? err.message : "Failed" }] };

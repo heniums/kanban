@@ -48,7 +48,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           (token as unknown as Record<string, unknown>).avatarUrl = s.avatarUrl;
         }
       }
-      if (token.sub) {
+      // Backfill avatarUrl once for tokens issued before this optimization.
+      // After that, the token carries the cached value and is refreshed only
+      // via the "update" trigger above (e.g. when the user updates their profile).
+      if (token.sub && !(token as unknown as Record<string, unknown>).avatarUrl) {
         const dbUser = await getUserById(token.sub);
         if (dbUser) {
           (token as unknown as Record<string, unknown>).avatarUrl = dbUser.avatarUrl;
