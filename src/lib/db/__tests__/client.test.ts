@@ -5,7 +5,6 @@ let poolOnHandlers: Record<string, Array<(client: unknown) => void>> = {};
 
 vi.mock("pg", () => ({
   default: {
-    types: { setTypeParser: vi.fn() },
     Pool: vi.fn().mockImplementation(function (this: unknown, config: unknown) {
       capturedPoolConfigs.push(config);
       return {
