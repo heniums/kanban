@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-const uuid = z.string().uuid();
+const uuid = z
+  .string()
+  .regex(
+    /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/,
+    "Invalid UUID",
+  );
 
 export const createChecklistSchema = z.object({
   cardId: uuid,

@@ -8,17 +8,52 @@ export const createAttachmentSchema = z.object({
   height: z.number().int().optional(),
   bytes: z.number().int().optional(),
   resourceType: z.string().optional(),
-  cardId: z.string().uuid(),
-  boardId: z.string().uuid(),
+  cardId: z
+    .string()
+    .regex(
+      /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/,
+      "Invalid UUID",
+    ),
+  boardId: z
+    .string()
+    .regex(
+      /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/,
+      "Invalid UUID",
+    ),
 });
 
 export const deleteAttachmentSchema = z.object({
-  attachmentId: z.string().uuid(),
-  cardId: z.string().uuid(),
-  boardId: z.string().uuid(),
+  attachmentId: z
+    .string()
+    .regex(
+      /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/,
+      "Invalid UUID",
+    ),
+  cardId: z
+    .string()
+    .regex(
+      /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/,
+      "Invalid UUID",
+    ),
+  boardId: z
+    .string()
+    .regex(
+      /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/,
+      "Invalid UUID",
+    ),
 });
 
 export const listCardAttachmentsSchema = z.object({
-  cardId: z.string().uuid(),
-  boardId: z.string().uuid(),
+  cardId: z
+    .string()
+    .regex(
+      /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/,
+      "Invalid UUID",
+    ),
+  boardId: z
+    .string()
+    .regex(
+      /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/,
+      "Invalid UUID",
+    ),
 });

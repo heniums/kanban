@@ -32,7 +32,7 @@ export async function updateBoardAction(id: string, formData: FormData): Promise
   const parsed = updateBoardSchema.safeParse(raw);
 
   if (!parsed.success) {
-    const errors = parsed.error.errors.map((e) => ({
+    const errors = parsed.error.issues.map((e) => ({
       field: e.path.join("."),
       message: e.message,
     }));

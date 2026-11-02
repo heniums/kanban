@@ -13,7 +13,7 @@ export async function registerAction(input: {
   const parsed = registerUserSchema.safeParse(input);
 
   if (!parsed.success) {
-    const first = parsed.error.errors[0];
+    const first = parsed.error.issues[0];
     return {
       ok: false,
       error: first ? first.message : "Invalid input",
