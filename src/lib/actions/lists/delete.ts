@@ -8,7 +8,12 @@ import { BoardPermission } from "@/lib/permissions";
 import { z } from "zod";
 
 const deleteListInputSchema = z.object({
-  listId: z.string().uuid(),
+  listId: z
+    .string()
+    .regex(
+      /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/,
+      "Invalid UUID",
+    ),
 });
 
 type DeleteListResult = { success: true } | { error: string };

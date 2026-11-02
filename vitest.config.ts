@@ -15,6 +15,10 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./src/__tests__/setup.ts"],
     css: false,
+    env: {
+      NEXT_PUBLIC_PORTFOLIO_URL: "https://heniums.vercel.app",
+      NEXT_PUBLIC_GITHUB_URL: "https://github.com/heniums/kanban",
+    },
     exclude: [
       "**/node_modules/**",
       "e2e/**",

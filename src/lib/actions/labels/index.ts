@@ -12,7 +12,7 @@ import type { Label } from "@/lib/db/schema/labels";
 type Result<T> = { data: T } | { errors: Array<{ field: string; message: string }> };
 
 function formatZodErrors(error: import("zod").ZodError) {
-  return error.errors.map((e) => ({ field: e.path.join("."), message: e.message }));
+  return error.issues.map((e) => ({ field: e.path.join("."), message: e.message }));
 }
 
 export async function createLabelAction(input: unknown): Promise<Result<Label>> {

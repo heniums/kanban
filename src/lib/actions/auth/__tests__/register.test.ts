@@ -47,7 +47,7 @@ describe("registerAction", () => {
   it("returns an error when Zod validation fails", async () => {
     mockRegisterUserSchema.safeParse.mockReturnValue({
       success: false,
-      error: { errors: [{ message: "Invalid email" }] },
+      error: { issues: [{ message: "Invalid email" }] },
     });
 
     const result = await registerAction({
