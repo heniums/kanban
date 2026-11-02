@@ -5,7 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.3.0] - 2026-07-12
+## [1.4.0] - 2026-11-02
+
+### Security
+
+- **Dependency audit** — Production dependency vulnerabilities reduced from 31 (4 critical) to 0; remaining advisories are dev-tooling only (shadcn CLI tree)
+
+### Changed
+
+- **Next.js & auth stack** — `next` 16.2.9 → 16.4.3 (fixes image-optimizer RCE, Server-Action SSRF/DoS, cache poisoning), `next-auth` beta.31 → beta.32 with `@auth/core` 0.41.3 (fixes homoglyph-email bypass, `getToken()` throw, cross-provider PKCE cookies)
+- **Zod 4** — `zod` 3 → 4.6.7 and `@hookform/resolvers` 3 → 7; UUID validation now shape-checked (dashed-hex regex preserving previous semantics), `ZodError.errors` migrated to `.issues`
+- **TypeScript 6.0.3** — TS 7.0 deferred until typescript-eslint supports it
+- **Tooling majors** — `eslint` 9 → 10, `vitest` 3.2.6 → 5.0.5 (+ `vite` 8), `dotenv` 18, `jsdom` 30, `@types/node` 26, `@vitejs/plugin-react` 6
+- **Dependency hygiene** — `shadcn` CLI moved to devDependencies, removed deprecated `@types/bcryptjs` and `@types/marked` stubs, removed `baseUrl` from tsconfig
+
+### Fixed
+
+- **Test determinism** — Footer-link tests no longer depend on machine environment variables; users-table column test made order-insensitive across fresh-push and incremental databases
 
 ### Performance
 
@@ -67,6 +83,7 @@ Initial release of the Kanban Collaboration Platform.
 - **Board hero** — Top hero section with background, title, description, and actions
 - **Component architecture** — Composable component patterns for card detail and board cards
 
+[1.4.0]: https://github.com/heniums/kanban/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/heniums/kanban/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/heniums/kanban/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/heniums/kanban/compare/v1.0.0...v1.1.0
