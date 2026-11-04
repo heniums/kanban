@@ -53,6 +53,7 @@ const setupDbMock = () => {
   mock.leftJoin = vi.fn(() => mock);
   mock.orderBy = vi.fn(() => mock);
   mock.where = vi.fn(() => mock);
+  mock.for = vi.fn(() => mock);
   return mock;
 };
 

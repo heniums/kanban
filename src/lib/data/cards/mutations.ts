@@ -16,7 +16,8 @@ export async function createCard(data: CreateCardInput): Promise<Card> {
       .select({ id: lists.id, boardId: lists.boardId })
       .from(lists)
       .innerJoin(boards, sql`${boards.id} = ${lists.boardId}`)
-      .where(sql`${lists.id} = ${data.listId} AND ${boards.deletedAt} IS NULL`);
+      .where(sql`${lists.id} = ${data.listId} AND ${boards.deletedAt} IS NULL`)
+      .for("update", { of: lists });
     if (!list) {
       throw new Error("List not found");
     }
