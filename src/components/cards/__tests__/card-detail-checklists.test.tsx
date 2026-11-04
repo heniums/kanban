@@ -14,6 +14,9 @@ vi.mock("@/lib/actions/checklists", () => ({
   createChecklistItemAction: vi.fn(),
 }));
 
+type ItemResult = { data: { id: string; checklistId: string } };
+type ChecklistResult = { data: { id: string; cardId: string } };
+
 import { createChecklistAction, createChecklistItemAction } from "@/lib/actions/checklists";
 
 const mockedCreateItem = vi.mocked(createChecklistItemAction);
@@ -22,7 +25,7 @@ const mockedCreateChecklist = vi.mocked(createChecklistAction);
 describe("AddChecklistItem duplicate-submit guard", () => {
   it("creates exactly one item when Add is clicked repeatedly while in flight", async () => {
     const user = userEvent.setup();
-    const d = deferred<{ id: string; checklistId: string }>();
+    const d = deferred<ItemResult>();
     const onAdded = vi.fn();
     mockedCreateItem.mockReturnValue(d.promise);
     render(<AddChecklistItem checklistId="cl1" disabled={false} onAdded={onAdded} />);
@@ -55,7 +58,7 @@ describe("AddChecklistItem duplicate-submit guard", () => {
 
   it("creates exactly one item on repeated Enter presses while in flight", async () => {
     const user = userEvent.setup();
-    const d = deferred<{ id: string; checklistId: string }>();
+    const d = deferred<ItemResult>();
     const onAdded = vi.fn();
     mockedCreateItem.mockReturnValue(d.promise);
     render(<AddChecklistItem checklistId="cl1" disabled={false} onAdded={onAdded} />);
@@ -78,7 +81,7 @@ describe("AddChecklistItem duplicate-submit guard", () => {
 describe("AddChecklistButton duplicate-submit guard", () => {
   it("creates exactly one checklist when Add is clicked repeatedly while in flight", async () => {
     const user = userEvent.setup();
-    const d = deferred<{ id: string; cardId: string }>();
+    const d = deferred<ChecklistResult>();
     const onAdd = vi.fn();
     mockedCreateChecklist.mockReturnValue(d.promise);
     render(<AddChecklistButton cardId="c1" onAdd={onAdd} disabled={false} />);
@@ -105,7 +108,7 @@ describe("AddChecklistButton duplicate-submit guard", () => {
 
   it("creates exactly one checklist on repeated Enter presses while in flight", async () => {
     const user = userEvent.setup();
-    const d = deferred<{ id: string; cardId: string }>();
+    const d = deferred<ChecklistResult>();
     const onAdd = vi.fn();
     mockedCreateChecklist.mockReturnValue(d.promise);
     render(<AddChecklistButton cardId="c1" onAdd={onAdd} disabled={false} />);
