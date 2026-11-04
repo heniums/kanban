@@ -1,10 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import {
-  AddChecklistItem,
-  AddChecklistButton,
-} from "@/components/cards/card-detail/card-detail-checklists";
+import { AddChecklistButton } from "@/components/cards/card-detail/card-detail-checklists";
+import { AddChecklistItem } from "@/components/cards/card-detail/card-detail-checklist-items";
 
 function deferred<T>() {
   const { promise, resolve, reject } = Promise.withResolvers<T>();
@@ -42,7 +40,7 @@ describe("AddChecklistItem duplicate-submit guard", () => {
     expect(mockedCreateItem).toHaveBeenCalledWith({ checklistId: "cl1", content: "Step 1" });
     expect(addBtn.disabled).toBe(true);
 
-    d.resolve({ id: "i1", checklistId: "cl1" });
+    d.resolve({ data: { id: "i1", checklistId: "cl1" } });
     await waitFor(() => {
       expect(onAdded).toHaveBeenCalledWith({
         id: "i1",
@@ -70,7 +68,7 @@ describe("AddChecklistItem duplicate-submit guard", () => {
 
     expect(mockedCreateItem).toHaveBeenCalledTimes(1);
 
-    d.resolve({ id: "i2", checklistId: "cl1" });
+    d.resolve({ data: { id: "i2", checklistId: "cl1" } });
     await waitFor(() => {
       expect(onAdded).toHaveBeenCalledTimes(1);
     });
@@ -87,6 +85,7 @@ describe("AddChecklistButton duplicate-submit guard", () => {
 
     await user.click(screen.getByRole("button", { name: /add checklist/i }));
     const input = await screen.findByPlaceholderText("Checklist title");
+    await user.clear(input);
     await user.type(input, "QA");
 
     const addBtn = screen.getByRole("button", { name: /^add$/i }) as HTMLButtonElement;
@@ -98,7 +97,7 @@ describe("AddChecklistButton duplicate-submit guard", () => {
     expect(mockedCreateChecklist).toHaveBeenCalledWith({ cardId: "c1", title: "QA" });
     expect(addBtn.disabled).toBe(true);
 
-    d.resolve({ id: "cl1", cardId: "c1" });
+    d.resolve({ data: { id: "cl1", cardId: "c1" } });
     await waitFor(() => {
       expect(onAdd).toHaveBeenCalledTimes(1);
     });
@@ -113,13 +112,14 @@ describe("AddChecklistButton duplicate-submit guard", () => {
 
     await user.click(screen.getByRole("button", { name: /add checklist/i }));
     const input = await screen.findByPlaceholderText("Checklist title");
+    await user.clear(input);
     await user.type(input, "QA");
     await user.type(input, "{Enter}");
     await user.type(input, "{Enter}");
 
     expect(mockedCreateChecklist).toHaveBeenCalledTimes(1);
 
-    d.resolve({ id: "cl2", cardId: "c1" });
+    d.resolve({ data: { id: "cl2", cardId: "c1" } });
     await waitFor(() => {
       expect(onAdd).toHaveBeenCalledTimes(1);
     });

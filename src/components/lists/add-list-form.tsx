@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ export function AddListForm({ onAdd }: AddListFormProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState("");
   const [isPending, startTransition] = useTransition();
+  const submitLockRef = useRef(false);
 
   const reset = () => {
     setTitle("");
@@ -25,9 +26,15 @@ export function AddListForm({ onAdd }: AddListFormProps) {
       reset();
       return;
     }
+    if (submitLockRef.current) return;
+    submitLockRef.current = true;
     startTransition(async () => {
-      await onAdd(trimmed);
-      reset();
+      try {
+        await onAdd(trimmed);
+        reset();
+      } finally {
+        submitLockRef.current = false;
+      }
     });
   };
 

@@ -189,26 +189,32 @@ export function AddChecklistItem({
 }) {
   const [adding, setAdding] = useState(false);
   const [content, setContent] = useState("");
+  const [isAdding, setIsAdding] = useState(false);
 
   const submit = async () => {
     const trimmed = content.trim();
-    if (!trimmed) return;
-    const result = await createChecklistItemAction({ checklistId, content: trimmed });
-    if ("errors" in result) {
-      toast.error(result.errors.map((e) => e.message).join(", "));
-      return;
+    if (!trimmed || isAdding || disabled) return;
+    setIsAdding(true);
+    try {
+      const result = await createChecklistItemAction({ checklistId, content: trimmed });
+      if ("errors" in result) {
+        toast.error(result.errors.map((e) => e.message).join(", "));
+        return;
+      }
+      if (result.data) {
+        onAdded({
+          id: result.data.id,
+          checklistId,
+          content: trimmed,
+          isCompleted: false,
+          position: 0,
+        });
+      }
+      setContent("");
+      setAdding(false);
+    } finally {
+      setIsAdding(false);
     }
-    if (result.data) {
-      onAdded({
-        id: result.data.id,
-        checklistId,
-        content: trimmed,
-        isCompleted: false,
-        position: 0,
-      });
-    }
-    setContent("");
-    setAdding(false);
   };
 
   if (!adding) {
@@ -252,10 +258,16 @@ export function AddChecklistItem({
             setContent("");
             setAdding(false);
           }}
+          disabled={isAdding}
         >
           Cancel
         </Button>
-        <Button type="button" size="sm" onClick={submit} disabled={!content.trim() || disabled}>
+        <Button
+          type="button"
+          size="sm"
+          onClick={submit}
+          disabled={!content.trim() || isAdding || disabled}
+        >
           Add
         </Button>
       </div>
