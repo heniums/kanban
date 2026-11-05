@@ -33,6 +33,7 @@ const setupDbMock = () => {
   mock.limit = vi.fn(() => mock);
   mock.offset = vi.fn(() => mock);
   mock.where = vi.fn(() => mock);
+  mock.for = vi.fn(() => mock);
   mock.returning = returning;
 
   return { db: mock, returning };
@@ -64,7 +65,8 @@ beforeEach(() => {
 
 describe("createList", () => {
   it("inserts a list with position = max(existing positions) + 1 and returns it", async () => {
-    selectResults = [[{ value: 2 }]];
+    // First select: board row lock; second: MAX(position).
+    selectResults = [[{ id: "board-1" }], [{ value: 2 }]];
     returningImpl.mockResolvedValueOnce([
       { id: "list-new", title: "Doing", boardId: "board-1", position: 3 },
     ]);
@@ -83,7 +85,8 @@ describe("createList", () => {
   });
 
   it("starts position at 0 when no existing lists on the board", async () => {
-    selectResults = [[{ value: null }]];
+    // First select: board row lock; second: MAX(position).
+    selectResults = [[{ id: "board-1" }], [{ value: null }]];
     returningImpl.mockResolvedValueOnce([
       { id: "list-new", title: "To Do", boardId: "board-1", position: 0 },
     ]);

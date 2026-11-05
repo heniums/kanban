@@ -117,6 +117,25 @@ export function AddChecklistButton({
 }) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("Checklist");
+  const [isCreating, setIsCreating] = useState(false);
+
+  const submit = async () => {
+    const trimmed = title.trim();
+    if (!trimmed || isCreating || disabled) return;
+    setIsCreating(true);
+    try {
+      const result = await createChecklistAction({ cardId, title: trimmed });
+      if ("errors" in result) {
+        toast.error(result.errors.map((e) => e.message).join(", "));
+        return;
+      }
+      onAdd({ id: result.data.id, cardId, title: trimmed, position: 0, items: [] });
+      setTitle("Checklist");
+      setOpen(false);
+    } finally {
+      setIsCreating(false);
+    }
+  };
   return (
     <div className="flex flex-col gap-2">
       {open ? (
@@ -127,44 +146,30 @@ export function AddChecklistButton({
             placeholder="Checklist title"
             maxLength={200}
             autoFocus
-            onKeyDown={async (e) => {
+            onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
-                const trimmed = title.trim();
-                if (!trimmed) return;
-                const result = await createChecklistAction({ cardId, title: trimmed });
-                if ("errors" in result) {
-                  toast.error(result.errors.map((e) => e.message).join(", "));
-                  return;
-                }
-                onAdd({ id: result.data.id, cardId, title: trimmed, position: 0, items: [] });
-                setTitle("Checklist");
-                setOpen(false);
+                void submit();
               } else if (e.key === "Escape") {
                 setOpen(false);
               }
             }}
           />
           <div className="flex justify-end gap-2">
-            <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => setOpen(false)}
+              disabled={isCreating}
+            >
               Cancel
             </Button>
             <Button
               type="button"
               size="sm"
-              disabled={!title.trim() || disabled}
-              onClick={async () => {
-                const trimmed = title.trim();
-                if (!trimmed) return;
-                const result = await createChecklistAction({ cardId, title: trimmed });
-                if ("errors" in result) {
-                  toast.error(result.errors.map((e) => e.message).join(", "));
-                  return;
-                }
-                onAdd({ id: result.data.id, cardId, title: trimmed, position: 0, items: [] });
-                setTitle("Checklist");
-                setOpen(false);
-              }}
+              onClick={() => void submit()}
+              disabled={!title.trim() || isCreating || disabled}
             >
               Add
             </Button>
